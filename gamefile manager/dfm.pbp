@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://www.purebasic.com/namespace" version="1.0" creator="PureBasic 5.72 (Windows - x64)">
+  <section name="config">
+    <options closefiles="1" openmode="0" name="Kuribrawl DataFile Maker"/>
+  </section>
+  <section name="data">
+    <explorer view="C:\ProgramData\PureBasic\Examples\" pattern="0"/>
+    <log show="1"/>
+    <lastopen date="2021-09-17 20:51" user="twilc" host="TWIL-DESKTOP"/>
+  </section>
+  <section name="files">
+    <file name="dataFileMaker.pb">
+      <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
+      <fingerprint md5="af6ae42c1eab76a6ff0c67cf9003d772"/>
+    </file>
+    <file name="dataFileMarkerData.pbi">
+      <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
+      <fingerprint md5="b879cd0a5675b7d94917fa907459e266"/>
+    </file>
+    <file name="dataFileMarkerDebugValues.pbi">
+      <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
+      <fingerprint md5="2a7a6958cb19bde6669766270579f82c"/>
+    </file>
+  </section>
+  <section name="targets">
+    <target name="Default Target" enabled="1" default="1">
+      <inputfile value="dataFileMaker.pb"/>
+      <outputfile value="DFM.exe"/>
+      <commandline value="-v ../res"/>
+      <executable value="..\res\DFM.exe"/>
+      <options xpskin="1" debug="1"/>
+      <icon enable="1">..\GraphicDesignIsMyPassion\iconDev.ico</icon>
+      <format exe="console" cpu="0"/>
+    </target>
+  </section>
+</project>

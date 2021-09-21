@@ -1,0 +1,4 @@
+idle_strip4.png
+A:acid/idle idle.dat
+nair_strip6.png
+C:acid

@@ -1,0 +1,35 @@
+﻿Acid Rainbows
+###Champion values
+#Speeds and accelerations
+3.5 #Walk Speed
+8   #Run speed
+11  #Initial dash speed
+1.5 #Dash turn accel
+0.5 #Dash stop decel
+0.7 #Traction
+5   #Max air speed
+0.3 #Air accel
+0.1 #Air friction
+13  #FHop initial speed
+9   #SHop initial speed
+12  #air jump initial speed 
+3 3 3 3 #Horizontal jump speeds (GF/GB/AF/AB)
+0.7 #Gravity
+11  #Max fall speed
+14  #Fast fall speed
+1.11#KB multiplier (1/w)
+#Durations (-1 means as long as the animation with its default speed)
+5   #Jumpsquat
+-1  #Dash start
+-1  #Dash stop
+-1  #Dash Turn
+-1  #landing
+2   #guard start
+5   #guard stop
+#Shield
+60  #shield size
+0   #shield center x
+30  #shield center y
+1 # Air jumps
+
+m nair l 8

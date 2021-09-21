@@ -1,0 +1,93 @@
+﻿/!\ TOUT STRING DE PLUS DE 127 CARACTERES FERA PLANTER LE JEU ATM
+
+========================================================
+Structure des fichiers de données de jeu (twl) : 
+- Signature : 0x54 54 54 54
+- 1 octet version majeure
+- 1 octet version mineure
+- 1 octet révision
+- Fichiers : 
+- - - 1 octet type (0 : image d'anim, 1 : champion)
+- - - string : tag du fichier
+- - - 4 octets : longueur du fichier
+- - - Données
+- - - [0xFE
+- - - Descripteur]
+- - - 0xFF
+
+>Descripteur de fichier Animation
+- 1 octet : nombre de frames
+- [0x01
+- 8 octets : vitesse]
+- infos de frame (facultatif) :
+- - - 0x02
+- - - 1 octet n° de frame
+- - - [0x20
+- - - 2 octets durée]
+- - - [0x21
+- - - 4 octets : x origine
+- - - 4 octets : y origine]
+- infos de hurtbox (facultatif) : 
+- - - 0x03
+- - - [0x31
+- - - 1 octet n° de frame]
+- - - 2 octets x
+- - - 2 octets y
+- - - 2 octets w
+- - - 2 octets h
+- - - 1 octet : hurtbox type
+- infos d'hitbox (facultatif) : 
+- - - 0x04
+- - - [0x41
+- - - 1 octet n° de frame]
+- - - 2 octets x
+- - - 2 octets y
+- - - 2 octets w
+- - - 2 octets h
+- - - 2 octets damages
+- - - 2 octets angle
+
+>Données de champion
+- Nom (UTF-8 String)
+- Variables gameplay (à la suite)
+- Infos de move (facultatif) :
+- - - 0x02
+- - - nom du move (nt-string)
+- - - [0x20
+- - - 1 octet landing lag]
+- Infos de multimove (facultatif)
+- - - 0x03
+- - - {1 octet frame de fin de part
+- - - 1 octet frame de début de part}
+- - - 0x31
+
+>Données de stage
+- Nom (UTF-8 String)
+- Variables de gameplay (à la suite)
+- Infos de plateforme (facultatif) : 
+- - - 0x01
+- - - 2 octets x (-1 si centré)
+- - - 2 octets y
+- - - 2 octets w
+
+
+========================================================
+Descripteur de fichier d'animation (format texte, ligne par ligne)
+- nombre de frames
+- vitesse (facultatif) : s<speed>
+- info de frame (facultatif) : f<n° de frame> [d<durée>] [o<x origine> <y origine>]
+- info de hurtbox : c <x> <y> <w> <h> <invincible>
+- info d'hitbox : h <x> <y> <w> <h> <damages> <angle>
+
+Descripteur de champion
+- Nom
+- variables sur la même lignes (séparées par espaces)
+- infos de move (facultatif) : m <nom du move> [l<landing lag>]
+- info de multimove (facultatif) : u<id du move> {<frame de fin de part> <frame de début de part>}
+
+Descripteur de stage
+- Nom
+- variables 
+- infos de plateforme
+- info de plateforme (facultatif) : p <x> <y> <width> [<animation>]
+
