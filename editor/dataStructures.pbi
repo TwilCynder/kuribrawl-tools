@@ -69,8 +69,11 @@ Procedure createChampion()
     ProcedureReturn AllocateStructure(Champion)
 EndProcedure
 
-; IDE Options = PureBasic 5.72 (Windows - x64)
-; CursorPosition = 68
-; FirstLine = 19
+Procedure addAnimation()
+    
+
+; IDE Options = PureBasic 5.73 LTS (Windows - x64)
+; CursorPosition = 72
+; FirstLine = 43
 ; Folding = -
 ; EnableXP
