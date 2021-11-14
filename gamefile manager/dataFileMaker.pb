@@ -761,11 +761,11 @@ If logging
     PrintN("FINISHED. File size : " + size)
     Input()
 EndIf 
-; IDE Options = PureBasic 5.72 (Windows - x64)
+; IDE Options = PureBasic 5.73 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 620
-; FirstLine = 588
+; CursorPosition = 616
+; FirstLine = 591
 ; Folding = ----
 ; EnableXP
-; Executable = dataFileMaker.exe
+; Executable = ..\..\res\DFM.exe
 ; CommandLine = -v
