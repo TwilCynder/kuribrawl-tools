@@ -34,7 +34,7 @@ Macro GMB_SepRight_(line, separator, n)
 EndMacro
 
 
-; IDE Options = PureBasic 5.72 (Windows - x64)
-; CursorPosition = 27
+; IDE Options = PureBasic 5.73 LTS (Windows - x64)
+; CursorPosition = 8
 ; Folding = --
 ; EnableXP
