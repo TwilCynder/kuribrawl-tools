@@ -1,5 +1,7 @@
 ﻿/!\ TOUT STRING DE PLUS DE 127 CARACTERES FERA PLANTER LE JEU ATM
 
+Version du format : 0.2.0
+
 ========================================================
 Structure des fichiers de données de jeu (twl) : 
 - Signature : 0x54 54 54 54
