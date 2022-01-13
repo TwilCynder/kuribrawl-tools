@@ -1,2 +1,21 @@
 system of subfiles and folders
 
+Subfile : set of data that can be read in one pass
+Subfiles types : 
+- Champion data
+- Stage data
+- App data set
+Each subfile shall have a way to detect its end.
+
+Folder : list of subfiles or folders (subfolders), placed contiguously in the datafile
+Contains a list of the subfiles and subfolders, with their position in the datafile
+
+======= Spec =========
+>Folder :
+-  Entries :
+- - - string : entry name, ends with '/' if it is a subfolder
+- - - 8 bytes : file pointer to the subfile or folder designated by this entry
+
+>Subfile : champion data
+- Champion descriptor
+- Animations 
