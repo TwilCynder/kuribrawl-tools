@@ -714,6 +714,7 @@ While 1
         Case "-o"
             buildpath = ProgramParameter()
         Default
+            Debug parameter
             source = parameter
     EndSelect
 Wend        
@@ -726,7 +727,9 @@ If buildpath = ""
     buildpath = source + "data.twl"
 EndIf 
 
+Debug source
 SetCurrentDirectory(source)
+Debug GetCurrentDirectory()
 
 If logging
     *debugValues = initDebugValues()
@@ -761,11 +764,11 @@ If logging
     PrintN("FINISHED. File size : " + size)
     Input()
 EndIf 
-; IDE Options = PureBasic 5.73 LTS (Windows - x64)
+; IDE Options = PureBasic 5.72 (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 616
-; FirstLine = 591
+; CursorPosition = 741
+; FirstLine = 695
 ; Folding = ----
 ; EnableXP
-; Executable = ..\..\res\DFM.exe
-; CommandLine = -v
+; Executable = ..\..\..\res\DFM.exe
+; CommandLine = -v ..\test

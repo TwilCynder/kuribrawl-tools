@@ -14,8 +14,8 @@ Procedure.i initDebugValues()
     *vals\fileTypeNames[0] = "Animation"
     *vals\fileTypeNames[1] = "Left Animation"
     *vals\fileTypeNames[2] = "Champion"
-    *vals\fileTypeNames[3] = "Simple image"
     *vals\fileTypeNames[4] = "Stage"
+    *vals\fileTypeNames[3] = "Simple image"
     
     *vals\hitboxValues[0] = "x"
     *vals\hitboxValues[1] = "y"
@@ -81,7 +81,8 @@ Procedure.i initDebugValues()
     ProcedureReturn *vals
 EndProcedure
 ; IDE Options = PureBasic 5.72 (Windows - x64)
-; CursorPosition = 75
-; FirstLine = 29
+; CursorPosition = 17
+; FirstLine = 11
 ; Folding = -
 ; EnableXP
+; CommandLine = ..\res

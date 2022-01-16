@@ -1,6 +1,6 @@
 /!\ TOUT STRING DE PLUS DE 127 CARACTERES FERA PLANTER LE JEU ATM
 
-Version du format : 0.2.0
+Version du format : 0.3.0
 
 ========================================================
 Structure des fichiers de données de jeu (twl) : 
@@ -9,7 +9,7 @@ Structure des fichiers de données de jeu (twl) :
 - 1 octet version mineure
 - 1 octet révision
 - Fichiers : 
-- - - 1 octet type (0 : image d'anim, 1 : champion)
+- - - 1 octet type (0 : animation, 2 : champion, 4 : image)
 - - - string : tag du fichier
 - - - 4 octets : longueur du fichier
 - - - Données
@@ -37,7 +37,7 @@ Structure des fichiers de données de jeu (twl) :
 - - - 2 octets y
 - - - 2 octets w
 - - - 2 octets h
-- - - 1 octet : hurtbox type
+- - - 1 octet type (normal;protected;invincible;intangible)
 - infos d'hitbox (facultatif) : 
 - - - 0x04
 - - - [0x41
@@ -46,8 +46,13 @@ Structure des fichiers de données de jeu (twl) :
 - - - 2 octets y
 - - - 2 octets w
 - - - 2 octets h
-- - - 2 octets damages
+- - - 1 octet type (damage;grab;wind;special)
+- - - 8 octets damages
 - - - 2 octets angle
+- - - 8 octets base_knockback
+- - - 8 octets scalink_knockback
+- - - 1 octet hitID
+- - - 1 octet priority
 
 >Données de champion
 - Nom (UTF-8 String)
