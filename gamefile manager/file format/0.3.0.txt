@@ -1,5 +1,10 @@
 /!\ TOUT STRING DE PLUS DE 127 CARACTERES FERA PLANTER LE JEU ATM
 
+Rappel : systèmes affectés par cette spécification :
+- datafile maker
+- kuribrawl
+- editor
+
 Version du format : 0.3.0
 
 ========================================================
@@ -55,20 +60,20 @@ Structure des fichiers de données de jeu (twl) :
 - - - 1 octet priority
 
 >Données de champion
-- Nom (UTF-8 String)
+- Nom (UTF-8 String) 
 - Variables gameplay (à la suite)
 - Infos de move (facultatif) :
 - - - 0x02
 - - - nom du move (nt-string)
 - - - [0x20
 - - - 1 octet landing lag]
-- Infos de multimove (facultatif)
+- Infos de multimove (facultatif) NI
 - - - 0x03
 - - - {1 octet frame de fin de part
 - - - 1 octet frame de début de part}
 - - - 0x31
 
->Données de stage
+>Données de stage NI
 - Nom (UTF-8 String)
 - Variables de gameplay (à la suite)
 - Infos de plateforme (facultatif) : 

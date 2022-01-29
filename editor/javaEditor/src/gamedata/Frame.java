@@ -4,7 +4,7 @@ import KBUtil.Rectangle;
 import KBUtil.Point;
 
 public class Frame {
-    private int duration;
-    Rectangle display;
-    Point origin;
+    public int duration;
+    public Rectangle display;
+    public Point origin;
 }

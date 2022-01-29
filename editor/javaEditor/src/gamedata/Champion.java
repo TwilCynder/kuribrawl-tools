@@ -1,6 +1,8 @@
 package gamedata;
 
 import java.util.Map;
+import java.util.TreeMap;
+import java.awt.Image;
 
 class ChampionVals  {
     public double walk_speed;
@@ -41,6 +43,38 @@ public class Champion {
     private String name;
     private String displayName;
 
-    private Map<String, EntityAnimation> animations;
+    private Map<String, EntityAnimation> animations = new TreeMap<>();
+    private Map<String, Move> moves = new TreeMap<>();
     
+    public Champion(String name){
+        this.name = name;
+    }
+
+    public String getName(){
+        return name;
+    }
+
+    public void setDisplayName(String name){
+        displayName = name;
+    }
+
+    public String getDislayName(){
+        return displayName;
+    }
+
+    public Move getMove(String name){
+        return moves.get(name);
+    }
+
+    public Move addMoveInfo(String name){
+        return moves.put(name, new Move());
+    }
+
+    public Animation getAnimation(String name){
+        return animations.get(name);
+    }
+
+    public Animation addAnimation(String name, int nbFrames, Image source){
+        return animations.put(name, new EntityAnimation(nbFrames, name, source));
+    }
 }
