@@ -5,18 +5,33 @@ import java.awt.Image;
 import gamedata.exceptions.FrameOutOfBoundsException;
 
 public class Animation {
-    private Frame[] frames;
-    private String name;
-    private double speed;
-    Image source;
+    protected Frame[] frames;
+    protected String name;
+    protected double speed;
+    protected Image source;
+
+    protected String source_filname;
+
+    public Animation(String name, Image source, int nbFrames, String filename){
+        this(nbFrames, name, source);
+        this.source_filname = filename;
+    }
 
     private Animation(int nbFrames, Image source){
-        this.frames = new Frame[nbFrames];
-        for (int i = 0; i < nbFrames; i++){
-            this.frames[i] = new Frame();
-        }
+        makeFrames(nbFrames);
         this.source = source;
     }
+
+    private void makeFrames(int nbFrames){
+        this.frames = new Frame[nbFrames];
+        int w = source.getWidth(null);
+        int h = source.getHeight(null);
+        int frameW = w / nbFrames;
+        for (int i = 0; i < nbFrames; i++){
+            this.frames[i] = new Frame(frameW * i, 0, frameW, h);
+        }
+    }
+
     public Animation(int nbFrames, String name, Image source) {
         this(nbFrames, source);
         this.name = name;
@@ -42,6 +57,14 @@ public class Animation {
 
     public void setSpeed(double s){
         this.speed = s;
+    }
+
+    public String getSourceFilename(){
+        return source_filname;
+    }
+
+    public void setSourceFilename(String filename){
+        source_filname = filename;
     }
 
 }

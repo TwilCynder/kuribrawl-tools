@@ -4,7 +4,32 @@ import KBUtil.Rectangle;
 import KBUtil.Point;
 
 public class Frame {
-    public int duration;
-    public Rectangle display;
-    public Point origin;
+    private int duration = 0;
+    private final Rectangle display;
+    private final Point origin;
+
+    public Frame (int x, int y, int w, int h){
+        this(new Rectangle(x, y, w, h));
+    }
+
+    public Frame (Rectangle display){
+        this.display = display;
+        origin = new Point(display.w / 2, display.h);
+    }
+
+    public int getDuration(){
+        return duration;
+    }
+
+    public void setDuration(int duration){
+        this.duration = duration;
+    }
+
+    public Rectangle getDisplay(){
+        return display;
+    }
+
+    public Point getOrigin(){
+        return origin;
+    }
 }
