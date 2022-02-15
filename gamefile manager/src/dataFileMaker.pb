@@ -1,6 +1,13 @@
 ;TODO Modifs in the file format
-;  Change the $5x filemarkers to a more meaningful value
+;  Change the $5x filemarkers to a more meaningful value (DONE)
 ;  Animation speed : float >double (DONE)
+
+#DFV_MAJ = 0
+#DFV_MIN = 3
+#DFV_REV = 1
+#RFV_MAJ = 0
+#RFV_MIN = 3
+#RFV_REV = 1
 
 Structure File
     path.s
@@ -18,6 +25,7 @@ Enumeration
     #FILETYPE_CHAMPION
     #FILETYPE_STAGE
     #FILETYPE_IMAGE
+    #FILETYPE_FILE
     #FILETYPES
 EndEnumeration
 
@@ -129,7 +137,7 @@ Procedure readFileList()
 
     file.l = ReadFile(#PB_Any, "project_db.txt")
     If Not file
-        error("Could Not file project DB.")
+        error("Could Not find project DB.")
         End
     EndIf
 
@@ -651,6 +659,8 @@ Procedure addFile(datafile.l, *inputFile.File)
             type = #FILETYPE_STAGE
         Case "I"
             type = #FILETYPE_IMAGE
+        Case "X"
+            type = #FILETYPE_FILE
         Default
             error(*inputFile\content + " : unknown file type")
     EndSelect
@@ -670,7 +680,7 @@ Procedure addFile(datafile.l, *inputFile.File)
     writeAsciiString(datafile, tag)
     printLog("Tag : " + tag)
 
-    If type = #FILETYPE_ANIMATION Or type = #FILETYPE_LEFTANIM Or type = #FILETYPE_IMAGE
+    If type = #FILETYPE_ANIMATION Or type = #FILETYPE_LEFTANIM Or type = #FILETYPE_IMAGE Or type = #FILETYPE_FILE
         ;these files are data that isn't going to be parsed (image, sound)
         size.l = readFileToMemory(*inputFile\path)
         If Not size
@@ -727,9 +737,7 @@ If buildpath = ""
     buildpath = source + "data.twl"
 EndIf
 
-Debug source
 SetCurrentDirectory(source)
-Debug GetCurrentDirectory()
 
 If logging
     *debugValues = initDebugValues()
@@ -747,8 +755,14 @@ If Not CreateFile(0, buildpath)
     End
 EndIf
 
+If logging 
+    PrintN("Building Kuribrawl Data File at" + buildpath + " from ressources at " + source + ".")
+    PrintN("Data File Format version : " + #DFV_MAJ + "." + #DFV_MIN + "." + #DFV_REV)
+    PrintN("Ressource Files Format version : " + #RFV_MAJ + "." + #RFV_MIN + "." + #RFV_REV)
+EndIf
+
 writeSignature(0)
-writeVersion(0, 0, 3, 0)
+writeVersion(0, #DFV_MAJ, #DFV_MIN, #DFV_REV)
 
 readFileList()
 
@@ -764,10 +778,10 @@ If logging
     PrintN("FINISHED. File size : " + size)
     Input()
 EndIf
-; IDE Options = PureBasic 5.72 (Windows - x64)
+; IDE Options = PureBasic 5.73 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 741
-; FirstLine = 695
+; CursorPosition = 760
+; FirstLine = 747
 ; Folding = ----
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe

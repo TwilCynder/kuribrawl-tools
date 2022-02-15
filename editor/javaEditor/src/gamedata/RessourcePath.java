@@ -39,33 +39,50 @@ public class RessourcePath {
         return Files.newInputStream(path.resolve(name), symlinks_behavior);
     }
 
-    private BufferedReader fileReader(String name) throws IOException, InvalidPathException, RessourceException {
+    private BufferedReader fileReader(String name) throws IOException, InvalidPathException {
         Path filepath = path.resolve(name);
         filepath = path.toAbsolutePath();
         System.out.println(filepath);
-        if (!Files.exists(filepath, symlinks_behavior) || !Files.isRegularFile(path, symlinks_behavior)){
-            throw new RessourceException("File " + name + " is a directory or does not exist.");
-        }
-        return new BufferedReader(new FileReader(filepath.toString()));
+
+        return Files.newBufferedReader(filepath);
     }
 
-    public GameData parseGameData() throws IOException, RessourceException{
-        BufferedReader reader = fileReader("project_db.txt");
+    private void parseAnimation(GameData gd, String file, String info){
+        
+    }
 
-        String file, info, field;
+    private static final String listFilename = "project_db.txt";
 
-        while (reader.ready()){
-            file = reader.readLine();
-            info = reader.readLine();
-
-            
-        }
+    public GameData parseGameData() throws IOException, RessourceException {
+        BufferedReader reader = fileReader(listFilename);
 
 
+        String file, info;
+        String[] split;
+        int line = 1;
 
         GameData gd = new GameData();
 
+        while (reader.ready()){
+            file = reader.readLine();
+            info = reader.readLine();   
 
+            if (info == null) throw new RessourceException("filename without file info in files list file (" + listFilename + ")");
+
+            split = info.split(":");
+            
+            if (split.length != 2) throw new RessourceException("File info line should contain exactly 1 : separator", listFilename, line + 1);
+            line += 2;
+
+            switch (split[0]){
+                case "L":
+                case "I":
+                case "X":
+                    break;
+                case "A":
+                    parseAnimation(gd, file, info);
+            }
+        }
 
         return gd;
     }
