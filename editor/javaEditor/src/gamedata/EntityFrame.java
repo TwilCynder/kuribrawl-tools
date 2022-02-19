@@ -23,5 +23,13 @@ public class EntityFrame {
         movement = new Vec2<>(new FrameMovementAxis(), new FrameMovementAxis());
     }
 
+    public void addHurtbox(int x, int y, int w, int h){
+        hurtboxes.add(new Hurtbox(x, y, w, h));
+    }
+
+    public void addDamageHurtbox(){
+        
+    }
+
 }
 

@@ -1,7 +1,9 @@
 package gamedata;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
+
 import java.awt.Image;
 
 class ChampionVals  {
@@ -38,7 +40,7 @@ class ChampionVals  {
     int air_jumps;
 }
 
-public class Champion {
+public class Champion implements Iterable<EntityAnimation>{
     public ChampionVals vals;
     private String name;
     private String displayName;
@@ -79,6 +81,14 @@ public class Champion {
 
     public EntityAnimation getAnimation(String name){
         return animations.get(name);
+    }
+
+    public Iterator<EntityAnimation> getAnimations(){
+        return animations.values().iterator();
+    }
+
+    public Iterator<EntityAnimation> iterator(){
+        return getAnimations();
     }
 
     public EntityAnimation addAnimation(String name, Image source, int nbFrames, String source_filename, String descriptor_filename){

@@ -16,8 +16,12 @@ import java.awt.Image;
 import javax.imageio.ImageIO;
 import javax.swing.text.html.HTML.Tag;
 
+import KBUtil.Point;
+import KBUtil.Rectangle;
+import gamedata.exceptions.FrameOutOfBoundsException;
 import gamedata.exceptions.InvalidRessourcePathException;
 import gamedata.exceptions.RessourceException;
+import gamedata.exceptions.WhatTheHellException;
 
 public class RessourcePath {
     private Path path;
@@ -80,7 +84,7 @@ public class RessourcePath {
 
     }
 
-    private void parseAnimation(GameData gd, String file, String info) throws RessourceException{
+    private void parseAnimation(GameData gd, String file, String info) throws RessourceException, WhatTheHellException{
         String[] fields;
         String val;
 
@@ -94,13 +98,33 @@ public class RessourcePath {
 
         } else {
             EntityAnimation anim = addAnimation(gd, fields[0], Integer.parseInt(fields[1]), file, null);
+            if (fields.length > 2){
+                anim.setSpeed(Double.parseDouble(fields[2]));
+                if (fields.length > 3){
+                    if (fields[3] == "c" || fields[3] == "cbox all"){
+                        for (int i = 0; i < anim.getNbFrames(); i++){
+                            Frame frame;
+                            try {
+                                frame = anim.getFrame(i);
+                            } catch (FrameOutOfBoundsException e){
+                                throw new WhatTheHellException("Supposedly safe array iteration went out of bounds", e);
+                            }
+                            
+                            Point origin = frame.getOrigin();
+                            Rectangle display = frame.getDisplay();        
+                            
+                            anim.getEntityFrame(i);
+                        }
+                    }
+                }
+            }
         }
 
     }
 
     private static final String listFilename = "project_db.txt";
 
-    public GameData parseGameData() throws IOException, RessourceException {
+    public GameData parseGameData() throws IOException, RessourceException, WhatTheHellException {
         BufferedReader reader = fileReader(listFilename);
 
 
@@ -131,7 +155,14 @@ public class RessourcePath {
             }
         }
 
-        
+        /*
+        for (Champion c : gd){
+            for (EntityAnimation anim : c){
+                System.out.println(anim.getName());
+                System.out.println(anim.getNbFrames());
+            }
+        }
+        */
 
         return gd;
     }

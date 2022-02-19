@@ -2,10 +2,10 @@ package gamedata;
 
 import gamedata.exceptions.FrameOutOfBoundsException;
 import java.awt.Image;
-
+import java.util.Iterator;
 import java.awt.Graphics;
 
-public class EntityAnimation extends Animation {
+public class EntityAnimation extends Animation implements Iterable<EntityFrame>{
     private EntityFrame[] entity_frames;
     protected String descriptor_filename;
 
@@ -26,6 +26,27 @@ public class EntityAnimation extends Animation {
         if (i < 0 || i >= entity_frames.length) throw new FrameOutOfBoundsException(this, i);
 
         return entity_frames[i];
+    }
+
+    private class FrameIterator implements Iterator<EntityFrame>{
+        int i;
+
+        FrameIterator (){
+            i = -1;
+        }
+
+        public boolean hasNext(){
+            return i < entity_frames.length - 1;
+        }
+
+        public EntityFrame next(){
+            i++;
+            return entity_frames[i];
+        }
+    }
+
+    public Iterator<EntityFrame> iterator(){ 
+        return new FrameIterator();
     }
 
     public void draw(Graphics g, int frame, int dx, int dy, int dw, int dh){

@@ -1,9 +1,10 @@
 package gamedata;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class GameData {
+public class GameData implements Iterable<Champion> {
     private Map<String, Champion> champions;
 
     public GameData(){
@@ -24,5 +25,13 @@ public class GameData {
         Champion c = champions.get(name);
         if (c == null) c = addChampion(name);
         return c;
+    }
+
+    public Iterator<Champion> getChampions(){
+        return champions.values().iterator();
+    }
+
+    public Iterator<Champion> iterator(){
+        return getChampions();
     }
 }
