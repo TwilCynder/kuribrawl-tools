@@ -18,8 +18,8 @@ public class Animation {
     }
 
     private Animation(int nbFrames, Image source){
-        makeFrames(nbFrames);
         this.source = source;
+        makeFrames(nbFrames);
     }
 
     private void makeFrames(int nbFrames){
