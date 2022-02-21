@@ -6,7 +6,7 @@ import KBUtil.Point;
 public class Frame {
     private int duration = 0;
     private final Rectangle display;
-    private final Point origin;
+    private Point origin;
 
     public Frame (int x, int y, int w, int h){
         this(new Rectangle(x, y, w, h));
@@ -31,5 +31,9 @@ public class Frame {
 
     public Point getOrigin(){
         return origin;
+    }
+
+    public void setOrigin(Point p){
+        origin = p;
     }
 }

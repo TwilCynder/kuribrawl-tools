@@ -11,11 +11,16 @@ public class EntityAnimation extends Animation implements Iterable<EntityFrame>{
 
     public EntityAnimation(String name, Image source, int nbFrames, String source_filename, String descriptor_filename){
         super (name, source, nbFrames, source_filename);
+        initEntityFrames(nbFrames);
     }
 
     @Deprecated
     public EntityAnimation(int nbFrames, String name, Image source){
         super(nbFrames, name, source);
+        initEntityFrames(nbFrames);
+    }
+
+    private void initEntityFrames(int nbFrames){
         this.entity_frames = new EntityFrame[nbFrames];
         for (int i = 0; i < nbFrames; i++){
             this.entity_frames[i] = new EntityFrame();
