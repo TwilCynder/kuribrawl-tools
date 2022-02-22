@@ -5,6 +5,8 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
@@ -18,6 +20,10 @@ import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
+
+import gamedata.Champion;
+import gamedata.EntityAnimation;
+import gamedata.GameData;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -33,6 +39,8 @@ public class Window extends JFrame{
 	private JTextField textField_5;
 	private JTextField textField_6;
 	private JTextField textField_4;
+
+	private GameData currentData;
 
     public Window(){
         super("Le Test has Arrived");
@@ -260,8 +268,25 @@ public class Window extends JFrame{
 		JButton btnzoomin = new JButton("+");
 		Current_frame_controls.add(btnzoomin);
 
-        setMinimumSize(new Dimension(500, 350));
+		JMenuBar menubar = new JMenuBar();
+
+		JMenu animations_menu = new JMenu("Animations");
+		menubar.add(animations_menu);
+
+		setJMenuBar(menubar);
+
+        setMinimumSize(new Dimension(500, 370));
         setSize(350, 350);
         setLocationRelativeTo(null);
     }
+
+	public void setGameData(GameData gd){
+		for (Champion c : gd){
+            for (EntityAnimation anim : c){
+                System.out.println(anim.getName());
+                System.out.println(anim.getNbFrames());
+                System.out.println(anim.getSpeed());
+            }
+        }
+	}
 }

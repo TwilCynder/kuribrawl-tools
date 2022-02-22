@@ -434,7 +434,7 @@ public class RessourcePath {
             }
         }
 
-        
+        /*
         for (Champion c : gd){
             for (EntityAnimation anim : c){
                 System.out.println(anim.getName());
@@ -442,8 +442,7 @@ public class RessourcePath {
                 System.out.println(anim.getSpeed());
             }
         }
-        
-        
+        */
 
         return gd;
     }
