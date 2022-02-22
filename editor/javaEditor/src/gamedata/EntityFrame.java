@@ -18,7 +18,7 @@ public class EntityFrame {
         public double value = 0.0;
     }
 
-    public final Vec2<FrameMovementAxis> movement;
+    private final Vec2<FrameMovementAxis> movement;
 
     public EntityFrame(){
         movement = new Vec2<>(new FrameMovementAxis(), new FrameMovementAxis());

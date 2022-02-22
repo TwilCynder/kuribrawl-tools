@@ -17,6 +17,7 @@ import javax.swing.text.html.parser.Entity;
 
 import KBUtil.Point;
 import KBUtil.Rectangle;
+import KBUtil.Vec2;
 import gamedata.exceptions.FrameOutOfBoundsException;
 import gamedata.exceptions.InvalidRessourcePathException;
 import gamedata.exceptions.RessourceException;
@@ -86,6 +87,26 @@ public class RessourcePath {
         entity_frame.addHurtbox(- origin.x, origin.y, display.w, display.h);
     }
 
+    private static void parseFrameMovementAxis(EntityFrame.FrameMovementAxis axis, String info) throws RessourceException{
+        String[] fields;
+        axis.enabled = true;
+        fields = info.split(":");
+        if (fields.length < 2) throw new RessourceException("Frame movement info should be of form \"m[<x mode>:<x value>]:[<y mode:y value>]\"");
+        
+        if (fields[0].contains("s")){
+            axis.set_speed = true;   
+        } 
+        if (fields[0].contains("w")){
+            axis.whole_frame = true;   
+        }
+
+        try {
+            axis.value = Double.parseDouble(fields[1]);
+        } catch (NumberFormatException e) {
+            throw new RessourceException("Movement value could not be parsed", e);
+        }
+    }
+
     /**
      * Adds a new animation to the specified GameData based on basic information from the text files.  
      * Handles the interpretation of these informations (loading the given image file, parsing the tag, etc)
@@ -128,11 +149,15 @@ public class RessourcePath {
         }
 
         public boolean valid(){
-            return index > 0;
+            return index > -1;
+        }
+
+        public String toString(){
+            return "" + index;
         }
     }
 
-    private EntityAnimation parseAnimationDescriptor(GameData gd, String tag, String source_filename, String descriptor_filename) throws RessourceException{
+    private EntityAnimation parseAnimationDescriptor(GameData gd, String tag, String source_filename, String descriptor_filename) throws RessourceException, WhatTheHellException{
         String line;
         String[] fields;
         int valInt;
@@ -197,54 +222,77 @@ public class RessourcePath {
 
                             case "m":
                             {
-                                String[] subFields = split(fields[i].substring(1), ",");
-                                String[] subFields2;
+                                String[] subFields = fields[i].substring(1).split(",");
 
-                                if (subFields[0] != ""){ //x movement
-                                    subFields2 = split(subFields[0], ":");
-                                    if (subFields2.length < 2) throw new RessourceException("Frame movement info should be of form \"m[<x mode>:<x value>]:[<y mode:y value>]\"", descriptor_filename, line_index);
-                                    
+                                Vec2<EntityFrame.FrameMovementAxis> movement = current_frame.entity_frame.getMovement();
+
+                                try {
+                                    if (subFields[0] != ""){ //x movement
+                                        parseFrameMovementAxis(movement.x, subFields[0]);
+                                        if (subFields.length > 1){
+                                            parseFrameMovementAxis(movement.y, subFields[0]);
+                                        }
+                                    }
+                                } catch (RessourceException e){
+                                    throw new RessourceException(e.getMessage(), descriptor_filename, line_index, e.getCause());
                                 }
+
                             }
                             break;
                         }
                     }
                     break;
                     case "c":
-                    fields = split(line, " ");
-
-                    if (fields.length < 2){
-                        throw new RessourceException("Hurtbox info line does not contain any information", descriptor_filename, line_index);
-                    }
-
-                    if (fields[0].length() > 1){ //we have a "c<frame number>" at the beginning
-                        valInt = parseInt(fields[0].substring(1), "Frame index is not a valid integer", descriptor_filename, line_index);
-                    
-                        try {
-                            current_frame = new CurrentFrame(anim, valInt);
-                        } catch (FrameOutOfBoundsException e){
-                            throw new RessourceException("Frame index out of bounds", descriptor_filename, line_index, e);
-                        }   
-                    }
-
-                    if (!current_frame.valid()){
-                        throw new RessourceException("Hurtbox info with no frame index found before any frame info", descriptor_filename, line_index);
-                    }
-
-                    if (fields[1] == "all"){
-                        fullFrameHurtbox(current_frame.frame, current_frame.entity_frame);
+                    if (line.trim().equals("c all")){
+                        for (int i = 0; i < anim.getNbFrames(); i++){
+                            Frame frame; EntityFrame entity_frame;
+                            try {
+                                frame = anim.getFrame(i);
+                                entity_frame = anim.getEntityFrame(i);
+                            } catch (FrameOutOfBoundsException e){
+                                throw new WhatTheHellException("Supposedly safe array iteration went out of bounds", e);
+                            }
+                            
+                            fullFrameHurtbox(frame, entity_frame);
+                        }
                     } else {
-                        if (fields.length != 5){
-                            throw new RessourceException("Hurtbox info should contain either 4 coordinates or \"all\"", descriptor_filename, line_index);
-                        }
 
-                        try {
-                            current_frame.entity_frame.addHurtbox(Integer.parseInt(fields[1]), Integer.parseInt(fields[2]), Integer.parseInt(fields[3]), Integer.parseInt(fields[4]));
-                        } catch (NumberFormatException e){
-                            throw new RessourceException("Hurtbox coordinate is not a valid number", descriptor_filename, line_index);
-                        }
+                        fields = split(line, " ");
 
+                        if (fields.length < 2){
+                            throw new RessourceException("Hurtbox info line does not contain any information", descriptor_filename, line_index);
+                        }
+    
+                        if (fields[0].length() > 1){ //we have a "c<frame number>" at the beginning
+                            valInt = parseInt(fields[0].substring(1), "Frame index is not a valid integer", descriptor_filename, line_index);
+                        
+                            try {
+                                current_frame = new CurrentFrame(anim, valInt);
+                            } catch (FrameOutOfBoundsException e){
+                                throw new RessourceException("Frame index out of bounds", descriptor_filename, line_index, e);
+                            }   
+                        }
+    
+                        if (!current_frame.valid()){
+                            throw new RessourceException("Hurtbox info with no frame index found before any frame info", descriptor_filename, line_index);
+                        }
+    
+                        if (fields[1].equals("whole")){
+                            fullFrameHurtbox(current_frame.frame, current_frame.entity_frame);
+                        } else {
+                            if (fields.length != 5){
+                                throw new RessourceException("Hurtbox info should contain either 4 coordinates or \"all\"", descriptor_filename, line_index);
+                            }
+    
+                            try {
+                                current_frame.entity_frame.addHurtbox(Integer.parseInt(fields[1]), Integer.parseInt(fields[2]), Integer.parseInt(fields[3]), Integer.parseInt(fields[4]));
+                            } catch (NumberFormatException e){
+                                throw new RessourceException("Hurtbox coordinate is not a valid number", descriptor_filename, line_index);
+                            }
+    
+                        }
                     }
+
 
                     break;
                     case "h":
