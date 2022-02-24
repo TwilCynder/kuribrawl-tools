@@ -281,11 +281,12 @@ public class Window extends JFrame{
     }
 
 	public void setGameData(GameData gd){
+		System.out.println("Using this GameData : ");
 		for (Champion c : gd){
             for (EntityAnimation anim : c){
                 System.out.println(anim.getName());
-                System.out.println(anim.getNbFrames());
-                System.out.println(anim.getSpeed());
+                //System.out.println(anim.getNbFrames());
+                //System.out.println(anim.getSpeed());
             }
         }
 	}

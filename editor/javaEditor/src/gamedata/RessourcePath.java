@@ -27,13 +27,8 @@ public class RessourcePath {
     private Path path;
     private LinkOption symlinks_behavior;
 
-    public RessourcePath(String path) throws InvalidRessourcePathException{
-        try {
-            this.path = Paths.get(path);
-        } catch (InvalidPathException e){
-            this.path = null;
-            throw new InvalidRessourcePathException("Invalid path", e);
-        }
+    public RessourcePath(Path path)throws InvalidRessourcePathException{
+        this.path = path;
         this.symlinks_behavior = LinkOption.NOFOLLOW_LINKS;
         if (!Files.exists(this.path, symlinks_behavior)){
             throw new InvalidRessourcePathException("Path does not exist");
@@ -41,6 +36,19 @@ public class RessourcePath {
 
         if (!Files.isDirectory(this.path, symlinks_behavior)){
             throw new InvalidRessourcePathException("Path is not a directory");
+        }
+    }
+
+    @Deprecated
+    public RessourcePath(String pathname) throws InvalidRessourcePathException{
+        this(stringToPath(pathname));
+    }
+
+    public static Path stringToPath(String pathname) throws InvalidRessourcePathException {
+        try {
+            return Paths.get(pathname);
+        } catch (InvalidPathException e){
+            throw new InvalidRessourcePathException("Invalid path", e);
         }
     }
 
