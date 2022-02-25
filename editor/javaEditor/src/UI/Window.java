@@ -21,6 +21,7 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
+import UI.exceptions.WindowStateException;
 import gamedata.Champion;
 import gamedata.EntityAnimation;
 import gamedata.GameData;
@@ -29,18 +30,32 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class Window extends JFrame{
+	private Canvas displayCanvas;
     private JPanel contentPane;
-	private JTextField textField;
-	private JTextField textField_1;
-	private JTextField textField_2;
-	private JTextField textField_3;
-	private JTextField textField_5;
-	private JTextField textField_6;
-	private JTextField textField_4;
+	private JTextField tfAnimSpeed;
+	private JTextField tfFrameDuration;
+	private TwilSpinner spinFrameOriginX;
+	private TwilSpinner spinFrameOriginY;
+	private JTextField tfCurrentFrame;
+	private JTextField tfCurrentZoom;
+	private JTextField tfhitboxDamages;
 
-	private GameData currentData;
+	private JMenuBar menu_bar;
+	private JMenu animations_menu;
+
+	private GameData currentData = null;
+	private JSpinner spinHurtboxX;
+	private JSpinner spinHurtboxY;
+	private JSpinner spinHurtboxWidth;
+	private JSpinner spinHurtboxHeight;
+	private JSpinner spinHitboxX;
+	private JSpinner spinHitboxY;
+	private JSpinner spinHitboxWidth;
+	private JSpinner spinHitboxHeight;
 
     public Window(){
         super("Le Test has Arrived");
@@ -62,18 +77,12 @@ public class Window extends JFrame{
         catch  (Exception e){
             System.out.println("Error while trying to set the Look&Feel, the window will be ugly asf");
         }
-	    /*catch (ClassNotFoundException e) {
-	       // handle exception
-	    }
-	    catch (InstantiationException e) {
-	       // handle exception
-	    }
-	    catch (IllegalAccessException e) {
-	       // handle exception
-	    }*/
 		
-		JPanel canvas = new Canvas();
-		contentPane.add(canvas, BorderLayout.CENTER);
+		JPanel dummyPanel;
+		JLabel dummyLabel;
+
+		displayCanvas = new Canvas();
+		contentPane.add(displayCanvas, BorderLayout.CENTER);
 		
 		JPanel controls = new JPanel();
 		contentPane.add(controls, BorderLayout.EAST);
@@ -88,42 +97,42 @@ public class Window extends JFrame{
 		panel.setToolTipText("An integer value will be the total number of cycles the animation takes.  \r\nA real number < 1 will be a multiplier (0.5 -> 2 cycles per frame).  \r\nA real number > 1 is invalid. I haven't enforced that yet please just don't use these values");
 		anim_controls.add(panel);
 		
-		JLabel lblNewLabel = new JLabel("Speed");
-		panel.add(lblNewLabel);
+		dummyLabel = new JLabel("Speed");
+		panel.add(dummyLabel);
 		
-		textField = new JTextField();
-		panel.add(textField);
-		textField.setColumns(10);
+		tfAnimSpeed = new JTextField();
+		panel.add(tfAnimSpeed);
+		tfAnimSpeed.setColumns(10);
 		
 		JPanel frame_controls = new JPanel();
 		frame_controls.setBorder(new TitledBorder(null, "Frame properties", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		controls.add(frame_controls);
 		frame_controls.setLayout(new BoxLayout(frame_controls, BoxLayout.Y_AXIS));
 		
-		JPanel panel_1 = new JPanel();
-		panel_1.setBorder(null);
-		frame_controls.add(panel_1);
+		dummyPanel = new JPanel();
+		dummyPanel.setBorder(null);
+		frame_controls.add(dummyPanel);
 		
-		JLabel lblNewLabel_1 = new JLabel("Duration");
-		panel_1.add(lblNewLabel_1);
+		dummyLabel = new JLabel("Duration");
+		dummyPanel.add(dummyLabel);
 		
-		textField_1 = new JTextField();
-		panel_1.add(textField_1);
-		textField_1.setColumns(10);
+		tfFrameDuration = new JTextField();
+		dummyPanel.add(tfFrameDuration);
+		tfFrameDuration.setColumns(10);
 		
-		JPanel panel_3 = new JPanel();
-		frame_controls.add(panel_3);
+		dummyPanel = new JPanel();
+		frame_controls.add(dummyPanel);
 		
-		JLabel lblNewLabel_2 = new JLabel("Origin");
-		panel_3.add(lblNewLabel_2);
+		dummyLabel = new JLabel("Origin");
+		dummyPanel.add(dummyLabel);
 		
-		textField_2 = new JTextField();
-		panel_3.add(textField_2);
-		textField_2.setColumns(4);
-		
-		textField_3 = new JTextField();
-		panel_3.add(textField_3);
-		textField_3.setColumns(4);
+		spinFrameOriginX = new TwilSpinner();
+		dummyPanel.add(spinFrameOriginX);
+		spinFrameOriginX.setColumns(2);
+
+		spinFrameOriginY = new TwilSpinner();
+		dummyPanel.add(spinFrameOriginY);
+		spinFrameOriginY.setColumns(2);
 		
 		JPanel element_controls = new JPanel();
 		controls.add(element_controls);
@@ -131,7 +140,7 @@ public class Window extends JFrame{
 		
 		JPanel hurtbox = new JPanel();
 		hurtbox.setBorder(new TitledBorder(null, "Hurtbox properties", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		element_controls.add(hurtbox, "name_67627993851399");
+		element_controls.add(hurtbox, "hurtbox");
 		hurtbox.setLayout(new FormLayout(new ColumnSpec[] {
 				FormSpecs.RELATED_GAP_COLSPEC,
 				ColumnSpec.decode("default:grow"),
@@ -151,29 +160,29 @@ public class Window extends JFrame{
 				FormSpecs.RELATED_GAP_ROWSPEC,
 				FormSpecs.DEFAULT_ROWSPEC,}));
 		
-		JLabel lblNewLabel_3 = new JLabel("X");
-		hurtbox.add(lblNewLabel_3, "2, 2, left, default");
+		dummyLabel = new JLabel("X");
+		hurtbox.add(dummyLabel, "2, 2, left, default");
 		
-		JSpinner spinner = new JSpinner();
-		hurtbox.add(spinner, "4, 2");
+		spinHurtboxX = new JSpinner();
+		hurtbox.add(spinHurtboxX, "4, 2");
 		
-		JLabel lblNewLabel_4 = new JLabel("Y");
-		hurtbox.add(lblNewLabel_4, "6, 2, left, default");
+		dummyLabel = new JLabel("Y");
+		hurtbox.add(dummyLabel, "6, 2, left, default");
 		
-		JSpinner spinner_2 = new JSpinner();
-		hurtbox.add(spinner_2, "8, 2");
+		spinHurtboxY = new JSpinner();
+		hurtbox.add(spinHurtboxY, "8, 2");
 		
-		JLabel lblWidth = new JLabel("width");
-		hurtbox.add(lblWidth, "2, 4, left, default");
+		dummyLabel = new JLabel("width");
+		hurtbox.add(dummyLabel, "2, 4, left, default");
 		
-		JSpinner spinner_1 = new JSpinner();
-		hurtbox.add(spinner_1, "4, 4");
+		spinHurtboxWidth = new JSpinner();
+		hurtbox.add(spinHurtboxWidth, "4, 4");
 		
-		JLabel lblHeight = new JLabel("height");
-		hurtbox.add(lblHeight, "6, 4, right, default");
+		dummyLabel = new JLabel("height");
+		hurtbox.add(dummyLabel, "6, 4, right, default");
 		
-		JSpinner spinner_3 = new JSpinner();
-		hurtbox.add(spinner_3, "8, 4");
+		spinHurtboxHeight = new JSpinner();
+		hurtbox.add(spinHurtboxHeight, "8, 4");
 		
 		String[] items = new String[] {"Normal", "Protected", "Invincible", "Intangible"};
 		JComboBox<String> comboBox = new JComboBox<String>(items);
@@ -181,7 +190,7 @@ public class Window extends JFrame{
 		
 		JPanel hitbox = new JPanel();
 		hitbox.setBorder(new TitledBorder(null, "Hitbox properties", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		element_controls.add(hitbox, "Hitbox");
+		element_controls.add(hitbox, "hitbox");
 		hitbox.setLayout(new FormLayout(new ColumnSpec[] {
 				FormSpecs.RELATED_GAP_COLSPEC,
 				FormSpecs.DEFAULT_COLSPEC,
@@ -201,43 +210,43 @@ public class Window extends JFrame{
 				FormSpecs.RELATED_GAP_ROWSPEC,
 				FormSpecs.DEFAULT_ROWSPEC,}));
 		
-		JLabel lblNewLabel_3_ = new JLabel("X");
-		hitbox.add(lblNewLabel_3_, "2, 2, left, default");
+		dummyLabel = new JLabel("X");
+		hitbox.add(dummyLabel, "2, 2, left, default");
 		
-		JSpinner spinner_ = new JSpinner();
-		hitbox.add(spinner_, "4, 2");
+		spinHitboxX = new JSpinner();
+		hitbox.add(spinHitboxX, "4, 2");
 		
-		JLabel lblNewLabel_4_ = new JLabel("Y");
-		hitbox.add(lblNewLabel_4_, "6, 2, left, default");
+		dummyLabel = new JLabel("Y");
+		hitbox.add(dummyLabel, "6, 2, left, default");
 		
-		JSpinner spinner_2_ = new JSpinner();
-		hitbox.add(spinner_2_, "8, 2");
+		spinHitboxY = new JSpinner();
+		hitbox.add(spinHitboxY, "8, 2");
 		
-		JLabel lblWidth_ = new JLabel("width");
-		hitbox.add(lblWidth_, "2, 4, left, default");
+		dummyLabel = new JLabel("width");
+		hitbox.add(dummyLabel, "2, 4, left, default");
 		
-		JSpinner spinner_1_ = new JSpinner();
-		hitbox.add(spinner_1_, "4, 4");
+		spinHitboxWidth = new JSpinner();
+		hitbox.add(spinHitboxWidth, "4, 4");
 		
-		JLabel lblHeight_ = new JLabel("height");
-		hitbox.add(lblHeight_, "6, 4, right, default");
+		dummyLabel = new JLabel("height");
+		hitbox.add(dummyLabel, "6, 4, right, default");
 		
-		JSpinner spinner_3_ = new JSpinner();
-		hitbox.add(spinner_3_, "8, 4");
+		spinHitboxHeight = new JSpinner();
+		hitbox.add(spinHitboxHeight, "8, 4");
 		
 		items = new String[] {"Normal", "Protected", "Invincible", "Intangible"};
 		JComboBox<String> comboBox2 = new JComboBox<String>(items);
 		hitbox.add(comboBox2, "2, 6, 7, 1, fill, default");
 		
-		JLabel lblNewLabel_5 = new JLabel("damages");
-		hitbox.add(lblNewLabel_5, "2, 8, right, default");
+		dummyLabel = new JLabel("damages");
+		hitbox.add(dummyLabel, "2, 8, right, default");
 		
-		textField_4 = new JTextField();
-		textField_4.setColumns(4);
-		hitbox.add(textField_4, "4, 8, fill, default");
+		tfhitboxDamages = new JTextField();
+		tfhitboxDamages.setColumns(4);
+		hitbox.add(tfhitboxDamages, "4, 8, fill, default");
 		
 		JPanel blank = new JPanel();
-		element_controls.add(blank, "name_58944544055700");
+		element_controls.add(blank, "hitbox");
 		
 		JPanel blank_space = new JPanel();
 		controls.add(blank_space);
@@ -250,10 +259,23 @@ public class Window extends JFrame{
 		
 		JButton btnButtonLeft = new JButton("<-");
 		Current_frame_controls.add(btnButtonLeft);
+		btnButtonLeft.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				EntityAnimationDisplayer displayer;
+				try {
+					displayer = getEADisplayer();
+					displayer.incrFrame();
+				} catch (WindowStateException ex){
+					ex.printStackTrace();
+				}
+				repaint();
+			}
+		});
 		
-		textField_5 = new JTextField();
-		Current_frame_controls.add(textField_5);
-		textField_5.setColumns(2);
+		tfCurrentFrame = new JTextField();
+		Current_frame_controls.add(tfCurrentFrame);
+		tfCurrentFrame.setColumns(2);
+		tfCurrentFrame.setEditable(false);
 		
 		JButton btnButtonRight = new JButton("->");
 		Current_frame_controls.add(btnButtonRight);
@@ -261,24 +283,37 @@ public class Window extends JFrame{
 		JButton btnzoomout = new JButton("-");
 		Current_frame_controls.add(btnzoomout);
 		
-		textField_6 = new JTextField();
-		Current_frame_controls.add(textField_6);
-		textField_6.setColumns(4);
+		tfCurrentZoom = new JTextField();
+		Current_frame_controls.add(tfCurrentZoom);
+		tfCurrentZoom.setColumns(4);
+		tfCurrentZoom.setEditable(false);
 		
 		JButton btnzoomin = new JButton("+");
 		Current_frame_controls.add(btnzoomin);
 
-		JMenuBar menubar = new JMenuBar();
+		JMenuBar menu_bar = new JMenuBar();
 
-		JMenu animations_menu = new JMenu("Animations");
-		menubar.add(animations_menu);
+		animations_menu = new JMenu("Animations");
+		menu_bar.add(animations_menu);
 
-		setJMenuBar(menubar);
+		setJMenuBar(menu_bar);
 
         setMinimumSize(new Dimension(500, 370));
         setSize(350, 350);
         setLocationRelativeTo(null);
     }
+
+	public void initAnimationsMenu(GameData gd){
+		animations_menu.removeAll();
+
+		for (Champion c : gd){
+			JMenu champion_submenu = new JMenu(c.getDislayName());
+            for (EntityAnimation anim : c){
+				champion_submenu.add(new AnimationMenuItem(anim, this));
+            }
+			animations_menu.add(champion_submenu);
+        }
+	}
 
 	public void setGameData(GameData gd){
 		System.out.println("Using this GameData : ");
@@ -289,5 +324,37 @@ public class Window extends JFrame{
                 //System.out.println(anim.getSpeed());
             }
         }
+		initAnimationsMenu(gd);
+		currentData = gd;
 	}
+
+	public void setDisplayedObject(EntityAnimation anim){
+		EntityAnimationDisplayer displayer = new EntityAnimationDisplayer(anim, 0);
+		displayCanvas.setDisplayable(displayer);
+		updateCurrentFrameField(displayer);
+		updateCurrentZoomField(displayer);
+		repaint();
+	}
+
+	public EntityAnimationDisplayer getEADisplayer() throws WindowStateException {
+		Displayable disp = displayCanvas.getDisplayable();
+		if (disp instanceof EntityAnimationDisplayer){
+			return (EntityAnimationDisplayer)disp;
+		} else {
+			throw new WindowStateException("User interacted with frame selector while displayed object was not an EntityAnimationDisplayer");
+		}
+	}
+
+	private void updateCurrentFrameField(EntityAnimationDisplayer displayer){
+		tfCurrentFrame.setText(Integer.toString(displayer.getFrameIndex()));
+	}
+
+	private void updateCurrentZoomField(EntityAnimationDisplayer displayer){
+		tfCurrentZoom.setText(Double.toString(displayer.getZoom()));
+	}
+
+	public void setDisplayedObject(Object o) throws UnsupportedOperationException{
+		throw new UnsupportedOperationException();
+	}
+
 }

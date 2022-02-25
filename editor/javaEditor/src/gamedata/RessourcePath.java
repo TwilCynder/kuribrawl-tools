@@ -7,13 +7,13 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.awt.Image;
 
 import javax.imageio.ImageIO;
-import javax.swing.text.html.parser.Entity;
 
 import KBUtil.Point;
 import KBUtil.Rectangle;
@@ -61,7 +61,7 @@ public class RessourcePath {
         return path.resolve(name).toFile();
     }
 
-    private BufferedReader fileReader(String name) throws IOException, InvalidPathException {
+    private BufferedReader fileReader(String name) throws IOException, InvalidPathException, NoSuchFileException {
         Path filepath = path.resolve(name);
         filepath = filepath.toAbsolutePath();
 
@@ -169,7 +169,6 @@ public class RessourcePath {
         String line;
         String[] fields;
         int valInt;
-        double valDouble;
 
         if (descriptor_filename == null) throw new RessourceException("null descriptor filename");
 
@@ -411,9 +410,13 @@ public class RessourcePath {
 
     private static final String listFilename = "project_db.txt";
 
-    public GameData parseGameData() throws IOException, RessourceException, WhatTheHellException {
-        BufferedReader reader = fileReader(listFilename);
-
+    public GameData parseGameData() throws IOException, RessourceException, WhatTheHellException, InvalidRessourcePathException {
+        BufferedReader reader;
+        try {
+            reader = fileReader(listFilename);
+        } catch (NoSuchFileException e){
+            throw new RessourceException("The specified directory is not a valid ressource path : does not contain a project_db.txt file.", e);
+        }
 
         String file, info;
         String[] split;

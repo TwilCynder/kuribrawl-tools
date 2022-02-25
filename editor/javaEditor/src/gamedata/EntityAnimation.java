@@ -67,6 +67,24 @@ public class EntityAnimation extends Animation implements Iterable<EntityFrame>{
         g.drawImage(source, dx, dy, dx + w, dy + h, x, 0, x + w, h, null);
     }
 
+    public void draw(Graphics g, int frame, int dx, int dy, int tw, int th, double zoom){
+        if (frames.length < 1) return;
+        if (frame >= frames.length) return;
+        int sw = source.getWidth(null);
+        int sh = source.getHeight(null);
+        sw /= frames.length;
+        int x = frame * sw;
+
+        int dw = (int)Math.round(sw * zoom);
+        int dh = (int)Math.round(sh * zoom);
+
+
+        dx = dx + (tw / 2) - (dw / 2);
+        dy = dy + (th / 2) - (dh / 2);
+
+        g.drawImage(source, dx, dy, dx + dw, dy + dh, x, 0, x + sw, sh, null);
+    }
+
     public String getDescriptorFilename(){
         return descriptor_filename;
     }

@@ -57,6 +57,7 @@ public class Champion implements Iterable<EntityAnimation>{
 
     public Champion(String name){
         this.name = name;
+        this.displayName = name;
     }
 
     public String getName(){

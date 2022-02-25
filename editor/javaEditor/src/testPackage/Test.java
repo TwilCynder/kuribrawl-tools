@@ -6,15 +6,17 @@ import UI.Window;
 import gamedata.GameData;
 import gamedata.RessourcePath;
 import gamedata.exceptions.InvalidRessourcePathException;
+import gamedata.exceptions.RessourceException;
 
 import java.awt.EventQueue;
+import java.io.IOException;
 import java.nio.file.Path;
+
+import javax.swing.JOptionPane;
 
 public class Test {
     public static void main(String[] args) {
         System.out.println("Test Java VSC !");
-
-        GameData gd;
 
         System.out.println("Working Directory = " + System.getProperty("user.dir"));
 
@@ -28,15 +30,24 @@ public class Test {
 					Path selected = chooser.showDialog(frame);
 
 					if (selected != null){
-						GameData gd = new RessourcePath(selected).parseGameData();
-
-						System.out.println(selected);
-	
-						frame.setGameData(gd);
+						GameData gd;
+						try {
+							gd = new RessourcePath(selected).parseGameData();
+							System.out.println(selected);
+							frame.setGameData(gd);
+						} catch (InvalidRessourcePathException | IOException e){
+							JOptionPane.showMessageDialog(frame,
+							"Could not read selected ressource file : " + e.getMessage(),
+							"Inane error",
+							JOptionPane.ERROR_MESSAGE);
+						} catch (RessourceException e){
+							JOptionPane.showMessageDialog(frame,
+							"Could not read selected ressource file : " + e.getMessage(),
+							"Inane error",
+							JOptionPane.ERROR_MESSAGE);
+						}
 					}
 
-				} catch (InvalidRessourcePathException e){
-					e.printStackTrace();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

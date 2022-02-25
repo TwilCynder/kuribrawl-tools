@@ -10,7 +10,7 @@ import javax.swing.JPanel;
 import java.awt.Cursor;
 
 public class Canvas extends JPanel{
-    Displayable current_object;
+    private Displayable current_object;
 
     public Canvas(){
         super();
@@ -27,6 +27,10 @@ public class Canvas extends JPanel{
         current_object = obj;
     }
 
+    public Displayable getDisplayable(){
+        return current_object;
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -35,7 +39,7 @@ public class Canvas extends JPanel{
         g2d.setColor(new Color((dim.width / 4) % 256, (dim.height / 4) % 256, ((dim.width + dim.height) / 4) % 256));
         //g2d.fillRect(dim.width/4, dim.height/4, dim.width/2, dim.height/2);
         if (current_object != null){
-            current_object.draw(g, 0, 0, dim.width, dim.height);
+            current_object.draw(g, 0, 0, dim.width, dim.height, 2.0);
         }
     }
 
