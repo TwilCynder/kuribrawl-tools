@@ -3,8 +3,8 @@ package UI;
 import java.awt.Graphics;
 
 public abstract class ZoomingDisplayer implements Displayable{
-    private double currentZoom = 1;
-
+    protected double currentZoom = 1;
+    
     public double getZoom(){
         return currentZoom;
     }

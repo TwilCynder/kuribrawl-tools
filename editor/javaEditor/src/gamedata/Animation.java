@@ -2,6 +2,9 @@ package gamedata;
 
 import java.awt.Image;
 
+import java.awt.Graphics;
+
+import KBUtil.Size2D;
 import gamedata.exceptions.FrameOutOfBoundsException;
 
 public class Animation {
@@ -9,6 +12,7 @@ public class Animation {
     protected String name;
     protected double speed;
     protected Image source;
+    protected Size2D frame_size;
 
     protected String source_filname;
 
@@ -30,11 +34,16 @@ public class Animation {
         for (int i = 0; i < nbFrames; i++){
             this.frames[i] = new Frame(frameW * i, 0, frameW, h);
         }
+        frame_size = new Size2D(frameW, h);
     }
 
     public Animation(int nbFrames, String name, Image source) {
         this(nbFrames, source);
         this.name = name;
+    }
+
+    public Size2D getFrameSize(){
+        return frame_size;
     }
 
     public Frame getFrame(int i) throws FrameOutOfBoundsException {
@@ -65,6 +74,15 @@ public class Animation {
 
     public void setSourceFilename(String filename){
         source_filname = filename;
+    }
+
+    public void draw(Graphics g, int frameIndex, int x, int y, int w, int h) throws FrameOutOfBoundsException{
+        if (frames.length < 1) throw new FrameOutOfBoundsException(this, frameIndex);
+        if (frameIndex >= frames.length) throw new FrameOutOfBoundsException(this, frameIndex);
+        int sx = frame_size.w * frameIndex;
+        //no sy it's always 0
+
+        g.drawImage(source, x, y, x + w, y + h, sx, 0, sx + frame_size.w, frame_size.h, null);
     }
 
 }

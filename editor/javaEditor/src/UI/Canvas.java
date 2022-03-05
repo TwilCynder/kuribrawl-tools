@@ -2,44 +2,83 @@ package UI;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Dimension;
 
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 import java.awt.Cursor;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
-public class Canvas extends JPanel{
-    private Displayable current_object;
+public class Canvas extends JPanel implements Displayer{
+    private Interactable current_object;
 
     public Canvas(){
         super();
+        addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e){
+                if (current_object == null) return;
+                switch (e.getButton()){
+                    case MouseEvent.BUTTON1:
+                    current_object.onLeftClick(e.getPoint(), Canvas.this);
+                    break;
+                    case MouseEvent.BUTTON3:
+                    current_object.onRightClick(e.getPoint(), Canvas.this);
+                    break;
+                }
+
+
+            }
+
+            public void mousePressed(MouseEvent e){
+                if (current_object != null && e.isPopupTrigger()){
+                    System.out.println("popup");
+                    current_object.onPopupTrigger(e.getPoint(), Canvas.this);
+                }
+            }
+
+            public void mouseReleased(MouseEvent e){
+                if (current_object != null && e.isPopupTrigger()){
+                    System.out.println("popup");
+                    current_object.onPopupTrigger(e.getPoint(), Canvas.this);
+                }
+            }
+        });
         setBackground(Color.WHITE);
         setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
     }
 
-    public Canvas(Displayable obj){
+    public Canvas(Interactable obj){
         this();
         current_object = obj;
     }
 
-    public void setDisplayable(Displayable obj){
+    public void update(){
+        repaint();
+    }
+
+    public JComponent getComponent(){
+        return this;
+    }
+
+    public void setDisplayable(Interactable obj){
         current_object = obj;
     }
 
-    public Displayable getDisplayable(){
+    public Interactable getDisplayable(){
         return current_object;
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        Graphics2D g2d = (Graphics2D)g;
+        //Graphics2D g2d = (Graphics2D)g;
         Dimension dim = getSize();
-        g2d.setColor(new Color((dim.width / 4) % 256, (dim.height / 4) % 256, ((dim.width + dim.height) / 4) % 256));
+        //g2d.setColor(new Color((dim.width / 4) % 256, (dim.height / 4) % 256, ((dim.width + dim.height) / 4) % 256));
         //g2d.fillRect(dim.width/4, dim.height/4, dim.width/2, dim.height/2);
         if (current_object != null){
-            current_object.draw(g, 0, 0, dim.width, dim.height, 2.0);
+            current_object.draw(g, 0, 0, dim.width, dim.height);
         }
     }
 

@@ -21,13 +21,13 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
+import KBUtil.functional.DoubleToString;
 import UI.exceptions.WindowStateException;
 import gamedata.Champion;
 import gamedata.EntityAnimation;
 import gamedata.GameData;
 
 import java.awt.BorderLayout;
-import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionListener;
@@ -40,8 +40,8 @@ public class Window extends JFrame{
 	private JTextField tfFrameDuration;
 	private TwilSpinner spinFrameOriginX;
 	private TwilSpinner spinFrameOriginY;
-	private JTextField tfCurrentFrame;
-	private JTextField tfCurrentZoom;
+	private TwilTextField tfCurrentFrame;
+	private TwilTextField tfCurrentZoom;
 	private JTextField tfhitboxDamages;
 
 	private JMenuBar menu_bar;
@@ -56,11 +56,14 @@ public class Window extends JFrame{
 	private JSpinner spinHitboxY;
 	private JSpinner spinHitboxWidth;
 	private JSpinner spinHitboxHeight;
+	private JPanel animation_controls;
 
     public Window(){
         super("Le Test has Arrived");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 675, 441);
+
+		//============ Content ==================
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -84,18 +87,18 @@ public class Window extends JFrame{
 		displayCanvas = new Canvas();
 		contentPane.add(displayCanvas, BorderLayout.CENTER);
 		
-		JPanel controls = new JPanel();
-		contentPane.add(controls, BorderLayout.EAST);
-		controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
+		animation_controls = new JPanel();
+		contentPane.add(animation_controls, BorderLayout.EAST);
+		animation_controls.setLayout(new BoxLayout(animation_controls, BoxLayout.Y_AXIS));
 		
-		JPanel anim_controls = new JPanel();
-		anim_controls.setBorder(new TitledBorder(null, "Animation properties", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		controls.add(anim_controls);
-		anim_controls.setLayout(new BoxLayout(anim_controls, BoxLayout.Y_AXIS));
+		JPanel anim_prop_controls = new JPanel();
+		anim_prop_controls.setBorder(new TitledBorder(null, "Animation properties", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		animation_controls.add(anim_prop_controls);
+		anim_prop_controls.setLayout(new BoxLayout(anim_prop_controls, BoxLayout.Y_AXIS));
 		
 		JPanel panel = new JPanel();
 		panel.setToolTipText("An integer value will be the total number of cycles the animation takes.  \r\nA real number < 1 will be a multiplier (0.5 -> 2 cycles per frame).  \r\nA real number > 1 is invalid. I haven't enforced that yet please just don't use these values");
-		anim_controls.add(panel);
+		anim_prop_controls.add(panel);
 		
 		dummyLabel = new JLabel("Speed");
 		panel.add(dummyLabel);
@@ -106,7 +109,7 @@ public class Window extends JFrame{
 		
 		JPanel frame_controls = new JPanel();
 		frame_controls.setBorder(new TitledBorder(null, "Frame properties", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		controls.add(frame_controls);
+		animation_controls.add(frame_controls);
 		frame_controls.setLayout(new BoxLayout(frame_controls, BoxLayout.Y_AXIS));
 		
 		dummyPanel = new JPanel();
@@ -134,9 +137,8 @@ public class Window extends JFrame{
 		dummyPanel.add(spinFrameOriginY);
 		spinFrameOriginY.setColumns(2);
 		
-		JPanel element_controls = new JPanel();
-		controls.add(element_controls);
-		element_controls.setLayout(new CardLayout(0, 0));
+		CardPanel element_controls = new CardPanel();
+		animation_controls.add(element_controls);
 		
 		JPanel hurtbox = new JPanel();
 		hurtbox.setBorder(new TitledBorder(null, "Hurtbox properties", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -244,14 +246,16 @@ public class Window extends JFrame{
 		tfhitboxDamages = new JTextField();
 		tfhitboxDamages.setColumns(4);
 		hitbox.add(tfhitboxDamages, "4, 8, fill, default");
+
+		JPanel blank_card = new JPanel();
+		element_controls.add(blank_card, "blank");
 		
-		JPanel blank = new JPanel();
-		element_controls.add(blank, "hitbox");
-		
+		element_controls.show("hitbox");
+
 		JPanel blank_space = new JPanel();
-		controls.add(blank_space);
+		animation_controls.add(blank_space);
 		blank_space.setLayout(new SpringLayout());
-		
+
 		JPanel Current_frame_controls = new JPanel();
 		FlowLayout fl_Current_frame_controls = (FlowLayout) Current_frame_controls.getLayout();
 		fl_Current_frame_controls.setAlignment(FlowLayout.LEFT);
@@ -259,22 +263,9 @@ public class Window extends JFrame{
 		
 		JButton btnButtonLeft = new JButton("<-");
 		Current_frame_controls.add(btnButtonLeft);
-		btnButtonLeft.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				EntityAnimationDisplayer displayer;
-				try {
-					displayer = getEADisplayer();
-					displayer.incrFrame();
-				} catch (WindowStateException ex){
-					ex.printStackTrace();
-				}
-				repaint();
-			}
-		});
 		
-		tfCurrentFrame = new JTextField();
+		tfCurrentFrame = new TwilTextField(2);
 		Current_frame_controls.add(tfCurrentFrame);
-		tfCurrentFrame.setColumns(2);
 		tfCurrentFrame.setEditable(false);
 		
 		JButton btnButtonRight = new JButton("->");
@@ -283,9 +274,8 @@ public class Window extends JFrame{
 		JButton btnzoomout = new JButton("-");
 		Current_frame_controls.add(btnzoomout);
 		
-		tfCurrentZoom = new JTextField();
+		tfCurrentZoom = new TwilTextField(4);
 		Current_frame_controls.add(tfCurrentZoom);
-		tfCurrentZoom.setColumns(4);
 		tfCurrentZoom.setEditable(false);
 		
 		JButton btnzoomin = new JButton("+");
@@ -295,6 +285,76 @@ public class Window extends JFrame{
 
 		animations_menu = new JMenu("Animations");
 		menu_bar.add(animations_menu);
+
+		//============= CALLBACKS =============
+
+		btnButtonRight.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				EntityAnimationEditor displayer;
+				try {
+					displayer = getEADisplayer();
+					displayer.incrFrame();
+					repaint();
+					updateCurrentFrameField(displayer);
+				} catch (WindowStateException ex){
+				}
+			}
+		});
+
+		btnButtonLeft.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				EntityAnimationEditor displayer;
+				try {
+					displayer = getEADisplayer();
+					displayer.decrFrame();
+					repaint();
+					updateCurrentFrameField(displayer);
+				} catch (WindowStateException ex){
+				}
+			}
+		});
+
+		btnzoomout.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				EntityAnimationEditor displayer;
+				try {
+					displayer = getEADisplayer();
+					double zoom = displayer.getZoom();
+					if (zoom > 1.0){
+						zoom -= 1.0;
+						displayer.setZoom(zoom);
+						repaint();
+						updateCurrentZoomField(displayer);
+					}
+				} catch (WindowStateException ex){
+				}
+			}
+		});
+
+		btnzoomin.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				EntityAnimationEditor displayer;
+				try {
+					displayer = getEADisplayer();
+					double zoom = displayer.getZoom();
+					if (zoom < 4.0){
+						zoom += 1.0;
+						displayer.setZoom(zoom);
+						repaint();
+						updateCurrentZoomField(displayer);;
+					}
+				} catch (WindowStateException ex){
+				}
+			}
+		});
+
+		tfCurrentZoom.setDoubleTransform(new DoubleToString() {
+			public String transform(double d){
+				return Integer.toString((int)(d * 100)) + "%";
+			}
+		});
+
+		//============= MENU ==================
 
 		setJMenuBar(menu_bar);
 
@@ -329,28 +389,28 @@ public class Window extends JFrame{
 	}
 
 	public void setDisplayedObject(EntityAnimation anim){
-		EntityAnimationDisplayer displayer = new EntityAnimationDisplayer(anim, 0);
+		EntityAnimationEditor displayer = new EntityAnimationEditor(anim, this);
 		displayCanvas.setDisplayable(displayer);
 		updateCurrentFrameField(displayer);
 		updateCurrentZoomField(displayer);
 		repaint();
 	}
 
-	public EntityAnimationDisplayer getEADisplayer() throws WindowStateException {
+	public EntityAnimationEditor getEADisplayer() throws WindowStateException {
 		Displayable disp = displayCanvas.getDisplayable();
-		if (disp instanceof EntityAnimationDisplayer){
-			return (EntityAnimationDisplayer)disp;
+		if (disp instanceof EntityAnimationEditor){
+			return (EntityAnimationEditor)disp;
 		} else {
-			throw new WindowStateException("User interacted with frame selector while displayed object was not an EntityAnimationDisplayer");
+			throw new WindowStateException("User interacted with frame selector while displayed object was not an EntityAnimationEditor");
 		}
 	}
 
-	private void updateCurrentFrameField(EntityAnimationDisplayer displayer){
-		tfCurrentFrame.setText(Integer.toString(displayer.getFrameIndex()));
+	private void updateCurrentFrameField(EntityAnimationEditor displayer){
+		tfCurrentFrame.setText(displayer.getFrameIndex());
 	}
 
-	private void updateCurrentZoomField(EntityAnimationDisplayer displayer){
-		tfCurrentZoom.setText(Double.toString(displayer.getZoom()));
+	private void updateCurrentZoomField(EntityAnimationEditor displayer){
+		tfCurrentZoom.setText(displayer.getZoom());
 	}
 
 	public void setDisplayedObject(Object o) throws UnsupportedOperationException{

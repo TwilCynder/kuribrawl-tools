@@ -1,7 +1,7 @@
 package gamedata;
 
 import KBUtil.Rectangle;
-import KBUtil.Point;
+import java.awt.Point;
 
 public class Frame {
     private int duration = 0;

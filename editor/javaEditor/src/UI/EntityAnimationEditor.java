@@ -1,0 +1,109 @@
+package UI;
+
+import gamedata.EntityAnimation;
+import gamedata.EntityFrame;
+import gamedata.Frame;
+import gamedata.Hitbox;
+import gamedata.Hurtbox;
+import gamedata.exceptions.FrameOutOfBoundsException;
+
+import java.awt.Point;
+import java.awt.Component;
+
+import javax.swing.JComponent;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+
+import KBUtil.Size2D;
+
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+
+public class EntityAnimationEditor extends EntityAnimationDisplayer implements Interactable {
+    private Window window;
+
+    private class PopupMenu extends JPopupMenu {
+        private Point pos = new Point(0, 0);
+        Displayer displayer;
+        public PopupMenu() {
+            JMenuItem item = new JMenuItem("Move origin here");
+            item.addActionListener(new ActionListener(){
+                public void actionPerformed(ActionEvent e){
+                    moveOrigin(pos);
+                    displayer.update();
+                }
+            });
+            add(item);
+        }
+
+        public void show(Displayer invoker, int x, int y) {
+            displayer = invoker;
+            JComponent component = invoker.getComponent();
+            if (component == null) return;
+            pos = new Point(x, y);
+            super.show(invoker.getComponent(), x, y);
+        }
+        
+    };
+
+    private PopupMenu popup_menu = new PopupMenu();
+
+    public EntityAnimationEditor(EntityAnimation anim, Window win){
+        super(anim);
+        this.window = win;
+    }
+
+    public void onLeftClick(Point p, Displayer d) throws IllegalStateException{
+        System.out.println("Left click !");
+        moveOrigin(p);
+        d.update();
+    }
+
+    public void onRightClick(Point p, Displayer d){
+        System.out.println("Right click !");
+    };
+
+    public void onPopupTrigger(Point p, Displayer d){
+        JComponent component = d.getComponent();
+        if (component == null) return;
+        popup_menu.show(d, p.x, p.y);
+    }
+
+    private void moveOrigin(Point p) throws IllegalStateException{
+        try {
+            Point animpoint = getAnimPosition(p);
+            Size2D frame_size = current_anim.getFrameSize();
+            if (animpoint.x >= 0 && animpoint.x < frame_size.w && animpoint.y >= 0 && animpoint.y < frame_size.h){
+                Frame frame = current_anim.getFrame(currentFrame);
+                Point old_origin = new Point(frame.getOrigin()); //using the pathetic excuse of a copy constructor java gives me
+                Point diff = new Point(
+                    old_origin.x - animpoint.x,
+                    animpoint.y - old_origin.y
+                );
+                frame.setOrigin(animpoint);
+
+                EntityFrame eFrame = current_anim.getEntityFrame(currentFrame);
+                for (Hurtbox h : eFrame.hurtboxes){
+                    h.translate(diff.x, diff.y);
+                }
+                for (Hitbox h : eFrame.hitboxes){
+                    h.translate(diff.x, diff.y);
+                }
+            }
+        } catch (FrameOutOfBoundsException e){
+            throw new IllegalStateException(e);
+        }   
+    }
+
+    public Window getWindow(){
+        return window;
+    }
+
+    private void onAnimationChanged(){
+        
+    }
+
+    private void updateAnimationControls(){
+        
+    }
+}

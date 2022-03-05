@@ -3,7 +3,7 @@ package gamedata;
 import gamedata.exceptions.FrameOutOfBoundsException;
 import java.awt.Image;
 import java.util.Iterator;
-import java.awt.Graphics;
+import java.util.List;
 
 public class EntityAnimation extends Animation implements Iterable<EntityFrame>{
     private EntityFrame[] entity_frames;
@@ -54,44 +54,19 @@ public class EntityAnimation extends Animation implements Iterable<EntityFrame>{
         return new FrameIterator();
     }
 
-    public void draw(Graphics g, int frame, int dx, int dy, int dw, int dh){
-        if (frames.length < 1) return;
-        int w = source.getWidth(null);
-        int h = source.getHeight(null);
-        w /= frames.length;
-        int x = frame * w;
-
-        dx = dx + (dw / 2) - (w / 2);
-        dy = dy + (dh / 2) - (h / 2);
-
-        g.drawImage(source, dx, dy, dx + w, dy + h, x, 0, x + w, h, null);
-    }
-
-    public void draw(Graphics g, int frame, int dx, int dy, int tw, int th, double zoom){
-        if (frames.length < 1) return;
-        if (frame >= frames.length) return;
-        int sw = source.getWidth(null);
-        int sh = source.getHeight(null);
-        sw /= frames.length;
-        int x = frame * sw;
-
-        int dw = (int)Math.round(sw * zoom);
-        int dh = (int)Math.round(sh * zoom);
-
-
-        dx = dx + (tw / 2) - (dw / 2);
-        dy = dy + (th / 2) - (dh / 2);
-
-        g.drawImage(source, dx, dy, dx + dw, dy + dh, x, 0, x + sw, sh, null);
-    }
-
     public String getDescriptorFilename(){
         return descriptor_filename;
     }
 
-    /*
-    public void setDescriptorFilename(String filename){
-        descriptor_filename = filename;
+    public List<Hitbox> getHitboxes(int i){
+        if (i < 0 || i >= entity_frames.length) return null;
+        EntityFrame frame = entity_frames[i];
+        return frame.hitboxes;
     }
-    */
+
+    public List<Hurtbox> getHurtboxes(int i){
+        if (i < 0 || i >= entity_frames.length) return null;
+        EntityFrame frame = entity_frames[i];
+        return frame.hurtboxes;
+    }
 }

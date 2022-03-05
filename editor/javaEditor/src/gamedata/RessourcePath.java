@@ -15,7 +15,7 @@ import java.awt.Image;
 
 import javax.imageio.ImageIO;
 
-import KBUtil.Point;
+import java.awt.Point;
 import KBUtil.Rectangle;
 import KBUtil.Vec2;
 import gamedata.exceptions.FrameOutOfBoundsException;
@@ -226,7 +226,7 @@ public class RessourcePath {
                                 int valInt2 =  parseInt(fields[i], "Frame origin 2nd field is not a valid integer", descriptor_filename, line_index);
                                 current_frame.frame.setOrigin(new Point(valInt, valInt2));
                             }
-
+                            break;
                             case "m":
                             {
                                 String[] subFields = fields[i].substring(1).split(",");
