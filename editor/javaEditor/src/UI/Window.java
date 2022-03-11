@@ -1,5 +1,6 @@
 package UI;
 
+import javax.swing.AbstractAction;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -7,6 +8,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
@@ -15,6 +18,7 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
@@ -24,30 +28,45 @@ import com.jgoodies.forms.layout.RowSpec;
 import KBUtil.functional.DoubleToString;
 import UI.exceptions.WindowStateException;
 import gamedata.Champion;
+import gamedata.CollisionBox;
 import gamedata.EntityAnimation;
+import gamedata.EntityFrame;
+import gamedata.Frame;
 import gamedata.GameData;
+import gamedata.RessourcePath;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusListener;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 import java.awt.event.ActionEvent;
+import java.awt.event.FocusEvent;
+import java.awt.Point;
 
 public class Window extends JFrame{
+
+	private GameData currentData = null;
+	private RessourcePath currentRessourcePath = null;
+	private boolean modifsOccured = false;
+	private List<Path> currentFileList = null;
+	
 	private Canvas displayCanvas;
     private JPanel contentPane;
 	private JTextField tfAnimSpeed;
 	private JTextField tfFrameDuration;
-	private TwilSpinner spinFrameOriginX;
-	private TwilSpinner spinFrameOriginY;
+	private IntegerSpinner spinFrameOriginX;
+	private IntegerSpinner spinFrameOriginY;
 	private TwilTextField tfCurrentFrame;
 	private TwilTextField tfCurrentZoom;
 	private JTextField tfhitboxDamages;
 
-	private JMenuBar menu_bar;
 	private JMenu animations_menu;
 
-	private GameData currentData = null;
 	private JSpinner spinHurtboxX;
 	private JSpinner spinHurtboxY;
 	private JSpinner spinHurtboxWidth;
@@ -57,6 +76,13 @@ public class Window extends JFrame{
 	private JSpinner spinHitboxWidth;
 	private JSpinner spinHitboxHeight;
 	private JPanel animation_controls;
+	private CardPanel element_controls;
+
+	private PathChooser zipPathChooser;
+
+	public  void errorPopup(String message){
+		JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
+	}
 
     public Window(){
         super("Le Test has Arrived");
@@ -129,15 +155,15 @@ public class Window extends JFrame{
 		dummyLabel = new JLabel("Origin");
 		dummyPanel.add(dummyLabel);
 		
-		spinFrameOriginX = new TwilSpinner();
+		spinFrameOriginX = new IntegerSpinner();
 		dummyPanel.add(spinFrameOriginX);
 		spinFrameOriginX.setColumns(2);
 
-		spinFrameOriginY = new TwilSpinner();
+		spinFrameOriginY = new IntegerSpinner();
 		dummyPanel.add(spinFrameOriginY);
 		spinFrameOriginY.setColumns(2);
 		
-		CardPanel element_controls = new CardPanel();
+		element_controls = new CardPanel();
 		animation_controls.add(element_controls);
 		
 		JPanel hurtbox = new JPanel();
@@ -281,11 +307,6 @@ public class Window extends JFrame{
 		JButton btnzoomin = new JButton("+");
 		Current_frame_controls.add(btnzoomin);
 
-		JMenuBar menu_bar = new JMenuBar();
-
-		animations_menu = new JMenu("Animations");
-		menu_bar.add(animations_menu);
-
 		//============= CALLBACKS =============
 
 		btnButtonRight.addActionListener(new ActionListener() {
@@ -354,7 +375,91 @@ public class Window extends JFrame{
 			}
 		});
 
+		tfAnimSpeed.addFocusListener(new FocusListener(){
+			public void focusGained(FocusEvent e){}
+			public void focusLost(FocusEvent e){
+				System.out.println("focus lost");
+				double value; 
+				try{
+					value = Double.parseDouble(tfAnimSpeed.getText());
+					EntityAnimationEditor editor = getEADisplayer();
+					EntityAnimation anim = editor.getAnimation();
+					anim.setSpeed(value);
+					modifsOccured = true;
+				} catch (NumberFormatException ex){
+				}
+			}
+		});
+
+		AbstractAction testAction = new AbstractAction(){
+			public void actionPerformed(ActionEvent e){
+				System.out.println("Test !");
+			}
+		};
+
+		AbstractAction saveArchiveAction = new AbstractAction(){
+			public void actionPerformed(ActionEvent e){
+				if (currentRessourcePath == null){
+					System.out.println("Can't save current ressource files as archive, as there is no open ressource folder");
+					JOptionPane.showMessageDialog(Window.this, "Can't save current ressource files as archive, as there is no open ressource folder", "Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+
+				if (modifsOccured()){
+					switch (JOptionPane.showConfirmDialog(Window.this, 
+						"This feature saves the ressource files to an archive in their current state.\nSome modifications to the game data have not been saved to the ressource files and will not be present in the archive.\nDo you want to save before archiving ?", "Editor", JOptionPane.YES_NO_CANCEL_OPTION))
+					{
+						case JOptionPane.YES_OPTION:
+							//save
+							break;
+						case JOptionPane.NO_OPTION:
+							break;
+						default:
+							return;
+					}
+				}
+				
+				PathChooser chooser = new PathChooser(PathChooser.Mode.FILE, currentRessourcePath.getPath());
+				chooser.addFileFilters(new FileNameExtensionFilter("ZIP Archives", "zip"));
+				chooser.setAcceptAllFileFilterUsed(false);
+				Path dest = chooser.savePath(Window.this);
+
+				if (dest != null){
+					try {
+						if (JOptionPane.showConfirmDialog(Window.this, 
+						dest.toAbsolutePath().toString() + " already exists. Overwrite it ?", "Editor", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION){
+							return;
+						}
+						
+						currentRessourcePath.saveAsArchive(currentData.getUsedFilenames(), dest);
+					} catch (IOException ex){
+						ex.printStackTrace();
+						errorPopup("Could not save ressource directory as archive : \n" + ex.toString());
+					}
+				}
+				
+			}
+		};
+
 		//============= MENU ==================
+
+		JMenuBar menu_bar = new JMenuBar();
+
+		JMenu dummyMenu = new JMenu("File");
+
+		JMenuItem dummyMenuItem = new JMenuItem("Test");
+		dummyMenuItem.addActionListener(testAction);
+		dummyMenu.add(dummyMenuItem);
+
+		dummyMenuItem = new JMenuItem("Save as Archive");
+		dummyMenuItem.addActionListener(saveArchiveAction);
+		dummyMenu.add(dummyMenuItem);
+
+		menu_bar.add(dummyMenu);
+
+
+		animations_menu = new JMenu("Animations");
+		menu_bar.add(animations_menu);
 
 		setJMenuBar(menu_bar);
 
@@ -376,6 +481,14 @@ public class Window extends JFrame{
 	}
 
 	public void setGameData(GameData gd){
+		setGameData(gd, null);
+	}
+
+	public void setGameData(GameData gd, RessourcePath originPath){
+		if (gd == null){
+			throw new IllegalArgumentException("Passed null gamedata to Window.setGameData");
+		}
+
 		System.out.println("Using this GameData : ");
 		for (Champion c : gd){
             for (EntityAnimation anim : c){
@@ -386,18 +499,29 @@ public class Window extends JFrame{
         }
 		initAnimationsMenu(gd);
 		currentData = gd;
+		currentRessourcePath = originPath;
+		currentFileList = gd.getUsedFilenames();
+		modifsOccured = false;
 	}
 
 	public void setDisplayedObject(EntityAnimation anim){
-		EntityAnimationEditor displayer = new EntityAnimationEditor(anim, this);
-		displayCanvas.setDisplayable(displayer);
-		updateCurrentFrameField(displayer);
-		updateCurrentZoomField(displayer);
+		Interactable current = displayCanvas.getDisplayable();
+		EntityAnimationEditor editor;
+		if (current instanceof EntityAnimationEditor){
+			editor = (EntityAnimationEditor)current;
+			editor.setAnimation(anim);
+		} else {
+			editor = new EntityAnimationEditor(anim, this);
+			displayCanvas.setDisplayable(editor);
+		}
+		updateCurrentFrameField(editor);
+		updateCurrentZoomField(editor);
 		repaint();
 	}
 
 	public EntityAnimationEditor getEADisplayer() throws WindowStateException {
 		Displayable disp = displayCanvas.getDisplayable();
+		if (disp == null) return null;
 		if (disp instanceof EntityAnimationEditor){
 			return (EntityAnimationEditor)disp;
 		} else {
@@ -415,6 +539,31 @@ public class Window extends JFrame{
 
 	public void setDisplayedObject(Object o) throws UnsupportedOperationException{
 		throw new UnsupportedOperationException();
+	}
+
+	public void updateAnimControls(EntityAnimation anim){
+		tfAnimSpeed.setText(Double.toString(anim.getSpeed()));
+	}
+
+	public void updateFrameControls(Frame frame, EntityFrame entity_frame){
+		tfFrameDuration.setText(Integer.toString(frame.getDuration()));
+		Point origin = frame.getOrigin();
+		spinFrameOriginX.setValue(origin.x);
+		spinFrameOriginY.setValue(origin.y);
+	}
+
+	public void updateElementControls(CollisionBox cbox){
+		if (cbox == null){
+			element_controls.show("blank");
+		}
+	}
+
+	private boolean modifsOccured(){
+		return modifsOccured;
+	}
+
+	public void notifyGamedataModified(){
+		modifsOccured = true;
 	}
 
 }

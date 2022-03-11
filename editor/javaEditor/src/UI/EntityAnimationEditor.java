@@ -51,6 +51,7 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     public EntityAnimationEditor(EntityAnimation anim, Window win){
         super(anim);
         this.window = win;
+        onAnimationChanged();
     }
 
     public void onLeftClick(Point p, Displayer d) throws IllegalStateException{
@@ -100,10 +101,46 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     }
 
     private void onAnimationChanged(){
-        
+        updateAnimationControls();
+        onFrameChanged();
     }
 
     private void updateAnimationControls(){
-        
+        window.updateAnimControls(current_anim);
+    }
+
+    private void onFrameChanged(){
+        updateFrameControls();
+        onSelectedCBoxChanged();
+    }
+
+    private void updateFrameControls(){
+        try {
+            window.updateFrameControls(current_anim.getFrame(currentFrame), current_anim.getEntityFrame(currentFrame));
+        } catch (FrameOutOfBoundsException e){
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private void onSelectedCBoxChanged(){
+        window.updateElementControls(selected_cbox);
+    }
+
+    @Override
+    public void incrFrame(){
+        super.incrFrame();
+        onFrameChanged();
+    }
+
+    @Override
+    public void decrFrame(){
+        super.decrFrame();
+        onFrameChanged();
+    }
+
+    @Override
+    public void setAnimation(EntityAnimation anim){
+        super.setAnimation(anim);
+        onAnimationChanged();
     }
 }

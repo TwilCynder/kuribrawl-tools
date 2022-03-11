@@ -114,4 +114,12 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
         if (currentFrame > 0)
         currentFrame--;
     }
+
+    public EntityAnimation getAnimation(){
+        return current_anim;
+    }
+
+    public void setAnimation(EntityAnimation anim){
+        current_anim = anim;
+    }
 }

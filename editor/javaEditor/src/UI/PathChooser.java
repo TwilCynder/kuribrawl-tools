@@ -3,6 +3,7 @@ package UI;
 import java.nio.file.Path;
 import java.awt.Component;
 import java.io.File;
+import javax.swing.filechooser.FileFilter;
 
 import javax.swing.JFileChooser;
 
@@ -21,18 +22,38 @@ public class PathChooser extends JFileChooser {
         setFileSelectionMode(mode.toInt());
     }
 
+    public PathChooser(Mode mode, Path path){
+        super (path == null ? null : path.toFile());
+        setFileSelectionMode(mode.toInt());
+    }
+
     public PathChooser(Mode mode){
         super();
         setFileSelectionMode(mode.toInt()); 
     }
 
-    public Path showDialog(Component parent){
-        int result = showOpenDialog(parent);
+    public void addFileFilters(FileFilter... filters){
+        for (FileFilter filter : filters){
+            addChoosableFileFilter(filter);
+        }
+    }
+
+    public Path returnAsPath(int result){
         if (result != JFileChooser.APPROVE_OPTION) return null;
 
         File selected = getSelectedFile();
         if (selected == null) return null;
 
         return selected.toPath();
+    }
+
+    public Path openPath(Component parent){
+        int result = showOpenDialog(parent);
+        return returnAsPath(result);
+    }
+
+    public Path savePath(Component parent){
+        int result = showSaveDialog(parent);
+        return returnAsPath(result);
     }
 }

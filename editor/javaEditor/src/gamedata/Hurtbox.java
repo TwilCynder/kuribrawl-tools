@@ -1,8 +1,6 @@
 package gamedata;
 
-import KBUtil.Rectangle;
-
-public class Hurtbox extends Rectangle{
+public class Hurtbox extends CollisionBox {
     public HurtboxType type;
     public Hurtbox(){
         super();

@@ -27,14 +27,15 @@ public class Test {
 					frame.setVisible(true);
 
 					PathChooser chooser = new PathChooser(PathChooser.Mode.DIRECTORY, ".");
-					Path selected = chooser.showDialog(frame);
+					Path selected = chooser.openPath(frame);
 
 					if (selected != null){
 						GameData gd;
 						try {
-							gd = new RessourcePath(selected).parseGameData();
+							RessourcePath originPath = new RessourcePath(selected);
+							gd = originPath.parseGameData();
 							System.out.println(selected);
-							frame.setGameData(gd);
+							frame.setGameData(gd, originPath);
 						} catch (InvalidRessourcePathException | IOException e){
 							JOptionPane.showMessageDialog(frame,
 							"Could not read selected ressource file : " + e.getMessage(),

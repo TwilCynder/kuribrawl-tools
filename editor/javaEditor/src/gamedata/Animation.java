@@ -1,7 +1,7 @@
 package gamedata;
 
 import java.awt.Image;
-
+import java.nio.file.Path;
 import java.awt.Graphics;
 
 import KBUtil.Size2D;
@@ -14,9 +14,9 @@ public class Animation {
     protected Image source;
     protected Size2D frame_size;
 
-    protected String source_filname;
+    protected Path source_filname;
 
-    public Animation(String name, Image source, int nbFrames, String filename){
+    public Animation(String name, Image source, int nbFrames, Path filename){
         this(nbFrames, name, source);
         this.source_filname = filename;
     }
@@ -68,11 +68,11 @@ public class Animation {
         this.speed = s;
     }
 
-    public String getSourceFilename(){
+    public Path getSourceFilename(){
         return source_filname;
     }
 
-    public void setSourceFilename(String filename){
+    public void setSourceFilename(Path filename){
         source_filname = filename;
     }
 

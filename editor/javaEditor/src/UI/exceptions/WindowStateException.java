@@ -1,6 +1,6 @@
 package UI.exceptions;
 
-public class WindowStateException extends Exception {
+public class WindowStateException extends IllegalStateException {
     public WindowStateException() {
         super();
     }

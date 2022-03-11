@@ -2,15 +2,17 @@ package gamedata;
 
 import gamedata.exceptions.FrameOutOfBoundsException;
 import java.awt.Image;
+import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
 
 public class EntityAnimation extends Animation implements Iterable<EntityFrame>{
     private EntityFrame[] entity_frames;
-    protected String descriptor_filename;
+    protected Path descriptor_filename;
 
-    public EntityAnimation(String name, Image source, int nbFrames, String source_filename, String descriptor_filename){
+    public EntityAnimation(String name, Image source, int nbFrames, Path source_filename, Path descriptor_filename){
         super (name, source, nbFrames, source_filename);
+        this.descriptor_filename = descriptor_filename;
         initEntityFrames(nbFrames);
     }
 
@@ -54,7 +56,7 @@ public class EntityAnimation extends Animation implements Iterable<EntityFrame>{
         return new FrameIterator();
     }
 
-    public String getDescriptorFilename(){
+    public Path getDescriptorFilename(){
         return descriptor_filename;
     }
 
