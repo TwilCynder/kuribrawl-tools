@@ -1,5 +1,6 @@
 package gamedata;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -10,7 +11,11 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import java.awt.Image;
 
 import javax.imageio.ImageIO;
@@ -44,6 +49,10 @@ public class RessourcePath {
         this(stringToPath(pathname));
     }
 
+    public Path getPath(){
+        return path;
+    }
+
     public static Path stringToPath(String pathname) throws InvalidRessourcePathException {
         try {
             return Paths.get(pathname);
@@ -57,16 +66,23 @@ public class RessourcePath {
         return Files.newInputStream(path.resolve(name), symlinks_behavior);
     }
 
+    private InputStream fileStream(Path path) throws IOException, InvalidPathException{
+        return Files.newInputStream(this.path.resolve(path), symlinks_behavior);
+    }
+
     private File getFile(String name) {
         return path.resolve(name).toFile();
+    }
+
+    static private Path toPath(String name){
+        return name == null ? null : Paths.get(name);
     }
 
     private BufferedReader fileReader(String name) throws IOException, InvalidPathException, NoSuchFileException {
         Path filepath = path.resolve(name);
         filepath = filepath.toAbsolutePath();
-
         return Files.newBufferedReader(filepath);
-    }
+    } 
 
     private static int parseInt(String str, String msgIfFail, String filename, int line) throws RessourceException{
         try {
@@ -132,7 +148,7 @@ public class RessourcePath {
 
             return gd
             .tryChampion(tagSplit[0])
-            .addAnimation(tagSplit[1], source, nbFrames, source_filename, descriptor_filename);
+            .addAnimation(tagSplit[1], source, nbFrames, toPath(source_filename), toPath(descriptor_filename));
         } catch (IOException e){
             throw new RessourceException("Couldn't read source image file " + source_filename, e);
         }
@@ -456,5 +472,31 @@ public class RessourcePath {
         */
 
         return gd;
+    }
+
+    public void saveAsArchive(List<Path> files, Path dest) throws IOException {
+
+        try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(dest, symlinks_behavior, StandardOpenOption.CREATE))){
+            for (Path file : files){
+                if (file == null) continue;
+                zipFile(file, zos);
+            }
+        }
+    }
+
+    private static final int READ_BUFFER = 4096;
+    public void zipFile(Path path, ZipOutputStream zos) throws IOException {
+        System.out.println(path);
+        zos.putNextEntry(new ZipEntry(path.toString()));
+
+        BufferedInputStream bis = new BufferedInputStream(fileStream(path));
+        
+        byte[] buffer = new byte[READ_BUFFER];
+        int read;
+
+        while ((read = bis.read(buffer)) != -1){
+            zos.write(buffer, 0, read);
+        }
+        zos.closeEntry();
     }
 }
