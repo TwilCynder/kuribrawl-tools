@@ -61,7 +61,6 @@ public class RessourcePath {
         }
     }
 
-    @Deprecated
     private InputStream fileStream(String name) throws IOException, InvalidPathException{
         return Files.newInputStream(path.resolve(name), symlinks_behavior);
     }
@@ -78,11 +77,18 @@ public class RessourcePath {
         return name == null ? null : Paths.get(name);
     }
 
-    private BufferedReader fileReader(String name) throws IOException, InvalidPathException, NoSuchFileException {
-        Path filepath = path.resolve(name);
-        filepath = filepath.toAbsolutePath();
-        return Files.newBufferedReader(filepath);
+    private BufferedReader fileReader(String filename) throws IOException, InvalidPathException, NoSuchFileException {
+        return fileReader_(path.resolve(filename));
     } 
+
+    private BufferedReader fileReader(Path filepath) throws IOException, InvalidPathException, NoSuchFileException {
+        return fileReader_(path.resolve(filepath));
+    }
+
+    private BufferedReader fileReader_(Path fullpath) throws IOException, InvalidPathException, NoSuchFileException{
+        fullpath = fullpath.toAbsolutePath();
+        return Files.newBufferedReader(fullpath);
+    }
 
     private static int parseInt(String str, String msgIfFail, String filename, int line) throws RessourceException{
         try {
@@ -425,11 +431,12 @@ public class RessourcePath {
     }
 
     private static final String listFilename = "project_db.txt";
+    private static final Path listPath = Paths.get(listFilename);
 
     public GameData parseGameData() throws IOException, RessourceException, WhatTheHellException, InvalidRessourcePathException {
         BufferedReader reader;
         try {
-            reader = fileReader(listFilename);
+            reader = fileReader(listPath);
         } catch (NoSuchFileException e){
             throw new RessourceException("The specified directory is not a valid ressource path : does not contain a project_db.txt file.", e);
         }
@@ -475,8 +482,8 @@ public class RessourcePath {
     }
 
     public void saveAsArchive(List<Path> files, Path dest) throws IOException {
-
         try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(dest, symlinks_behavior, StandardOpenOption.CREATE))){
+            zipFile(listPath, zos);
             for (Path file : files){
                 if (file == null) continue;
                 zipFile(file, zos);

@@ -37,11 +37,13 @@ public class Test {
 							System.out.println(selected);
 							frame.setGameData(gd, originPath);
 						} catch (InvalidRessourcePathException | IOException e){
+							e.printStackTrace();
 							JOptionPane.showMessageDialog(frame,
 							"Could not read selected ressource file : " + e.getMessage(),
 							"Inane error",
 							JOptionPane.ERROR_MESSAGE);
 						} catch (RessourceException e){
+							e.printStackTrace();
 							JOptionPane.showMessageDialog(frame,
 							"Could not read selected ressource file : " + e.getMessage(),
 							"Inane error",
