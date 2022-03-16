@@ -170,7 +170,7 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
             }
             res += ' ';
 
-            res += h.x + " " + h.y + " " + h.w + " " + h.h + " " + h.getTypeCode() + h.stringifyTypeSpecificInfo();
+            res += h.x + " " + h.y + " " + h.w + " " + h.h + " " + Integer.toString(h.getTypeCode()) + " " + h.stringifyTypeSpecificInfo();
             res += System.lineSeparator();
         }
 

@@ -1,7 +1,6 @@
 package gamedata;
 
 import java.awt.Image;
-import java.nio.file.Path;
 import java.awt.Graphics;
 
 import KBUtil.Size2D;

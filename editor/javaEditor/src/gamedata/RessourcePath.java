@@ -29,6 +29,7 @@ import gamedata.exceptions.FrameOutOfBoundsException;
 import gamedata.exceptions.GameDataException;
 import gamedata.exceptions.InvalidRessourcePathException;
 import gamedata.exceptions.RessourceException;
+import gamedata.exceptions.TransparentGameDataException;
 import gamedata.exceptions.WhatTheHellException;
 
 public class RessourcePath {
@@ -502,8 +503,9 @@ public class RessourcePath {
         writer.write(str, 0, str.length()); 
     }
 
-    public void saveGameData(GameData gd) throws GameDataException, IOException{ 
+    public void saveGameData(GameData gd) throws GameDataException, TransparentGameDataException, IOException{ 
         try (BufferedWriter listWriter = fileWriter("project_db2.txt")){
+            String toWrite;
             for (var file : gd.getOtherFiles()){
                 System.out.println(file.getKey() + "    " + file.getValue());
                 writeString(listWriter, file.getKey()); listWriter.newLine();
@@ -512,6 +514,10 @@ public class RessourcePath {
 
             for (Champion c : gd){
                 System.out.println("Writing champion " + c.getDislayName() + " " + c.getDescriptorFilename());
+
+                toWrite = c.getDescriptorFilename();
+                if(toWrite == null) throw new TransparentGameDataException("Champion" + c.getName() + " does not have a descriptor file. Please set one.");
+
                 writeString(listWriter, c.getDescriptorFilename()); listWriter.newLine();
                 writeString(listWriter, "C:" + c.getName()); listWriter.newLine();
 
@@ -522,12 +528,23 @@ public class RessourcePath {
                     Defaultness defaultness = anim.areFramesDefault();
                     if (defaultness.needDescriptor()){
                         
+                        toWrite = anim.getDescriptorFilename();
+                        if(toWrite == null) throw new TransparentGameDataException("Animation" + anim.getName() + "of champion " + c.getName() + " does not have a descriptor file but needs one. Please set one.");
 
-                        writeString(listWriter, c.getDescriptorFilename());
-                    } 
+                        writeString(listWriter, toWrite);
+
+                        try (BufferedWriter descriptorWriter = fileWriter(anim.getDescriptorFilename())){
+                            writeString(descriptorWriter, anim.generateDescriptor());
+                        }
+                    } else {
+                        writeString(listWriter, "" + anim.getNbFrames() + " " + anim.getSpeed());
+                        if (defaultness == Defaultness.DEFAULT_CBOX){
+                            writeString(listWriter, " c");
+                        }
+                    }
 
                     System.out.println("Writing animation " + anim.getName());
-                    //System.out.println(anim.generateDescriptor());
+                    
                     listWriter.newLine();
                 }
             }

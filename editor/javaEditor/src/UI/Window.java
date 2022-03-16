@@ -36,6 +36,7 @@ import gamedata.Frame;
 import gamedata.GameData;
 import gamedata.RessourcePath;
 import gamedata.exceptions.GameDataException;
+import gamedata.exceptions.TransparentGameDataException;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -452,8 +453,11 @@ public class Window extends JFrame{
 				} catch (GameDataException ex){
 					errorPopup("Error : invalid game data.");
 					ex.printStackTrace();
+				} catch (TransparentGameDataException ex) {
+					errorPopup("Error : " + ex.getMessage());
+					ex.printStackTrace();
 				} catch (IOException ex){
-					errorPopup("Error : error while writing file " + ex.getMessage());
+					errorPopup("Error : file system error while writing file " + ex.getMessage());
 					ex.printStackTrace();
 				}
 				
