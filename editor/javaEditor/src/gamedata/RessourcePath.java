@@ -2,6 +2,7 @@ package gamedata;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +24,9 @@ import javax.imageio.ImageIO;
 import java.awt.Point;
 import KBUtil.Rectangle;
 import KBUtil.Vec2;
+import gamedata.EntityAnimation.Defaultness;
 import gamedata.exceptions.FrameOutOfBoundsException;
+import gamedata.exceptions.GameDataException;
 import gamedata.exceptions.InvalidRessourcePathException;
 import gamedata.exceptions.RessourceException;
 import gamedata.exceptions.WhatTheHellException;
@@ -90,6 +93,19 @@ public class RessourcePath {
         return Files.newBufferedReader(fullpath);
     }
 
+    private BufferedWriter fileWriter(String filename) throws IOException, InvalidPathException, NoSuchFileException {
+        return fileWriter_(path.resolve(filename));
+    } 
+
+    private BufferedWriter fileWriter(Path filepath) throws IOException, InvalidPathException, NoSuchFileException {
+        return fileWriter_(path.resolve(filepath));
+    }
+
+    private BufferedWriter fileWriter_(Path fullpath) throws IOException, InvalidPathException, NoSuchFileException{
+        fullpath = fullpath.toAbsolutePath();
+        return Files.newBufferedWriter(fullpath);
+    }
+
     private static int parseInt(String str, String msgIfFail, String filename, int line) throws RessourceException{
         try {
             return Integer.parseInt(str);
@@ -154,7 +170,7 @@ public class RessourcePath {
 
             return gd
             .tryChampion(tagSplit[0])
-            .addAnimation(tagSplit[1], source, nbFrames, toPath(source_filename), toPath(descriptor_filename));
+            .addAnimation(tagSplit[1], source, nbFrames, source_filename, descriptor_filename);
         } catch (IOException e){
             throw new RessourceException("Couldn't read source image file " + source_filename, e);
         }
@@ -272,7 +288,8 @@ public class RessourcePath {
                     }
                     break;
                     case "c":
-                    if (line.trim().equals("c all")){
+                    fields = split(line, " ");
+                    if (fields.length > 1 && fields[1].equals("all")){
                         for (int i = 0; i < anim.getNbFrames(); i++){
                             Frame frame; EntityFrame entity_frame;
                             try {
@@ -285,8 +302,7 @@ public class RessourcePath {
                             fullFrameHurtbox(frame, entity_frame);
                         }
                     } else {
-
-                        fields = split(line, " ");
+                        
 
                         if (fields.length < 2){
                             throw new RessourceException("Hurtbox info line does not contain any information", descriptor_filename, line_index);
@@ -310,7 +326,7 @@ public class RessourcePath {
                             fullFrameHurtbox(current_frame.frame, current_frame.entity_frame);
                         } else {
                             if (fields.length != 5){
-                                throw new RessourceException("Hurtbox info should contain either 4 coordinates or \"all\"", descriptor_filename, line_index);
+                                throw new RessourceException("Hurtbox info should contain either 4 coordinates or \"whole\"", descriptor_filename, line_index);
                             }
     
                             try {
@@ -411,23 +427,29 @@ public class RessourcePath {
             if (fields.length > 2){
                 anim.setSpeed(Double.parseDouble(fields[2]));
                 if (fields.length > 3){
-                    if (fields[3] == "c" || fields[3] == "cbox all"){
+                    if (fields[3].equals("c")){
+                        System.out.println("Full-frame hurtbox");
                         for (int i = 0; i < anim.getNbFrames(); i++){
-                            Frame frame; EntityFrame entity_frame;
                             try {
+                                Frame frame; EntityFrame entity_frame;
                                 frame = anim.getFrame(i);
                                 entity_frame = anim.getEntityFrame(i);
+                                fullFrameHurtbox(frame, entity_frame);
                             } catch (FrameOutOfBoundsException e){
                                 throw new WhatTheHellException("Supposedly safe array iteration went out of bounds", e);
                             }
                             
-                            fullFrameHurtbox(frame, entity_frame);
                         }
                     }
                 }
             }
         }
 
+    }
+
+    public void parseChampion(GameData gd, String file, String info){
+        Champion c = gd.tryChampion(info);
+        c.setDescriptorFilename(file);
     }
 
     private static final String listFilename = "project_db.txt";
@@ -462,31 +484,62 @@ public class RessourcePath {
                 case "L":
                 case "I":
                 case "X":
+                    gd.addOtherFile(file, info);
                     break;
                 case "A":
                     parseAnimation(gd, file.trim(), split[1]);
+                    break;
+                case "C":
+                    parseChampion(gd, file.trim(), split[1]);
+                    break;
             }
         }
-
-        /*
-        for (Champion c : gd){
-            for (EntityAnimation anim : c){
-                System.out.println(anim.getName());
-                System.out.println(anim.getNbFrames());
-                System.out.println(anim.getSpeed());
-            }
-        }
-        */
 
         return gd;
     }
 
-    public void saveAsArchive(List<Path> files, Path dest) throws IOException {
+    private static void writeString(BufferedWriter writer, String str) throws IOException{
+        writer.write(str, 0, str.length()); 
+    }
+
+    public void saveGameData(GameData gd) throws GameDataException, IOException{ 
+        try (BufferedWriter listWriter = fileWriter("project_db2.txt")){
+            for (var file : gd.getOtherFiles()){
+                System.out.println(file.getKey() + "    " + file.getValue());
+                writeString(listWriter, file.getKey()); listWriter.newLine();
+                writeString(listWriter, file.getValue()); listWriter.newLine();
+            }
+
+            for (Champion c : gd){
+                System.out.println("Writing champion " + c.getDislayName() + " " + c.getDescriptorFilename());
+                writeString(listWriter, c.getDescriptorFilename()); listWriter.newLine();
+                writeString(listWriter, "C:" + c.getName()); listWriter.newLine();
+
+                for (EntityAnimation anim : c){
+                    writeString(listWriter, anim.source_filname); listWriter.newLine();
+                    writeString(listWriter, "A:" + c.getName() + "/" + anim.getName() + " ");
+
+                    Defaultness defaultness = anim.areFramesDefault();
+                    if (defaultness.needDescriptor()){
+                        
+
+                        writeString(listWriter, c.getDescriptorFilename());
+                    } 
+
+                    System.out.println("Writing animation " + anim.getName());
+                    //System.out.println(anim.generateDescriptor());
+                    listWriter.newLine();
+                }
+            }
+        }
+    }
+
+    public void saveAsArchive(List<String> files, Path dest) throws IOException {
         try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(dest, symlinks_behavior, StandardOpenOption.CREATE))){
             zipFile(listPath, zos);
-            for (Path file : files){
+            for (String file : files){
                 if (file == null) continue;
-                zipFile(file, zos);
+                zipFile(toPath(file), zos);
             }
         }
     }

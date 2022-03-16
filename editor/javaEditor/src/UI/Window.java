@@ -1,6 +1,7 @@
 package UI;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -34,6 +35,7 @@ import gamedata.EntityFrame;
 import gamedata.Frame;
 import gamedata.GameData;
 import gamedata.RessourcePath;
+import gamedata.exceptions.GameDataException;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -41,7 +43,6 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusListener;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.awt.event.ActionEvent;
@@ -53,7 +54,7 @@ public class Window extends JFrame{
 	private GameData currentData = null;
 	private RessourcePath currentRessourcePath = null;
 	private boolean modifsOccured = false;
-	private List<Path> currentFileList = null;
+	private List<String> currentFileList = null;
 	
 	private Canvas displayCanvas;
     private JPanel contentPane;
@@ -77,8 +78,6 @@ public class Window extends JFrame{
 	private JSpinner spinHitboxHeight;
 	private JPanel animation_controls;
 	private CardPanel element_controls;
-
-	private PathChooser zipPathChooser;
 
 	public  void errorPopup(String message){
 		JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
@@ -397,7 +396,7 @@ public class Window extends JFrame{
 			}
 		};
 
-		AbstractAction saveArchiveAction = new AbstractAction(){
+		Action saveArchiveAction = new AbstractAction(){
 			public void actionPerformed(ActionEvent e){
 				if (currentRessourcePath == null){
 					System.out.println("Can't save current ressource files as archive, as there is no open ressource folder");
@@ -431,11 +430,31 @@ public class Window extends JFrame{
 							return;
 						}
 						
-						currentRessourcePath.saveAsArchive(currentData.getUsedFilenames(), dest);
+						currentRessourcePath.saveAsArchive(currentFileList, dest);
 					} catch (IOException ex){
 						ex.printStackTrace();
 						errorPopup("Could not save ressource directory as archive : \n" + ex.toString());
 					}
+				}
+				
+			}
+		};
+
+		Action saveAction = new AbstractAction() {
+			public void actionPerformed(ActionEvent e){
+				if (currentRessourcePath == null){
+					//TODO : utiliser le save-as
+					return;
+				}
+
+				try {
+					currentRessourcePath.saveGameData(currentData);
+				} catch (GameDataException ex){
+					errorPopup("Error : invalid game data.");
+					ex.printStackTrace();
+				} catch (IOException ex){
+					errorPopup("Error : error while writing file " + ex.getMessage());
+					ex.printStackTrace();
 				}
 				
 			}
@@ -449,6 +468,10 @@ public class Window extends JFrame{
 
 		JMenuItem dummyMenuItem = new JMenuItem("Test");
 		dummyMenuItem.addActionListener(testAction);
+		dummyMenu.add(dummyMenuItem);
+
+		dummyMenuItem = new JMenuItem("Save");
+		dummyMenuItem.addActionListener(saveAction);
 		dummyMenu.add(dummyMenuItem);
 
 		dummyMenuItem = new JMenuItem("Save as Archive");
@@ -491,6 +514,7 @@ public class Window extends JFrame{
 
 		System.out.println("Using this GameData : ");
 		for (Champion c : gd){
+			System.out.println("==" + c.getDislayName() + "==");
             for (EntityAnimation anim : c){
                 System.out.println(anim.getName());
                 //System.out.println(anim.getNbFrames());

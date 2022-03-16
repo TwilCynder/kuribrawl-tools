@@ -1,16 +1,20 @@
 package gamedata;
 
 import gamedata.exceptions.FrameOutOfBoundsException;
+import gamedata.exceptions.GameDataException;
+
 import java.awt.Image;
-import java.nio.file.Path;
+import java.awt.Point;
 import java.util.Iterator;
 import java.util.List;
 
-public class EntityAnimation extends Animation implements Iterable<EntityFrame>{
-    private EntityFrame[] entity_frames;
-    protected Path descriptor_filename;
+import KBUtil.Pair;
 
-    public EntityAnimation(String name, Image source, int nbFrames, Path source_filename, Path descriptor_filename){
+public class EntityAnimation extends Animation implements Iterable<Pair<Frame, EntityFrame>>{
+    private EntityFrame[] entity_frames;
+    protected String descriptor_filename;
+
+    public EntityAnimation(String name, Image source, int nbFrames, String source_filename, String descriptor_filename){
         super (name, source, nbFrames, source_filename);
         this.descriptor_filename = descriptor_filename;
         initEntityFrames(nbFrames);
@@ -34,8 +38,8 @@ public class EntityAnimation extends Animation implements Iterable<EntityFrame>{
 
         return entity_frames[i];
     }
-
-    private class FrameIterator implements Iterator<EntityFrame>{
+    
+    public class FrameIterator implements Iterator<Pair<Frame, EntityFrame>>{
         int i;
 
         FrameIterator (){
@@ -46,17 +50,24 @@ public class EntityAnimation extends Animation implements Iterable<EntityFrame>{
             return i < entity_frames.length - 1;
         }
 
-        public EntityFrame next(){
-            i++;
-            return entity_frames[i];
+        public Pair<Frame, EntityFrame> next(){
+            i++; 
+            try {
+                return new Pair<>(getFrame(i), entity_frames[i]);
+            } catch (FrameOutOfBoundsException ex){
+                //it just aint happening 
+                ex.printStackTrace();
+                return null;
+            }
+            
         }
     }
 
-    public Iterator<EntityFrame> iterator(){ 
+    public FrameIterator iterator(){ 
         return new FrameIterator();
     }
 
-    public Path getDescriptorFilename(){
+    public String getDescriptorFilename(){
         return descriptor_filename;
     }
 
@@ -70,5 +81,137 @@ public class EntityAnimation extends Animation implements Iterable<EntityFrame>{
         if (i < 0 || i >= entity_frames.length) return null;
         EntityFrame frame = entity_frames[i];
         return frame.hurtboxes;
+    }
+
+    public enum Defaultness {
+        NONDEFAULT,
+        DEFAULT,
+        DEFAULT_CBOX;
+
+        public boolean needDescriptor(){
+            return this == NONDEFAULT;
+        }
+    }
+
+    private boolean isSpeedDefault(){
+        return speed == 0 || speed == 1;
+    }
+
+    private boolean isFrameDefault(Frame frame){
+        return frame.hasDefaultOrigin() && frame.hasDefaultDuration();
+    }
+
+    private Defaultness getFrameDefaultness(Frame frame, EntityFrame entityFrame){
+        /*System.out.println("origin : " + frame.hasDefaultOrigin() + "; duration : " + 
+        frame.hasDefaultDuration() + "; hitboxes : " + entityFrame.hitboxes.isEmpty() +
+        "; hurtboxes : " + frameHasDefaultHurtboxes(frame, entityFrame));*/
+        if (isFrameDefault(frame) && entityFrame.hitboxes.isEmpty()){
+            if (entityFrame.hurtboxes.isEmpty()) {
+                return Defaultness.DEFAULT;
+            } else if (frameHasDefaultHurtboxes(frame, entityFrame)){
+                return Defaultness.DEFAULT_CBOX;
+            }
+            return Defaultness.NONDEFAULT;
+        } 
+        return Defaultness.NONDEFAULT;
+    }
+
+    private boolean frameHasDefaultHurtboxes(Frame frame, EntityFrame entityFrame){
+        return entityFrame.hurtboxes.size() == 1 && entityFrame.hurtboxes.get(0).isDefault(frame.getOrigin(), frame_size);
+    }
+
+    private Defaultness getFrameDefaultness(int index){
+        try {
+            return getFrameDefaultness(getFrame(index), getEntityFrame(index));
+        } catch (FrameOutOfBoundsException ex){
+            throw new IllegalStateException(ex);
+        }
+    }
+
+    private String generateFrameDescriptor(int index, Frame frame, EntityFrame entityFrame) throws GameDataException{
+        String res = "";
+        boolean indexWritten = false;
+        if (!isFrameDefault(frame)){
+            res = "f" + index + " ";
+            indexWritten = true;
+            if (!frame.hasDefaultOrigin()){ 
+                Point origin = frame.getOrigin();
+                res += "o" + origin.x + " " + origin.y + " ";
+            }
+            int duration = frame.getDuration();
+            if (duration != 0 && duration != 1){
+                res += "d" + duration + " ";
+            }
+            res += System.lineSeparator();
+        }
+
+        for (Hurtbox h : entityFrame.hurtboxes){
+            res += 'c';
+            if (!indexWritten){
+                res+= index;
+                indexWritten = true;
+            }
+            res += ' ';
+
+            if (h.isDefault(frame.getOrigin(), frame_size)){
+                res += "whole";
+            } else {
+                res += h.x + " " + h.y + " " + h.w + " " + h.h;
+            }
+
+            res+= System.lineSeparator();
+        }
+
+        for (Hitbox h : entityFrame.hitboxes){
+            res += 'h';
+            if (!indexWritten){
+                res+= index;
+                indexWritten = true;
+            }
+            res += ' ';
+
+            res += h.x + " " + h.y + " " + h.w + " " + h.h + " " + h.getTypeCode() + h.stringifyTypeSpecificInfo();
+            res += System.lineSeparator();
+        }
+
+        return res; 
+    }
+
+    private String generateFrameDescriptor(int index) throws GameDataException{
+        try {
+            return generateFrameDescriptor(index, getFrame(index), getEntityFrame(index));
+        } catch (FrameOutOfBoundsException ex){
+            ex.printStackTrace();
+        }
+        return "";
+    }
+
+    public Defaultness areFramesDefault(){
+        //premier passage : on teste si toutes les frames sont default
+        Defaultness last_defaultness = getFrameDefaultness(0);
+        for (int i = 1; i < getNbFrames(); i++){
+            Defaultness d = getFrameDefaultness(i);
+
+            if (d != last_defaultness || d == Defaultness.NONDEFAULT) return Defaultness.NONDEFAULT;
+            last_defaultness = d;
+        }
+        return last_defaultness;
+    }
+
+    public String generateDescriptor() throws GameDataException{
+        String res = "" + frames.length + System.lineSeparator();
+        
+        if (!isSpeedDefault()){
+            res += speed + System.lineSeparator();
+        }
+
+        Defaultness d = areFramesDefault();
+        System.out.println("Frame final defaultness : " + d);
+
+        for (int i = 0; i < getNbFrames(); i++){
+            res += generateFrameDescriptor(i);
+        }
+
+        return res;
     }
 }

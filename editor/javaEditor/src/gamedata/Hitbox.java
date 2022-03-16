@@ -14,6 +14,10 @@ public abstract class Hitbox extends Rectangle{
         super(rect.x, rect.y, rect.w, rect.h);
     }
 
+    public abstract char getTypeCode();
+
+    public abstract String stringifyTypeSpecificInfo();
+
     public static final char DAMAGE_HITBOX_CODE = 0;
     public static final char GRAB_HITBOX_CODE = 1;
     public static final char WIND_HITBOX_CODE = 2;

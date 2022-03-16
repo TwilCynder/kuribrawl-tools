@@ -1,6 +1,6 @@
 package gamedata;
 
-import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -8,15 +8,21 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class GameData implements Iterable<Champion> {
-    private Map<String, Champion> champions;
+    private Map<String, Champion> champions = new TreeMap<>();
+    private Map<String, String> otherFiles = new TreeMap<>();
     RessourcePath originPath;
 
     public GameData(){
-        champions = new TreeMap<>();
     }
 
     public Champion addChampion(String name){
         Champion c = new Champion(name);
+        champions.put(name, c);
+        return c;
+    }
+
+    public Champion addChampion(String name, String filename){
+        Champion c = new Champion(name, filename);
         champions.put(name, c);
         return c;
     }
@@ -31,16 +37,24 @@ public class GameData implements Iterable<Champion> {
         return c;
     }
 
-    public Iterator<Champion> getChampions(){
-        return champions.values().iterator();
+    public void addOtherFile(String filename, String info){
+        otherFiles.put(filename, info);
+    }
+
+    public Collection<Champion> getChampions(){
+        return champions.values();
+    }
+
+    public Collection<Map.Entry<String, String>> getOtherFiles(){
+        return otherFiles.entrySet();
     }
 
     public Iterator<Champion> iterator(){
-        return getChampions();
+        return getChampions().iterator();
     }
 
-    public List<Path> getUsedFilenames(){
-        List<Path> res = new LinkedList<>();
+    public List<String> getUsedFilenames(){
+        List<String> res = new LinkedList<>();
 
         for (Champion c : this){
             res.add(c.getDescriptorFilename());

@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import java.awt.Image;
-import java.nio.file.Path;
 
 class ChampionVals  {
     public double walk_speed;
@@ -46,12 +45,12 @@ public class Champion implements Iterable<EntityAnimation>{
     private String name;
     private String displayName;
 
-    private Path descriptor_filename;
+    private String descriptor_filename;
 
     private Map<String, EntityAnimation> animations = new TreeMap<>();
     private Map<String, Move> moves = new TreeMap<>();
     
-    public Champion(String name, Path filename){
+    public Champion(String name, String filename){
         this(name);
         this.descriptor_filename = filename;
     }
@@ -93,7 +92,7 @@ public class Champion implements Iterable<EntityAnimation>{
         return getAnimations();
     }
 
-    public EntityAnimation addAnimation(String name, Image source, int nbFrames, Path source_filename, Path descriptor_filename){
+    public EntityAnimation addAnimation(String name, Image source, int nbFrames, String source_filename, String descriptor_filename){
         EntityAnimation anim = new EntityAnimation(name, source, nbFrames, source_filename, descriptor_filename);
         animations.put(name, anim);
         return anim;
@@ -106,11 +105,11 @@ public class Champion implements Iterable<EntityAnimation>{
         return anim;
     }
 
-    public Path getDescriptorFilename(){
+    public String getDescriptorFilename(){
         return descriptor_filename;
     }
 
-    public void setDescriptorFilename(Path filename){
+    public void setDescriptorFilename(String filename){
         descriptor_filename = filename;
     }
 }

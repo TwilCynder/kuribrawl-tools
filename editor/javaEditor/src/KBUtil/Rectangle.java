@@ -15,4 +15,14 @@ public class Rectangle extends Point {
         w = s.w;
         h = s.h;
     }
+
+    public boolean equals(Rectangle rect){
+        return x == rect.x && y == rect.y && w == rect.w && h == rect.h;
+    }
+
+    public boolean equals(Object other){
+        if (!(other instanceof Rectangle)) return false;
+
+        return equals((Rectangle)other);
+    }
 }

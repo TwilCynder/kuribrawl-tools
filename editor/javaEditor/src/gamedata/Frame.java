@@ -7,6 +7,7 @@ public class Frame {
     private int duration = 0;
     private final Rectangle display;
     private Point origin;
+    private Point default_origin;
 
     public Frame (int x, int y, int w, int h){
         this(new Rectangle(x, y, w, h));
@@ -14,7 +15,8 @@ public class Frame {
 
     public Frame (Rectangle display){
         this.display = display;
-        origin = new Point(display.w / 2, display.h);
+        default_origin = new Point(display.w / 2, display.h);
+        origin = default_origin;
     }
 
     public int getDuration(){
@@ -35,5 +37,13 @@ public class Frame {
 
     public void setOrigin(Point p){
         origin = p;
+    }
+
+    public boolean hasDefaultOrigin(){
+        return origin.equals(default_origin);
+    }
+
+    public boolean hasDefaultDuration(){
+        return duration == 0 || duration == 1;
     }
 }
