@@ -1,7 +1,5 @@
 package gamedata.exceptions;
 
-import gamedata.GameData;
-
 public class GameDataException extends Exception{
     Object[] objects;
 

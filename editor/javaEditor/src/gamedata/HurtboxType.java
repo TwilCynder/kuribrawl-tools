@@ -5,4 +5,6 @@ public enum HurtboxType {
     PROTECTED,
     INVINCIBLE,
     INTANGIBLE
+
+    
 }

@@ -7,7 +7,7 @@
 #DFV_REV = 1
 #RFV_MAJ = 0
 #RFV_MIN = 3
-#RFV_REV = 1
+#RFV_REV = 2
 
 Structure File
     path.s
@@ -382,9 +382,9 @@ Procedure writeAnimationDescriptor(datafile.l, info.s)
                     printLog("  Writing hurtbox info")
 
                     value$ = GMB_StringField(line, 2, " ")
-                    If value$ = ""
+                    If value$ = "whole"
                         WriteWord(datafile, #MAX_VALUE_USHORT)
-                        printLog("    No value ; this hurtbox will cover all the frame and use the default type.")
+                        printLog("    This hurtbox will cover all the frame and use the default type.")
                         Continue
                     EndIf
 
@@ -780,8 +780,7 @@ If logging
 EndIf
 ; IDE Options = PureBasic 5.73 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 760
-; FirstLine = 747
+; CursorPosition = 9
 ; Folding = ----
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe

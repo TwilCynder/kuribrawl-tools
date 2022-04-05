@@ -53,6 +53,32 @@ public class GameData implements Iterable<Champion> {
         return getChampions().iterator();
     }
 
+    /**
+     * Returns a list of files that are not saved to (images, etc).
+     * @return the list (see above)
+     */
+    public List<String> getUnmodifiedFilenames(){
+        List<String> res = new LinkedList<>();
+
+        for (Champion c : this){
+            res.add(c.getDescriptorFilename());
+            for (EntityAnimation anim : c){
+                res.add(anim.getSourceFilename());
+            }
+        }
+
+        for (var file : otherFiles.entrySet()){
+            res.add(file.getKey());
+        }
+
+        return res;
+    }
+
+    /**
+     * Returns a list of the files used by this GameData.  
+     * If it was just loaded, matches exactly the files mentioned in project_db.txt.
+     * @return
+     */
     public List<String> getUsedFilenames(){
         List<String> res = new LinkedList<>();
 
@@ -63,6 +89,11 @@ public class GameData implements Iterable<Champion> {
                 res.add(anim.getDescriptorFilename());
             }
         }
+
+        for (var file : otherFiles.entrySet()){
+            res.add(file.getKey());
+        }
+
         return res;
     }
 }

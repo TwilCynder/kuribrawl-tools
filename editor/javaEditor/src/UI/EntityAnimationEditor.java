@@ -1,5 +1,6 @@
 package UI;
 
+import gamedata.CollisionBox;
 import gamedata.EntityAnimation;
 import gamedata.EntityFrame;
 import gamedata.Frame;
@@ -8,7 +9,6 @@ import gamedata.Hurtbox;
 import gamedata.exceptions.FrameOutOfBoundsException;
 
 import java.awt.Point;
-import java.awt.Component;
 
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
@@ -54,9 +54,13 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         onAnimationChanged();
     }
 
+    private void setSelectedCBox(CollisionBox cbox){
+        selected_cbox = cbox;
+        onSelectedCBoxChanged();
+    }
+
     public void onLeftClick(Point p, Displayer d) throws IllegalStateException{
-        System.out.println("Left click !");
-        moveOrigin(p);
+        setSelectedCBox(getCboxAt(getAnimPosition(p)));
         d.update();
     }
 
@@ -110,6 +114,7 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     }
 
     private void onFrameChanged(){
+        selected_cbox = null;
         updateFrameControls();
         onSelectedCBoxChanged();
     }

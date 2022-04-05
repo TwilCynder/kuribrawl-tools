@@ -504,7 +504,7 @@ public class RessourcePath {
     }
 
     public void saveGameData(GameData gd) throws GameDataException, TransparentGameDataException, IOException{ 
-        try (BufferedWriter listWriter = fileWriter("project_db2.txt")){
+        try (BufferedWriter listWriter = fileWriter(listPath)){
             String toWrite;
             for (var file : gd.getOtherFiles()){
                 System.out.println(file.getKey() + "    " + file.getValue());
@@ -549,6 +549,20 @@ public class RessourcePath {
                 }
             }
         }
+    }
+
+    private void copyFiles(Path origin, List<String> files) throws IOException {
+        for (String filename : files){
+            Files.copy(origin.resolve(filename), path.resolve(filename));
+        }
+    }
+
+    public void copyUnmodifiedFiles(RessourcePath origin, GameData gd) throws IOException {
+        copyFiles(origin.getPath(), gd.getUnmodifiedFilenames());
+    }
+
+    public void saveGameDataFrom(RessourcePath origin, GameData gd) throws IOException, GameDataException, TransparentGameDataException{
+        saveGameData(gd);      
     }
 
     public void saveAsArchive(List<String> files, Path dest) throws IOException {

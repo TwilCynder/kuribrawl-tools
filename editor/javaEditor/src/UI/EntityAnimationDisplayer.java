@@ -2,6 +2,7 @@ package UI;
 
 import gamedata.CollisionBox;
 import gamedata.EntityAnimation;
+import gamedata.EntityFrame;
 import gamedata.Frame;
 import gamedata.Hitbox;
 import gamedata.Hurtbox;
@@ -49,6 +50,15 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
     private static final Color origin_color = new Color(0, 0, 255, 255);
     private static final Color hitbox_color = new Color(255, 0, 0, 255);
     private static final Color hurtbox_color = new Color(0, 255, 0, 255);
+    private static final Color selected_color = new Color(255, 0, 255);
+
+    private Frame getCurrentFrame() throws FrameOutOfBoundsException{
+        return current_anim.getFrame(currentFrame);
+    }
+
+    private EntityFrame getcurrentEntityFrame() throws FrameOutOfBoundsException{
+        return current_anim.getEntityFrame(currentFrame);
+    }
 
     public void draw(Graphics g, int x, int y, int w, int h, double zoom) throws IllegalStateException{
         try {
@@ -57,7 +67,7 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
             int dh = last_display_area.h;
             current_anim.draw(g, currentFrame, last_display_area.x, last_display_area.y, dw, dh);
 
-            Frame frame = current_anim.getFrame(currentFrame);
+            Frame frame = getCurrentFrame();
             Point origin = frame.getOrigin();
             origin = getDisplayPosition(origin);
 
@@ -66,11 +76,23 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
             g.drawLine(origin.x, 0, origin.x, 0 + h);
             g.setColor(hurtbox_color);
             for (Hurtbox hb : current_anim.getHurtboxes(currentFrame)){
-                g.drawRect(origin.x + (int)(hb.x * zoom), origin.y - (int)(hb.y * zoom), (int)(hb.w * zoom), (int)(hb.h * zoom));
+                if (hb == selected_cbox){
+                    g.setColor(selected_color);
+                    g.drawRect(origin.x + (int)(hb.x * zoom), origin.y - (int)(hb.y * zoom), (int)(hb.w * zoom), (int)(hb.h * zoom));
+                    g.setColor(hurtbox_color);
+                } else {
+                    g.drawRect(origin.x + (int)(hb.x * zoom), origin.y - (int)(hb.y * zoom), (int)(hb.w * zoom), (int)(hb.h * zoom));
+                }
             }
             g.setColor(hitbox_color);
             for (Hitbox hb : current_anim.getHitboxes(currentFrame)){
-                g.drawRect(origin.x + (int)(hb.x * zoom), origin.y - (int)(hb.y * zoom), (int)(hb.w * zoom), (int)(hb.h * zoom));
+                if (hb == selected_cbox){
+                    g.setColor(selected_color);
+                    g.drawRect(origin.x + (int)(hb.x * zoom), origin.y - (int)(hb.y * zoom), (int)(hb.w * zoom), (int)(hb.h * zoom));
+                    g.setColor(hitbox_color);
+                } else {
+                    g.drawRect(origin.x + (int)(hb.x * zoom), origin.y - (int)(hb.y * zoom), (int)(hb.w * zoom), (int)(hb.h * zoom));
+                }            
             }
         } catch (FrameOutOfBoundsException e){
             throw new IllegalStateException(e);
@@ -99,6 +121,42 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
 
     protected Point getAnimPosition(Point displaypos){
         return getAnimPosition(displaypos, currentZoom);
+    }
+
+    protected CollisionBox getCboxAt(Point animpos){
+        try {
+            CollisionBox selected = null; 
+            Frame frame = getCurrentFrame();
+            EntityFrame entity_frame = getcurrentEntityFrame();
+            Point origin = frame.getOrigin();
+            System.out.println(animpos.x - origin.x);
+            System.out.println(animpos.y - origin.y);
+
+            for (Hitbox h : entity_frame.hitboxes){
+                if (h == selected_cbox) {
+                    selected = h;
+                    continue;
+                }
+                if (animpos.x > origin.x + h.x && animpos.x < origin.x + h.x + h.w && animpos.y > origin.y - h.y && animpos.y < origin.y - h.y + h.h){
+                    return h;
+                }
+            }
+    
+            for (Hurtbox h : entity_frame.hurtboxes){
+                if (h == selected_cbox) {
+                    selected = h;
+                    continue;
+                }
+                if (animpos.x > origin.x + h.x && animpos.x < origin.x + h.x + h.w && animpos.y > origin.y - h.y && animpos.y < origin.y - h.y + h.h){
+                    return h;
+                }
+            }
+    
+            return selected;
+        } catch (FrameOutOfBoundsException ex){
+            throw new IllegalStateException(ex);
+        }
+
     }
 
     public int getFrameIndex(){

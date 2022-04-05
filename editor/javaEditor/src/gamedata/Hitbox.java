@@ -2,7 +2,7 @@ package gamedata;
 
 import KBUtil.Rectangle;
 
-public abstract class Hitbox extends Rectangle{
+public abstract class Hitbox extends CollisionBox{
     public Hitbox(){
         super();
     }
