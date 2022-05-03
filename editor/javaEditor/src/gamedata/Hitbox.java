@@ -14,7 +14,7 @@ public abstract class Hitbox extends CollisionBox{
         super(rect.x, rect.y, rect.w, rect.h);
     }
 
-    public abstract char getTypeCode();
+    abstract public char getTypeCode();
 
     public abstract String stringifyTypeSpecificInfo();
 

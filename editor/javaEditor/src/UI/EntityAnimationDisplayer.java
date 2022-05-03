@@ -52,11 +52,11 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
     private static final Color hurtbox_color = new Color(0, 255, 0, 255);
     private static final Color selected_color = new Color(255, 0, 255);
 
-    private Frame getCurrentFrame() throws FrameOutOfBoundsException{
+    public Frame getCurrentFrame() throws FrameOutOfBoundsException{
         return current_anim.getFrame(currentFrame);
     }
 
-    private EntityFrame getcurrentEntityFrame() throws FrameOutOfBoundsException{
+    public EntityFrame getcurrentEntityFrame() throws FrameOutOfBoundsException{
         return current_anim.getEntityFrame(currentFrame);
     }
 
@@ -129,8 +129,6 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
             Frame frame = getCurrentFrame();
             EntityFrame entity_frame = getcurrentEntityFrame();
             Point origin = frame.getOrigin();
-            System.out.println(animpos.x - origin.x);
-            System.out.println(animpos.y - origin.y);
 
             for (Hitbox h : entity_frame.hitboxes){
                 if (h == selected_cbox) {
@@ -157,6 +155,20 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
             throw new IllegalStateException(ex);
         }
 
+    }
+
+    public CollisionBox getSelectedCBox(){
+        return selected_cbox;
+    }
+
+    public Hurtbox getSelectedHurtbox() throws IllegalStateException{
+        if (selected_cbox == null || !(selected_cbox instanceof Hurtbox)) throw new IllegalStateException("Selected Cbox is " + selected_cbox + "(should be a Hurtbox)");
+        return (Hurtbox)selected_cbox;
+    }
+
+    public Hitbox getSelectedHitbox() throws IllegalStateException{
+        if (selected_cbox == null || !(selected_cbox instanceof Hitbox)) throw new IllegalStateException("Selected Cbox is " + selected_cbox + "(should be a Hurtbox)");
+        return (Hitbox)selected_cbox;
     }
 
     public int getFrameIndex(){

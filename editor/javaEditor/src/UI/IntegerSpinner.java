@@ -19,6 +19,9 @@ public class IntegerSpinner extends TwilSpinner {
         return ((Integer)getValue()).intValue();
     }
 
+    public void validateInt(){
+    }
+
     @Override
     public void setModel(SpinnerModel m){}
 }

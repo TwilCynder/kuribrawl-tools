@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import java.awt.Image;
@@ -127,11 +128,11 @@ public class RessourcePath {
         return Arrays.stream(str.split(sep)).filter(e -> e.trim().length() > 0).toArray(String[]::new);
     }
 
-    private static void fullFrameHurtbox(Frame frame, EntityFrame entity_frame){
+    private static Hurtbox fullFrameHurtbox(Frame frame, EntityFrame entity_frame){
         Point origin = frame.getOrigin();
         Rectangle display = frame.getDisplay();        
         
-        entity_frame.addHurtbox(- origin.x, origin.y, display.w, display.h);
+        return entity_frame.addHurtbox(- origin.x, origin.y, display.w, display.h);
     }
 
     private static void parseFrameMovementAxis(EntityFrame.FrameMovementAxis axis, String info) throws RessourceException{
@@ -322,23 +323,32 @@ public class RessourcePath {
                         if (!current_frame.valid()){
                             throw new RessourceException("Hurtbox info with no frame index found before any frame info", descriptor_filename, line_index);
                         }
-    
-                        if (fields[1].equals("whole")){
-                            fullFrameHurtbox(current_frame.frame, current_frame.entity_frame);
+                        Hurtbox h;
+                        int currentField = 1;
+                        if (fields[currentField].equals("whole")){
+                            h = fullFrameHurtbox(current_frame.frame, current_frame.entity_frame);
+                            currentField++;
                         } else {
-                            if (fields.length != 5){
+                            if (fields.length < 5){
                                 throw new RessourceException("Hurtbox info should contain either 4 coordinates or \"whole\"", descriptor_filename, line_index);
                             }
     
                             try {
-                                current_frame.entity_frame.addHurtbox(Integer.parseInt(fields[1]), Integer.parseInt(fields[2]), Integer.parseInt(fields[3]), Integer.parseInt(fields[4]));
+                                h = current_frame.entity_frame.addHurtbox(Integer.parseInt(fields[1]), Integer.parseInt(fields[2]), Integer.parseInt(fields[3]), Integer.parseInt(fields[4]));
                             } catch (NumberFormatException e){
                                 throw new RessourceException("Hurtbox coordinate is not a valid number", descriptor_filename, line_index);
                             }
-    
+                            currentField = 5;
+                        }
+
+                        if (fields.length > currentField){
+                            try {
+                                h.type = HurtboxType.valueOfSafe(Integer.parseInt(fields[currentField]));
+                            } catch (NumberFormatException | NoSuchElementException e){
+                                throw new RessourceException("Hurtbox type is not a valid hurtbox type code", descriptor_filename, line_index);
+                            }
                         }
                     }
-
 
                     break;
                     case "h":
@@ -429,7 +439,6 @@ public class RessourcePath {
                 anim.setSpeed(Double.parseDouble(fields[2]));
                 if (fields.length > 3){
                     if (fields[3].equals("c")){
-                        System.out.println("Full-frame hurtbox");
                         for (int i = 0; i < anim.getNbFrames(); i++){
                             try {
                                 Frame frame; EntityFrame entity_frame;

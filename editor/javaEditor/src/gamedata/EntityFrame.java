@@ -28,8 +28,10 @@ public class EntityFrame {
         hurtboxes.add(hb);
     }
 
-    public void addHurtbox(int x, int y, int w, int h){
-        hurtboxes.add(new Hurtbox(x, y, w, h));
+    public Hurtbox addHurtbox(int x, int y, int w, int h){
+        Hurtbox hb = new Hurtbox(x, y, w, h);
+        hurtboxes.add(hb);
+        return hb;
     }
 
     public void addHitbox(Hitbox hb){

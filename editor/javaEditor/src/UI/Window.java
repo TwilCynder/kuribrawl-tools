@@ -28,15 +28,20 @@ import com.jgoodies.forms.layout.RowSpec;
 
 import KBUtil.functional.DoubleToString;
 import UI.exceptions.WindowStateException;
+import gamedata.AngleMode;
 import gamedata.Champion;
 import gamedata.CollisionBox;
+import gamedata.DamageHitbox;
 import gamedata.EntityAnimation;
 import gamedata.EntityFrame;
 import gamedata.Frame;
 import gamedata.GameData;
 import gamedata.Hitbox;
 import gamedata.Hurtbox;
+import gamedata.HurtboxType;
 import gamedata.RessourcePath;
+import gamedata.WindHitbox;
+import gamedata.exceptions.FrameOutOfBoundsException;
 import gamedata.exceptions.GameDataException;
 import gamedata.exceptions.InvalidRessourcePathException;
 import gamedata.exceptions.TransparentGameDataException;
@@ -46,12 +51,18 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusListener;
+import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
+import java.awt.event.ItemEvent;
 import java.awt.Point;
 import java.awt.CardLayout;
 
@@ -64,8 +75,8 @@ public class Window extends JFrame{
 	
 	private Canvas displayCanvas;
     private JPanel contentPane;
-	private JTextField tfAnimSpeed;
-	private JTextField tfFrameDuration;
+	private TwilTextField tfAnimSpeed;
+	private TwilTextField tfFrameDuration;
 	private IntegerSpinner spinFrameOriginX;
 	private IntegerSpinner spinFrameOriginY;
 	private TwilTextField tfCurrentFrame;
@@ -91,14 +102,63 @@ public class Window extends JFrame{
 	private JTextField tfBKB;
 	private JTextField tfSKB;
 	private JSpinner spinHitID;
-	private JComboBox comboAngleMode;
+	private JSpinner spinHitboxPrio;
 	private JPanel wind_hitbox;
 	private JTextField textField_4;
 	private JTextField textField_5;
 	private JTextField textField_6;
 	private JTextField textField_7;
 	private JPanel blank;
-	private JSpinner spinHitboxPrio;
+	private CardPanel editor_controls;
+
+	private static Map <HurtboxType, String> hurtboxTypesNames = new EnumMap<>(HurtboxType.class){{
+		put(HurtboxType.NORMAL, "Normal");
+		put(HurtboxType.INTANGIBLE, "Intangible");
+		put(HurtboxType.PROTECTED, "Protected");
+		put(HurtboxType.INVINCIBLE, "Invincible");
+	}};
+
+	private enum HitboxType {
+		DAMAGE("Damaging", DamageHitbox.class),
+		WIND("Windbox", WindHitbox.class);
+
+		private String name;
+		private Class<? extends Hitbox> hitboxClass;
+
+		private HitboxType(String name, Class<? extends Hitbox> hitboxClass){
+			this.name = name;
+			this.hitboxClass = hitboxClass;
+		}
+
+		@Override
+		public String toString(){
+			return name;
+		}
+
+		public Class<? extends Hitbox> getHitboxClass(){ 
+
+			return hitboxClass;
+		}
+	}
+
+	private static Map <AngleMode, String> angleModeNames = new EnumMap<>(AngleMode.class){{
+		put(AngleMode.NORMAL, "Normal");
+	}};
+
+	private static Map<Class<? extends Hitbox>, HitboxType> hitboxTypes = new TreeMap<>(new Comparator<Class<? extends Hitbox>>() {
+		public int compare(Class<? extends Hitbox> left, Class<? extends Hitbox> right){
+			return left.getName().compareTo(right.getName());
+		}
+	})
+	{{
+		for(HitboxType type : HitboxType.values()){
+			put(type.getHitboxClass(), type);
+		}
+	}};
+
+	private MapComboBox<HurtboxType, String> comboHurtboxType;
+	private JComboBox<HitboxType> comboHitboxType;
+	private MapComboBox<AngleMode, String> comboAngleMode;
 
 	public  void errorPopup(String message){
 		JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
@@ -132,9 +192,12 @@ public class Window extends JFrame{
 
 		displayCanvas = new Canvas();
 		contentPane.add(displayCanvas, BorderLayout.CENTER);
-		
+
+		editor_controls = new CardPanel();
+		contentPane.add(editor_controls, BorderLayout.EAST);
+
 		animation_controls = new JPanel();
-		contentPane.add(animation_controls, BorderLayout.EAST);
+		editor_controls.add(animation_controls, "EntityAnimation");
 		animation_controls.setLayout(new BoxLayout(animation_controls, BoxLayout.Y_AXIS));
 		
 		JPanel anim_prop_controls = new JPanel();
@@ -149,9 +212,10 @@ public class Window extends JFrame{
 		dummyLabel = new JLabel("Speed");
 		panel.add(dummyLabel);
 		
-		tfAnimSpeed = new JTextField();
+		tfAnimSpeed = new TwilTextField();
 		panel.add(tfAnimSpeed);
 		tfAnimSpeed.setColumns(10);
+		tfAnimSpeed.setDocument(new IntegerDocument());
 		
 		JPanel frame_controls = new JPanel();
 		frame_controls.setBorder(new TitledBorder(null, "Frame properties", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -165,7 +229,7 @@ public class Window extends JFrame{
 		dummyLabel = new JLabel("Duration");
 		dummyPanel.add(dummyLabel);
 		
-		tfFrameDuration = new JTextField();
+		tfFrameDuration = new TwilTextField();
 		dummyPanel.add(tfFrameDuration);
 		tfFrameDuration.setColumns(10);
 		
@@ -182,7 +246,7 @@ public class Window extends JFrame{
 		spinFrameOriginY = new IntegerSpinner();
 		dummyPanel.add(spinFrameOriginY);
 		spinFrameOriginY.setColumns(2);
-		
+
 		element_controls = new CardPanel();
 		animation_controls.add(element_controls);
 		
@@ -232,9 +296,8 @@ public class Window extends JFrame{
 		spinHurtboxHeight = new IntegerSpinner();
 		hurtbox.add(spinHurtboxHeight, "8, 4");
 		
-		//String[] items = new String[] {"Normal", "Protected", "Invincible", "Intangible"};
-		JComboBox<String> comboBox = new JComboBox<String>(/*items*/);
-		hurtbox.add(comboBox, "2, 6, 7, 1, fill, default");
+		comboHurtboxType = new MapComboBox<>(hurtboxTypesNames);
+		hurtbox.add(comboHurtboxType, "2, 6, 7, 1, fill, default");
 		
 		JPanel hitbox = new JPanel();
 		hitbox.setBorder(new TitledBorder(null, "Hitbox properties", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -282,9 +345,8 @@ public class Window extends JFrame{
 		spinHitboxHeight = new IntegerSpinner();
 		hitbox.add(spinHitboxHeight, "8, 4");
 		
-		//items = new String[] {"Normal", "Protected", "Invincible", "Intangible"};
-		JComboBox<String> comboHurboxType = new JComboBox<String>(/*items*/);
-		hitbox.add(comboHurboxType, "2, 6, 7, 1, fill, default");
+		comboHitboxType = new JComboBox<HitboxType>(HitboxType.values());
+		hitbox.add(comboHitboxType, "2, 6, 7, 1, fill, default");
 		
 		hitbox_controls = new JPanel();
 		hitbox.add(hitbox_controls, "2, 8, 7, 1, fill, fill");
@@ -360,7 +422,7 @@ public class Window extends JFrame{
 		damage_hitbox.add(dummyLabel, "2, 10, right, default");
 		
 		//items = new String[] {"Normal"};
-		comboAngleMode = new JComboBox<String>(/**/);
+		comboAngleMode = new MapComboBox<>(angleModeNames);
 		damage_hitbox.add(comboAngleMode, "4, 10, 5, 1, fill, default");
 		
 		wind_hitbox = new JPanel();
@@ -414,11 +476,16 @@ public class Window extends JFrame{
 		JPanel blank_card = new JPanel();
 		element_controls.add(blank_card, "blank");
 		
-		element_controls.show("hitbox");
+		element_controls.show("blank");
 
 		JPanel blank_space = new JPanel();
 		animation_controls.add(blank_space);
 		blank_space.setLayout(new SpringLayout());
+
+		dummyPanel = new JPanel();
+		editor_controls.add(dummyPanel, "blank");
+
+		editor_controls.show("blank");
 
 		JPanel Current_frame_controls = new JPanel();
 		FlowLayout fl_Current_frame_controls = (FlowLayout) Current_frame_controls.getLayout();
@@ -516,7 +583,6 @@ public class Window extends JFrame{
 		tfAnimSpeed.addFocusListener(new FocusListener(){
 			public void focusGained(FocusEvent e){}
 			public void focusLost(FocusEvent e){
-				System.out.println("focus lost");
 				double value; 
 				try{
 					value = Double.parseDouble(tfAnimSpeed.getText());
@@ -525,11 +591,85 @@ public class Window extends JFrame{
 					anim.setSpeed(value);
 					modifsOccured = true;
 				} catch (NumberFormatException ex){
+					System.out.println("Garbage input in tf anim speed");
 				}
 			}
 		});
 
-		AbstractAction testAction = new AbstractAction(){
+		tfFrameDuration.addFocusListener(new FocusListener(){
+			public void focusGained(FocusEvent e){}
+			public void focusLost(FocusEvent e){
+				try{
+					int value;
+					value = tfFrameDuration.getInt();
+					EntityAnimationEditor editor = getEADisplayer();
+					Frame frame = editor.getCurrentFrame();
+					frame.setDuration(value);
+					modifsOccured = true;
+				} catch (NumberFormatException ex){
+					System.out.println("Garbage input in tf frame duration");
+				} catch (FrameOutOfBoundsException ex){
+					throw new IllegalStateException(ex);
+				}
+			}
+		});
+
+		comboHurtboxType.addItemListener(new ItemListener(){
+			public void itemStateChanged(ItemEvent e){
+				if (e.getStateChange() != ItemEvent.SELECTED) return;
+				try {
+					if (e.getItem() instanceof MapComboBoxItem){
+						MapComboBoxItem<?, ?> item = (MapComboBoxItem<?, ?>)e.getItem(); 
+						if (item.getValue() instanceof HurtboxType){
+							HurtboxType type = (HurtboxType)item.getValue();
+							EntityAnimationDisplayer displayer = getEADisplayer();
+							Hurtbox hurtbox = displayer.getSelectedHurtbox();
+
+							hurtbox.type = type; //wooooo tout ça pour ça t content twil dmerd
+						}
+					}
+				} catch (WindowStateException ex){
+					ex.printStackTrace();
+				}
+			}
+		});	
+
+		comboHitboxType.addItemListener(new ItemListener(){
+			public void itemStateChanged(ItemEvent e){
+				if (e.getStateChange() != ItemEvent.SELECTED) return;
+				try {
+					if (e.getItem() instanceof HitboxType){
+						HitboxType type = (HitboxType)e.getItem();
+						EntityAnimationDisplayer displayer = getEADisplayer();
+						Hitbox hitbox = displayer.getSelectedHitbox();
+						if (hitbox.getClass() != type.getHitboxClass()){
+							EntityFrame frame;
+							try {
+								frame = displayer.getcurrentEntityFrame();
+							} catch (FrameOutOfBoundsException ex){
+								throw new IllegalStateException(ex);
+							}
+							Hitbox newHitbox = null;
+
+							switch (type){
+								case DAMAGE:
+									newHitbox = new DamageHitbox(hitbox);
+								case WIND:
+									newHitbox = new WindHitbox(hitbox);
+							}
+							int index = frame.hitboxes.indexOf(hitbox);
+							if (index == -1) throw new IllegalStateException("Selected hitbox is not in the current frame hitboxes list");
+							frame.hitboxes.set(index, newHitbox);
+						}
+					} 
+					
+				} catch (WindowStateException ex){
+					ex.printStackTrace();
+				}
+			}
+		});
+
+		Action testAction = new AbstractAction(){
 			public void actionPerformed(ActionEvent e){
 				System.out.println("Test !");
 			}
@@ -595,6 +735,7 @@ public class Window extends JFrame{
 
 				if (selected.equals(currentRessourcePath.getPath())) {
 					saveData();
+					return;
 				}
 
 				try {
@@ -668,7 +809,7 @@ public class Window extends JFrame{
 			throw new IllegalArgumentException("Passed null gamedata to Window.setGameData");
 		}
 
-		System.out.println("Using this GameData : ");
+		/*System.out.println("Using this GameData : ");
 		for (Champion c : gd){
 			System.out.println("==" + c.getDislayName() + "==");
             for (EntityAnimation anim : c){
@@ -676,7 +817,7 @@ public class Window extends JFrame{
                 //System.out.println(anim.getNbFrames());
                 //System.out.println(anim.getSpeed());
             }
-        }
+        }*/
 		initAnimationsMenu(gd);
 		currentData = gd;
 		currentRessourcePath = originPath;
@@ -717,6 +858,7 @@ public class Window extends JFrame{
 			editor = new EntityAnimationEditor(anim, this);
 			displayCanvas.setDisplayable(editor);
 		}
+		editor_controls.show("EntityAnimation");
 		updateCurrentFrameField(editor);
 		updateCurrentZoomField(editor);
 		repaint();
@@ -728,7 +870,7 @@ public class Window extends JFrame{
 		if (disp instanceof EntityAnimationEditor){
 			return (EntityAnimationEditor)disp;
 		} else {
-			throw new WindowStateException("User interacted with frame selector while displayed object was not an EntityAnimationEditor");
+			throw new WindowStateException("User interacted with EntityAnimation-related control while displayed object was not an EntityAnimationEditor");
 		}
 	}
 
@@ -767,15 +909,36 @@ public class Window extends JFrame{
 			spinHurtboxY.setValue(hurtbox.y);
 			spinHurtboxWidth.setValue(hurtbox.w);
 			spinHurtboxHeight.setValue(hurtbox.h);
+			comboHurtboxType.setSelectedValue(hurtbox.type);
 		}
 
 		if (cbox instanceof Hitbox){
 			element_controls.show("hitbox");
-			Hurtbox hurtbox = (Hurtbox)cbox;
-			spinHurtboxX.setValue(hurtbox.x); 
-			spinHurtboxY.setValue(hurtbox.y);
-			spinHurtboxWidth.setValue(hurtbox.w);
-			spinHurtboxHeight.setValue(hurtbox.h);	
+			Hitbox hitbox = (Hitbox)cbox;
+			spinHitboxX.setValue(hitbox.x); 
+			spinHitboxY.setValue(hitbox.y);
+			spinHitboxWidth.setValue(hitbox.w);
+			spinHitboxHeight.setValue(hitbox.h);	
+			HitboxType type = hitboxTypes.get(hitbox.getClass());
+			comboHitboxType.setSelectedItem(type);
+
+			switch (type){
+				case WIND:
+				break;
+				case DAMAGE:
+				{
+					DamageHitbox damageHitbox = (DamageHitbox)hitbox;
+					tfDamages.setText(Double.toString(damageHitbox.damage));;
+					tfAngle.setText(Integer.toString(damageHitbox.angle));;
+					tfBKB.setText(Double.toString(damageHitbox.base_knockback));
+					tfSKB.setText(Double.toString(damageHitbox.scaling_knockback));
+					spinHitID.setValue(damageHitbox.hitID);
+					spinHitboxPrio.setValue(damageHitbox.priority);
+					comboAngleMode.setSelectedValue(damageHitbox.angle_mode);
+				}
+				break;
+				default:
+			}
 		}
 	}
 

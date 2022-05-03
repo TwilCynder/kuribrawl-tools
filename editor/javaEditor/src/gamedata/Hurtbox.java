@@ -1,7 +1,7 @@
 package gamedata;
 
 public class Hurtbox extends CollisionBox {
-    public HurtboxType type;
+    public HurtboxType type = HurtboxType.NORMAL;
     public Hurtbox(){
         super();
     }
