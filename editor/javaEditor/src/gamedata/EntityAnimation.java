@@ -134,7 +134,7 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
         if (!isFrameDefault(frame)){
             res = "f" + index + " ";
             indexWritten = true;
-            if (!frame.hasDefaultOrigin()){ 
+            if (!frame.hasDefaultOrigin()){
                 Point origin = frame.getOrigin();
                 res += "o" + origin.x + " " + origin.y + " ";
             }

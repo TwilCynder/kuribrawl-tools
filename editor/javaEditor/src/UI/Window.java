@@ -92,8 +92,9 @@ public class Window extends JFrame{
 	private IntegerSpinner spinHitboxHeight;
 	private JPanel animation_controls;
 	private CardPanel element_controls;
-	private JPanel hitbox_controls;
+	private CardPanel hitbox_typespecific_controls;
 	private JPanel damage_hitbox;
+	private JPanel wind_hitbox;
 
 	private JMenu animations_menu;
 
@@ -103,7 +104,6 @@ public class Window extends JFrame{
 	private JTextField tfSKB;
 	private JSpinner spinHitID;
 	private JSpinner spinHitboxPrio;
-	private JPanel wind_hitbox;
 	private JTextField textField_4;
 	private JTextField textField_5;
 	private JTextField textField_6;
@@ -215,7 +215,7 @@ public class Window extends JFrame{
 		tfAnimSpeed = new TwilTextField();
 		panel.add(tfAnimSpeed);
 		tfAnimSpeed.setColumns(10);
-		tfAnimSpeed.setDocument(new IntegerDocument());
+		tfAnimSpeed.setDocumentFilter(RealNumberDocumentFilter.staticInstance);
 		
 		JPanel frame_controls = new JPanel();
 		frame_controls.setBorder(new TitledBorder(null, "Frame properties", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -232,6 +232,7 @@ public class Window extends JFrame{
 		tfFrameDuration = new TwilTextField();
 		dummyPanel.add(tfFrameDuration);
 		tfFrameDuration.setColumns(10);
+		tfFrameDuration.setDocumentFilter(IntegerDocumentFilter.staticInstance);
 		
 		dummyPanel = new JPanel();
 		frame_controls.add(dummyPanel);
@@ -348,12 +349,11 @@ public class Window extends JFrame{
 		comboHitboxType = new JComboBox<HitboxType>(HitboxType.values());
 		hitbox.add(comboHitboxType, "2, 6, 7, 1, fill, default");
 		
-		hitbox_controls = new JPanel();
-		hitbox.add(hitbox_controls, "2, 8, 7, 1, fill, fill");
-		hitbox_controls.setLayout(new CardLayout(0, 0));
+		hitbox_typespecific_controls = new CardPanel();
+		hitbox.add(hitbox_typespecific_controls, "2, 8, 7, 1, fill, fill");
 		
 		damage_hitbox = new JPanel();
-		hitbox_controls.add(damage_hitbox, "damage");
+		hitbox_typespecific_controls.add(damage_hitbox, HitboxType.DAMAGE.toString());
 		damage_hitbox.setLayout(new FormLayout(new ColumnSpec[] {
 				FormSpecs.RELATED_GAP_COLSPEC,
 				FormSpecs.DEFAULT_COLSPEC,
@@ -426,7 +426,7 @@ public class Window extends JFrame{
 		damage_hitbox.add(comboAngleMode, "4, 10, 5, 1, fill, default");
 		
 		wind_hitbox = new JPanel();
-		hitbox_controls.add(wind_hitbox, "wind");
+		hitbox_typespecific_controls.add(wind_hitbox, HitboxType.WIND.toString());
 		wind_hitbox.setLayout(new FormLayout(new ColumnSpec[] {
 				FormSpecs.RELATED_GAP_COLSPEC,
 				FormSpecs.DEFAULT_COLSPEC,
@@ -471,7 +471,7 @@ public class Window extends JFrame{
 		textField_7.setColumns(4);
 		
 		blank = new JPanel();
-		hitbox_controls.add(blank, "name_1186107637016000");
+		hitbox_typespecific_controls.add(blank, "name_1186107637016000");
 
 		JPanel blank_card = new JPanel();
 		element_controls.add(blank_card, "blank");
@@ -518,7 +518,7 @@ public class Window extends JFrame{
 			public void actionPerformed(ActionEvent e) {
 				EntityAnimationEditor displayer;
 				try {
-					displayer = getEADisplayer();
+					displayer = getEAEDitor();
 					displayer.incrFrame();
 					repaint();
 					updateCurrentFrameField(displayer);
@@ -531,7 +531,7 @@ public class Window extends JFrame{
 			public void actionPerformed(ActionEvent e) {
 				EntityAnimationEditor displayer;
 				try {
-					displayer = getEADisplayer();
+					displayer = getEAEDitor();
 					displayer.decrFrame();
 					repaint();
 					updateCurrentFrameField(displayer);
@@ -544,7 +544,7 @@ public class Window extends JFrame{
 			public void actionPerformed(ActionEvent e){
 				EntityAnimationEditor displayer;
 				try {
-					displayer = getEADisplayer();
+					displayer = getEAEDitor();
 					double zoom = displayer.getZoom();
 					if (zoom > 1.0){
 						zoom -= 1.0;
@@ -561,7 +561,7 @@ public class Window extends JFrame{
 			public void actionPerformed(ActionEvent e){
 				EntityAnimationEditor displayer;
 				try {
-					displayer = getEADisplayer();
+					displayer = getEAEDitor();
 					double zoom = displayer.getZoom();
 					if (zoom < 4.0){
 						zoom += 1.0;
@@ -586,7 +586,7 @@ public class Window extends JFrame{
 				double value; 
 				try{
 					value = Double.parseDouble(tfAnimSpeed.getText());
-					EntityAnimationEditor editor = getEADisplayer();
+					EntityAnimationEditor editor = getEAEDitor();
 					EntityAnimation anim = editor.getAnimation();
 					anim.setSpeed(value);
 					modifsOccured = true;
@@ -602,7 +602,7 @@ public class Window extends JFrame{
 				try{
 					int value;
 					value = tfFrameDuration.getInt();
-					EntityAnimationEditor editor = getEADisplayer();
+					EntityAnimationEditor editor = getEAEDitor();
 					Frame frame = editor.getCurrentFrame();
 					frame.setDuration(value);
 					modifsOccured = true;
@@ -622,7 +622,7 @@ public class Window extends JFrame{
 						MapComboBoxItem<?, ?> item = (MapComboBoxItem<?, ?>)e.getItem(); 
 						if (item.getValue() instanceof HurtboxType){
 							HurtboxType type = (HurtboxType)item.getValue();
-							EntityAnimationDisplayer displayer = getEADisplayer();
+							EntityAnimationDisplayer displayer = getEAEDitor();
 							Hurtbox hurtbox = displayer.getSelectedHurtbox();
 
 							hurtbox.type = type; //wooooo tout ça pour ça t content twil dmerd
@@ -640,7 +640,7 @@ public class Window extends JFrame{
 				try {
 					if (e.getItem() instanceof HitboxType){
 						HitboxType type = (HitboxType)e.getItem();
-						EntityAnimationDisplayer displayer = getEADisplayer();
+						EntityAnimationDisplayer displayer = getEAEDitor();
 						Hitbox hitbox = displayer.getSelectedHitbox();
 						if (hitbox.getClass() != type.getHitboxClass()){
 							EntityFrame frame;
@@ -651,15 +651,19 @@ public class Window extends JFrame{
 							}
 							Hitbox newHitbox = null;
 
+							System.out.println("Selected item : " + type);
 							switch (type){
 								case DAMAGE:
 									newHitbox = new DamageHitbox(hitbox);
+									break;
 								case WIND:
 									newHitbox = new WindHitbox(hitbox);
 							}
 							int index = frame.hitboxes.indexOf(hitbox);
 							if (index == -1) throw new IllegalStateException("Selected hitbox is not in the current frame hitboxes list");
 							frame.hitboxes.set(index, newHitbox);
+							getEAEDitor().setSelectedCBox(newHitbox);
+							//updateHitboxTypeSpecificControls(newHitbox, type);
 						}
 					} 
 					
@@ -864,9 +868,14 @@ public class Window extends JFrame{
 		repaint();
 	}
 
-	public EntityAnimationEditor getEADisplayer() throws WindowStateException {
+	/**
+	 * Returns the current Editor of the Canvas as an EAEditor, or throws is Canvas is not currently holding an EAEditor. 
+	 * Cannot return null.
+	 * @return EntityAnimationEditor : the current editor of the Canvas
+	 * @throws WindowStateException
+	 */
+	public EntityAnimationEditor getEAEDitor() throws WindowStateException {
 		Displayable disp = displayCanvas.getDisplayable();
-		if (disp == null) return null;
 		if (disp instanceof EntityAnimationEditor){
 			return (EntityAnimationEditor)disp;
 		} else {
@@ -897,6 +906,29 @@ public class Window extends JFrame{
 		spinFrameOriginY.setValue(origin.y);
 	}
 
+	private void updateHitboxTypeSpecificControls(Hitbox hitbox, HitboxType type){
+		hitbox_typespecific_controls.show(type.toString());
+
+		switch (type){
+			case WIND:
+
+			break;
+			case DAMAGE:
+			{
+				DamageHitbox damageHitbox = (DamageHitbox)hitbox;
+				tfDamages.setText(Double.toString(damageHitbox.damage));;
+				tfAngle.setText(Integer.toString(damageHitbox.angle));;
+				tfBKB.setText(Double.toString(damageHitbox.base_knockback));
+				tfSKB.setText(Double.toString(damageHitbox.scaling_knockback));
+				spinHitID.setValue(damageHitbox.hitID);
+				spinHitboxPrio.setValue(damageHitbox.priority);
+				comboAngleMode.setSelectedValue(damageHitbox.angle_mode);
+			}
+			break;
+			default:
+		}
+	}
+
 	public void updateElementControls(CollisionBox cbox){
 		if (cbox == null){
 			element_controls.show("blank");
@@ -921,24 +953,7 @@ public class Window extends JFrame{
 			spinHitboxHeight.setValue(hitbox.h);	
 			HitboxType type = hitboxTypes.get(hitbox.getClass());
 			comboHitboxType.setSelectedItem(type);
-
-			switch (type){
-				case WIND:
-				break;
-				case DAMAGE:
-				{
-					DamageHitbox damageHitbox = (DamageHitbox)hitbox;
-					tfDamages.setText(Double.toString(damageHitbox.damage));;
-					tfAngle.setText(Integer.toString(damageHitbox.angle));;
-					tfBKB.setText(Double.toString(damageHitbox.base_knockback));
-					tfSKB.setText(Double.toString(damageHitbox.scaling_knockback));
-					spinHitID.setValue(damageHitbox.hitID);
-					spinHitboxPrio.setValue(damageHitbox.priority);
-					comboAngleMode.setSelectedValue(damageHitbox.angle_mode);
-				}
-				break;
-				default:
-			}
+			updateHitboxTypeSpecificControls(hitbox, type);
 		}
 	}
 

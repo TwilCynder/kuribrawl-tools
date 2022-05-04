@@ -54,7 +54,7 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         onAnimationChanged();
     }
 
-    private void setSelectedCBox(CollisionBox cbox){
+    public void setSelectedCBox(CollisionBox cbox){
         selected_cbox = cbox;
         onSelectedCBoxChanged();
     }
@@ -148,4 +148,5 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         super.setAnimation(anim);
         onAnimationChanged();
     }
+
 }
