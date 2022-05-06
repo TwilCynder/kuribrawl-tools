@@ -19,7 +19,10 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.plaf.synth.SynthColorChooserUI;
 
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
@@ -520,7 +523,7 @@ public class Window extends JFrame{
 				try {
 					displayer = getEAEDitor();
 					displayer.incrFrame();
-					repaint();
+					displayCanvas.repaint();
 					updateCurrentFrameField(displayer);
 				} catch (WindowStateException ex){
 				}
@@ -533,7 +536,7 @@ public class Window extends JFrame{
 				try {
 					displayer = getEAEDitor();
 					displayer.decrFrame();
-					repaint();
+					displayCanvas.repaint();
 					updateCurrentFrameField(displayer);
 				} catch (WindowStateException ex){
 				}
@@ -549,7 +552,7 @@ public class Window extends JFrame{
 					if (zoom > 1.0){
 						zoom -= 1.0;
 						displayer.setZoom(zoom);
-						repaint();
+						displayCanvas.repaint();
 						updateCurrentZoomField(displayer);
 					}
 				} catch (WindowStateException ex){
@@ -566,7 +569,7 @@ public class Window extends JFrame{
 					if (zoom < 4.0){
 						zoom += 1.0;
 						displayer.setZoom(zoom);
-						repaint();
+						displayCanvas.repaint();
 						updateCurrentZoomField(displayer);;
 					}
 				} catch (WindowStateException ex){
@@ -610,6 +613,22 @@ public class Window extends JFrame{
 					System.out.println("Garbage input in tf frame duration");
 				} catch (FrameOutOfBoundsException ex){
 					throw new IllegalStateException(ex);
+				}
+			}
+		});
+
+		spinFrameOriginX.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e){	
+				try{
+					int value = spinFrameOriginX.getValueInt();
+					EntityAnimationEditor editor = getEAEDitor();
+					Frame frame = editor.getCurrentFrame();
+					frame.setOriginX(value);
+					displayCanvas.repaint();
+				} catch (FrameOutOfBoundsException ex){
+					throw new IllegalStateException(ex);
+				} catch (WindowStateException ex){
+					//TODO handle this better (threw once at initialization, normal behavior, can't see the difference with a legit error)
 				}
 			}
 		});
@@ -790,6 +809,9 @@ public class Window extends JFrame{
         setMinimumSize(new Dimension(500, 400));
         setSize(500, 500);
         setLocationRelativeTo(null);
+
+
+		System.out.println("end init");
     }
 
 	public void initAnimationsMenu(GameData gd){

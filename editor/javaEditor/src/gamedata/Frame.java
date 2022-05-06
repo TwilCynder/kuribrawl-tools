@@ -39,6 +39,14 @@ public class Frame {
         origin = p;
     }
 
+    public void setOriginX(int x){
+        origin.x = x;
+    }
+
+    public void setOriginY(int y){
+        origin.y = y;
+    }
+
     public boolean hasDefaultOrigin(){
         return origin.equals(default_origin);
     }

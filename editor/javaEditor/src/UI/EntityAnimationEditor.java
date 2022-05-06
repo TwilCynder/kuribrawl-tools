@@ -74,30 +74,36 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         popup_menu.show(d, p.x, p.y);
     }
 
+    private static void shiftElements(EntityFrame eFrame, Point diff){
+        for (Hurtbox h : eFrame.hurtboxes){
+            h.translate(diff.x, diff.y);
+        }
+        for (Hitbox h : eFrame.hitboxes){
+            h.translate(diff.x, diff.y);
+        }
+    }
+
     private void moveOrigin(Point p) throws IllegalStateException{
         try {
             Point animpoint = getAnimPosition(p);
             Size2D frame_size = current_anim.getFrameSize();
             if (animpoint.x >= 0 && animpoint.x < frame_size.w && animpoint.y >= 0 && animpoint.y < frame_size.h){
                 Frame frame = current_anim.getFrame(currentFrame);
-                Point old_origin = new Point(frame.getOrigin()); //using the pathetic excuse of a copy constructor java gives me
+                Point old_origin = new Point(frame.getOrigin());
                 Point diff = new Point(
                     old_origin.x - animpoint.x,
                     animpoint.y - old_origin.y
                 );
                 frame.setOrigin(animpoint);
 
-                EntityFrame eFrame = current_anim.getEntityFrame(currentFrame);
-                for (Hurtbox h : eFrame.hurtboxes){
-                    h.translate(diff.x, diff.y);
-                }
-                for (Hitbox h : eFrame.hitboxes){
-                    h.translate(diff.x, diff.y);
-                }
+                shiftElements(current_anim.getEntityFrame(currentFrame), diff); 
             }
         } catch (FrameOutOfBoundsException e){
             throw new IllegalStateException(e);
         }   
+    }
+
+    private void moveOriginX(int x){
     }
 
     public Window getWindow(){
