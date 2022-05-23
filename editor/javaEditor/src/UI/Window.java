@@ -22,7 +22,6 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.plaf.synth.SynthColorChooserUI;
 
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
@@ -55,6 +54,7 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseMotionListener;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -66,6 +66,7 @@ import java.util.TreeMap;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.ItemEvent;
+import java.awt.event.MouseEvent;
 import java.awt.Point;
 import java.awt.CardLayout;
 
@@ -516,6 +517,8 @@ public class Window extends JFrame{
 		Current_frame_controls.add(btnzoomin);
 
 		//============= CALLBACKS =============
+
+		
 
 		btnButtonRight.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {

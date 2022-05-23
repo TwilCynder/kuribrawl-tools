@@ -8,12 +8,14 @@ import gamedata.Hitbox;
 import gamedata.Hurtbox;
 import gamedata.exceptions.FrameOutOfBoundsException;
 
+import java.awt.Graphics;
 import java.awt.Point;
 
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
+import KBUtil.Rectangle;
 import KBUtil.Size2D;
 
 import java.awt.event.ActionListener;
@@ -21,6 +23,8 @@ import java.awt.event.ActionEvent;
 
 public class EntityAnimationEditor extends EntityAnimationDisplayer implements Interactable {
     private Window window;
+    private Point drag_start_pos;
+    private Rectangle selection;
 
     private class PopupMenu extends JPopupMenu {
         private Point pos = new Point(0, 0);
@@ -54,9 +58,62 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         onAnimationChanged();
     }
 
+    @Override
+    public void draw(Graphics g, int x, int y, int w, int h, double zoom) throws IllegalStateException{
+        super.draw(g, x, y, w, h, zoom);
+        if (selection != null){
+            Rectangle display_selection = getDisplayRectangle(selection);
+            g.drawRect(display_selection.x, display_selection.y, display_selection.w, display_selection.h);
+        }
+    }
+
     public void setSelectedCBox(CollisionBox cbox){
         selected_cbox = cbox;
         onSelectedCBoxChanged();
+    }
+
+    @Override
+    public void mousePressed(Point pos, Displayer displayer){
+        pos = getAnimPosition(pos);
+        drag_start_pos = pos;
+        selection = new Rectangle(pos.x, pos.y, 1, 1);
+        displayer.update();
+    }
+
+    @Override
+    public void mouseDragged(Point currentpos, Displayer displayer){
+        currentpos = getAnimPosition(currentpos);
+        int w = currentpos.x - drag_start_pos.x;
+        if (w < 0){
+            selection.x = currentpos.x;
+            selection.w = -w;
+        } else {
+            selection.x = drag_start_pos.x;
+            selection.w = w;
+        }
+        
+
+        int h = currentpos.y - drag_start_pos.y;
+        if (h < 0){
+            selection.y = currentpos.y;
+            selection.h = -h;
+        } else {
+            selection.y = drag_start_pos.y;
+            selection.h = h;
+        }
+
+        displayer.update();
+    }
+
+    @Override
+    public void mouseReleased(Point pos, Displayer displayer){
+        if (selection != null){
+            JComponent component = displayer.getComponent();
+            if (component == null) return;
+            popup_menu.show(displayer, pos.x, pos.y);
+        }
+        selection = null;
+        displayer.update();
     }
 
     public void onLeftClick(Point p, Displayer d) throws IllegalStateException{
@@ -74,36 +131,20 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         popup_menu.show(d, p.x, p.y);
     }
 
-    private static void shiftElements(EntityFrame eFrame, Point diff){
-        for (Hurtbox h : eFrame.hurtboxes){
-            h.translate(diff.x, diff.y);
-        }
-        for (Hitbox h : eFrame.hitboxes){
-            h.translate(diff.x, diff.y);
-        }
-    }
-
     private void moveOrigin(Point p) throws IllegalStateException{
         try {
             Point animpoint = getAnimPosition(p);
             Size2D frame_size = current_anim.getFrameSize();
             if (animpoint.x >= 0 && animpoint.x < frame_size.w && animpoint.y >= 0 && animpoint.y < frame_size.h){
-                Frame frame = current_anim.getFrame(currentFrame);
-                Point old_origin = new Point(frame.getOrigin());
-                Point diff = new Point(
-                    old_origin.x - animpoint.x,
-                    animpoint.y - old_origin.y
-                );
-                frame.setOrigin(animpoint);
-
-                shiftElements(current_anim.getEntityFrame(currentFrame), diff); 
+                EntityAnimation.moveOrigin(
+                    current_anim.getFrame(currentFrame),
+                    current_anim.getEntityFrame(currentFrame),
+                    animpoint
+                );           
             }
         } catch (FrameOutOfBoundsException e){
             throw new IllegalStateException(e);
         }   
-    }
-
-    private void moveOriginX(int x){
     }
 
     public Window getWindow(){

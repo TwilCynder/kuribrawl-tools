@@ -107,6 +107,16 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
         );
     }
 
+    protected Rectangle getDisplayRectangle(Rectangle animrect, double zoom){
+        if (last_display_area == null) return animrect;
+        return new Rectangle(
+            last_display_area.x + (int)(animrect.x * zoom),
+            last_display_area.y + (int)(animrect.y * zoom),
+            (int)(animrect.w * zoom),
+            (int)(animrect.h * zoom)
+        );
+    }
+
     protected Point getAnimPosition(Point displaypos, double zoom){
         if (last_display_area == null) return new Point(0, 0);
         return new Point(
@@ -117,6 +127,10 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
 
     protected Point getDisplayPosition(Point pos){
         return getDisplayPosition(pos, currentZoom);
+    }
+
+    protected Rectangle getDisplayRectangle(Rectangle rect){
+        return getDisplayRectangle(rect, currentZoom);
     }
 
     protected Point getAnimPosition(Point displaypos){
