@@ -43,7 +43,6 @@ import gamedata.Hurtbox;
 import gamedata.HurtboxType;
 import gamedata.RessourcePath;
 import gamedata.WindHitbox;
-import gamedata.exceptions.FrameOutOfBoundsException;
 import gamedata.exceptions.GameDataException;
 import gamedata.exceptions.InvalidRessourcePathException;
 import gamedata.exceptions.TransparentGameDataException;
@@ -54,7 +53,6 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemListener;
-import java.awt.event.MouseMotionListener;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -66,9 +64,8 @@ import java.util.TreeMap;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.ItemEvent;
-import java.awt.event.MouseEvent;
 import java.awt.Point;
-import java.awt.CardLayout;
+
 
 public class Window extends JFrame{
 
@@ -614,8 +611,6 @@ public class Window extends JFrame{
 					modifsOccured = true;
 				} catch (NumberFormatException ex){
 					System.out.println("Garbage input in tf frame duration");
-				} catch (FrameOutOfBoundsException ex){
-					throw new IllegalStateException(ex);
 				}
 			}
 		});
@@ -625,11 +620,21 @@ public class Window extends JFrame{
 				try{
 					int value = spinFrameOriginX.getValueInt();
 					EntityAnimationEditor editor = getEAEDitor();
-					Frame frame = editor.getCurrentFrame();
-					frame.setOriginX(value);
+					editor.moveOriginX(value);
 					displayCanvas.repaint();
-				} catch (FrameOutOfBoundsException ex){
-					throw new IllegalStateException(ex);
+				} catch (WindowStateException ex){
+					//TODO handle this better (threw once at initialization, normal behavior, can't see the difference with a legit error)
+				}
+			}
+		});
+
+		spinFrameOriginY.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e){	
+				try{
+					int value = spinFrameOriginY.getValueInt();
+					EntityAnimationEditor editor = getEAEDitor();
+					editor.moveOriginY(value);
+					displayCanvas.repaint();
 				} catch (WindowStateException ex){
 					//TODO handle this better (threw once at initialization, normal behavior, can't see the difference with a legit error)
 				}
@@ -666,11 +671,7 @@ public class Window extends JFrame{
 						Hitbox hitbox = displayer.getSelectedHitbox();
 						if (hitbox.getClass() != type.getHitboxClass()){
 							EntityFrame frame;
-							try {
-								frame = displayer.getcurrentEntityFrame();
-							} catch (FrameOutOfBoundsException ex){
-								throw new IllegalStateException(ex);
-							}
+							frame = displayer.getcurrentEntityFrame();
 							Hitbox newHitbox = null;
 
 							System.out.println("Selected item : " + type);

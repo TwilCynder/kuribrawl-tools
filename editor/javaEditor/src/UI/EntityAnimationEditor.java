@@ -1,6 +1,7 @@
 package UI;
 
 import gamedata.CollisionBox;
+import gamedata.DamageHitbox;
 import gamedata.EntityAnimation;
 import gamedata.EntityFrame;
 import gamedata.Frame;
@@ -10,10 +11,13 @@ import gamedata.exceptions.FrameOutOfBoundsException;
 
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.Color;
 
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 
 import KBUtil.Rectangle;
 import KBUtil.Size2D;
@@ -26,9 +30,22 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     private Point drag_start_pos;
     private Rectangle selection;
 
-    private class PopupMenu extends JPopupMenu {
-        private Point pos = new Point(0, 0);
-        Displayer displayer;
+    private static final Color selection_color = new Color(127, 127, 127, 255);
+
+    private abstract class InternalMenu extends JPopupMenu {
+        protected Point pos = new Point(0, 0);
+        protected Displayer displayer;
+
+        public void show(Displayer invoker, int x, int y) {
+            displayer = invoker;
+            JComponent component = invoker.getComponent();
+            if (component == null) return;
+            pos = new Point(x, y);
+            super.show(invoker.getComponent(), x, y);
+        }
+    }
+
+    private class PopupMenu extends InternalMenu {
         public PopupMenu() {
             JMenuItem item = new JMenuItem("Move origin here");
             item.addActionListener(new ActionListener(){
@@ -40,17 +57,49 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
             add(item);
         }
 
-        public void show(Displayer invoker, int x, int y) {
-            displayer = invoker;
-            JComponent component = invoker.getComponent();
-            if (component == null) return;
-            pos = new Point(x, y);
-            super.show(invoker.getComponent(), x, y);
-        }
         
     };
 
     private PopupMenu popup_menu = new PopupMenu();
+
+    private class SelectionPupupMenu extends InternalMenu {
+        public SelectionPupupMenu() {
+            JMenuItem item = new JMenuItem("Create hurtbox");
+            item.addActionListener(new ActionListener(){
+                public void actionPerformed(ActionEvent e){
+                    Frame frame = getCurrentFrame();
+                    EntityFrame entity_frame = getcurrentEntityFrame();
+                    frame.relativeToOrigin(selection);
+                    entity_frame.addHurtbox(selection.x, selection.y, selection.w, selection.h);
+                    cancelSelection(displayer);
+                }
+            });
+            add(item);
+
+            item = new JMenuItem("Create hitbox");
+            item.addActionListener(new ActionListener(){
+                public void actionPerformed(ActionEvent e){
+                    Frame frame = getCurrentFrame();
+                    EntityFrame entity_frame = getcurrentEntityFrame();
+                    frame.relativeToOrigin(selection);
+                    entity_frame.addHitbox(new DamageHitbox(selection));
+                    cancelSelection(displayer);
+                }
+            });
+            add(item);
+
+            addPopupMenuListener(new PopupMenuListener() {
+                @Override
+                public void popupMenuCanceled(PopupMenuEvent e){
+                    cancelSelection(displayer);
+                }
+                @Override public void popupMenuWillBecomeVisible(PopupMenuEvent e){}
+                @Override public void popupMenuWillBecomeInvisible(PopupMenuEvent e){}
+            });
+        }
+    };
+
+    private SelectionPupupMenu selection_popup_menu = new SelectionPupupMenu();
 
     public EntityAnimationEditor(EntityAnimation anim, Window win){
         super(anim);
@@ -63,6 +112,7 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         super.draw(g, x, y, w, h, zoom);
         if (selection != null){
             Rectangle display_selection = getDisplayRectangle(selection);
+            g.setColor(selection_color);
             g.drawRect(display_selection.x, display_selection.y, display_selection.w, display_selection.h);
         }
     }
@@ -70,6 +120,11 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     public void setSelectedCBox(CollisionBox cbox){
         selected_cbox = cbox;
         onSelectedCBoxChanged();
+    }
+
+    private void cancelSelection(Displayer d){
+        selection = null;
+        d.update();
     }
 
     @Override
@@ -108,12 +163,12 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     @Override
     public void mouseReleased(Point pos, Displayer displayer){
         if (selection != null){
-            JComponent component = displayer.getComponent();
-            if (component == null) return;
-            popup_menu.show(displayer, pos.x, pos.y);
+            if (selection.w + selection.h < 10){
+                cancelSelection(displayer);
+            } else {
+                selection_popup_menu.show(displayer, pos.x, pos.y);
+            }        
         }
-        selection = null;
-        displayer.update();
     }
 
     public void onLeftClick(Point p, Displayer d) throws IllegalStateException{
@@ -131,17 +186,41 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         popup_menu.show(d, p.x, p.y);
     }
 
-    private void moveOrigin(Point p) throws IllegalStateException{
+    private void moveOrigin(Point display_point) throws IllegalStateException{
         try {
-            Point animpoint = getAnimPosition(p);
-            Size2D frame_size = current_anim.getFrameSize();
-            if (animpoint.x >= 0 && animpoint.x < frame_size.w && animpoint.y >= 0 && animpoint.y < frame_size.h){
+            Point animpoint = getAnimPosition(display_point);
+            //Size2D frame_size = current_anim.getFrameSize();
+            //if (animpoint.x >= 0 && animpoint.x < frame_size.w && animpoint.y >= 0 && animpoint.y < frame_size.h){
                 EntityAnimation.moveOrigin(
                     current_anim.getFrame(currentFrame),
                     current_anim.getEntityFrame(currentFrame),
                     animpoint
                 );           
-            }
+            //}
+        } catch (FrameOutOfBoundsException e){
+            throw new IllegalStateException(e);
+        }   
+    }
+
+    public void moveOriginX(int x) throws IllegalStateException {
+        try {
+            EntityAnimation.moveOriginX(
+                    current_anim.getFrame(currentFrame),
+                    current_anim.getEntityFrame(currentFrame),
+                    x
+                ); 
+        } catch (FrameOutOfBoundsException e){
+            throw new IllegalStateException(e);
+        }   
+    }
+
+    public void moveOriginY(int y) throws IllegalStateException {
+        try {
+            EntityAnimation.moveOriginY(
+                    current_anim.getFrame(currentFrame),
+                    current_anim.getEntityFrame(currentFrame),
+                    y
+                ); 
         } catch (FrameOutOfBoundsException e){
             throw new IllegalStateException(e);
         }   

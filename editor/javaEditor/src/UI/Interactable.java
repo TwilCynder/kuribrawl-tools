@@ -2,6 +2,8 @@ package UI;
 
 import java.awt.Point;
 
+//TODO passer au système setDisplayer
+
 public interface Interactable extends Displayable{
     default public void onLeftClick(Point pos, Displayer displayer){}
 

@@ -233,4 +233,20 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
         frame.setOrigin(new_pos);
         shiftElements(entity_frame, diff);
     }
+
+    public static void moveOriginX(Frame frame, EntityFrame entity_frame, int new_x){
+        Point diff = new Point(
+            frame.getOrigin().x - new_x, 0
+        );
+        frame.setOriginX(new_x);
+        shiftElements(entity_frame, diff);
+    }
+
+    public static void moveOriginY(Frame frame, EntityFrame entity_frame, int new_y){
+        Point diff = new Point(
+            0,  new_y - frame.getOrigin().y
+        );
+        frame.setOriginY(new_y);
+        shiftElements(entity_frame, diff);
+    }
 }
