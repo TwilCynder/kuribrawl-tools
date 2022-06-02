@@ -14,7 +14,7 @@ import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
-import KBUtil.Size2D;
+//import KBUtil.Size2D;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -29,8 +29,9 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
             JMenuItem item = new JMenuItem("Move origin here");
             item.addActionListener(new ActionListener(){
                 public void actionPerformed(ActionEvent e){
-                    moveOrigin(pos);
+                    moveOriginToDisplayPos(pos);
                     displayer.update();
+                    updateFrameControls();
                 }
             });
             add(item);
@@ -83,28 +84,42 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         }
     }
 
-    private void moveOrigin(Point p) throws IllegalStateException{
-        try {
-            Point animpoint = getAnimPosition(p);
-            Size2D frame_size = current_anim.getFrameSize();
-            if (animpoint.x >= 0 && animpoint.x < frame_size.w && animpoint.y >= 0 && animpoint.y < frame_size.h){
-                Frame frame = current_anim.getFrame(currentFrame);
-                Point old_origin = new Point(frame.getOrigin());
-                Point diff = new Point(
-                    old_origin.x - animpoint.x,
-                    animpoint.y - old_origin.y
-                );
-                frame.setOrigin(animpoint);
-
-                shiftElements(current_anim.getEntityFrame(currentFrame), diff); 
-            }
-        } catch (FrameOutOfBoundsException e){
-            throw new IllegalStateException(e);
-        }   
+    private void shiftCurrentElements(Point diff){
+        shiftElements(getCurrentEntityFrame(), diff);
     }
 
-    private void moveOriginX(int x){
+    public void moveOriginX(int x){
+        Frame frame = getCurrentFrame();
+        shiftCurrentElements(new Point(frame.getOrigin().x - x, 0));
+        frame.setOriginX(x);
     }
+
+    public void moveOriginY(int y){
+        Frame frame = getCurrentFrame();
+        shiftCurrentElements(new Point(0, y - frame.getOrigin().y));
+        frame.setOriginY(y);
+    }
+
+    public void moveOrigin(Point p) throws IllegalStateException{
+        //Size2D frame_size = current_anim.getFrameSize();
+        //if (p.x >= 0 && p.x < frame_size.w && p.y >= 0 && p.y < frame_size.h){
+        Frame frame = getCurrentFrame();
+        Point old_origin = new Point(frame.getOrigin());
+        Point diff = new Point(
+            old_origin.x - p.x,
+            p.y - old_origin.y
+        );
+
+        shiftElements(getCurrentEntityFrame(), diff); 
+        frame.setOrigin(p);
+
+        //}
+    }
+
+    private void moveOriginToDisplayPos(Point p){
+        moveOrigin(getAnimPosition(p));
+    }
+
 
     public Window getWindow(){
         return window;

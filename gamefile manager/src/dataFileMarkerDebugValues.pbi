@@ -80,7 +80,7 @@ Procedure.i initDebugValues()
     
     ProcedureReturn *vals
 EndProcedure
-; IDE Options = PureBasic 5.72 (Windows - x64)
+; IDE Options = PureBasic 5.73 LTS (Windows - x64)
 ; CursorPosition = 17
 ; FirstLine = 11
 ; Folding = -
