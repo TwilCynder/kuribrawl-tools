@@ -54,4 +54,9 @@ public class Frame {
     public boolean hasDefaultDuration(){
         return duration == 0 || duration == 1;
     }
+
+    public void relativeToOrigin(Rectangle rect){
+        rect.x = - (origin.x - rect.x);
+        rect.y = origin.y - rect.y;
+    }
 }

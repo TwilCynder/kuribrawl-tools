@@ -514,6 +514,8 @@ public class Window extends JFrame{
 
 		//============= CALLBACKS =============
 
+		
+
 		btnButtonRight.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				EntityAnimationEditor displayer;
@@ -618,6 +620,19 @@ public class Window extends JFrame{
 					int value = spinFrameOriginX.getValueInt();
 					EntityAnimationEditor editor = getEAEDitor();
 					editor.moveOriginX(value);
+					displayCanvas.repaint();
+				} catch (WindowStateException ex){
+					//TODO handle this better (threw once at initialization, normal behavior, can't see the difference with a legit error)
+				}
+			}
+		});
+
+		spinFrameOriginY.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e){	
+				try{
+					int value = spinFrameOriginY.getValueInt();
+					EntityAnimationEditor editor = getEAEDitor();
+					editor.moveOriginY(value);
 					displayCanvas.repaint();
 				} catch (WindowStateException ex){
 					//TODO handle this better (threw once at initialization, normal behavior, can't see the difference with a legit error)

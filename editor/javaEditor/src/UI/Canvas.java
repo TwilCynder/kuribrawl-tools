@@ -10,6 +10,9 @@ import javax.swing.JPanel;
 import java.awt.Cursor;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.event.FocusAdapter;
 
 public class Canvas extends JPanel implements Displayer{
     private Interactable current_object;
@@ -32,19 +35,42 @@ public class Canvas extends JPanel implements Displayer{
             }
 
             public void mousePressed(MouseEvent e){
-                if (current_object != null && e.isPopupTrigger()){
-                    System.out.println("popup");
-                    current_object.onPopupTrigger(e.getPoint(), Canvas.this);
+                if (current_object != null){
+                    current_object.mousePressed(e.getPoint(), Canvas.this);
+                    if ( e.isPopupTrigger()){
+                        System.out.println("popup Trigger");
+                        current_object.onPopupTrigger(e.getPoint(), Canvas.this);
+                    }
                 }
             }
 
             public void mouseReleased(MouseEvent e){
-                if (current_object != null && e.isPopupTrigger()){
-                    System.out.println("popup");
-                    current_object.onPopupTrigger(e.getPoint(), Canvas.this);
+                if (current_object != null){
+                    current_object.mouseReleased(e.getPoint(), Canvas.this);
+                    if ( e.isPopupTrigger()){
+                        System.out.println("popup Trigger");
+                        current_object.onPopupTrigger(e.getPoint(), Canvas.this);
+                    }
                 }
             }
+            
         });
+
+        addMouseMotionListener(new MouseMotionAdapter(){
+            @Override
+            public void mouseDragged(MouseEvent evt){
+                if (current_object == null) return;
+                current_object.mouseDragged(evt.getPoint(), Canvas.this);
+            }
+        });
+
+        addFocusListener(new FocusAdapter(){
+            public void focusLost(FocusEvent e){
+                if (current_object == null) return;
+                current_object.onLostFocus(Canvas.this);
+			}
+        });
+
         setBackground(Color.WHITE);
         setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
     }
