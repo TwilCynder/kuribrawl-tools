@@ -641,9 +641,12 @@ public class Window extends JFrame{
 		});
 
 		ChangeListener cboxXChangeListener = new ChangeListener() {
-			public void stateChanged(ChangeEvent e){	
+			public void stateChanged(ChangeEvent e){
+				if (!(e.getSource() instanceof IntegerSpinner)) throw new IllegalStateException("Spiner-specific change listener called on another component");
+				IntegerSpinner source = (IntegerSpinner)e.getSource();
 				try{
-					int value = spinHurtboxX.getValueInt();
+					System.out.println("changelistener");
+					int value = source.getValueInt();
 					EntityAnimationEditor editor = getEAEDitor();
 					CollisionBox cbox = editor.getSelectedCBox();
 					cbox.x = value;
