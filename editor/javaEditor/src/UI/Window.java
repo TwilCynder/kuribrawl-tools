@@ -164,6 +164,23 @@ public class Window extends JFrame{
 		JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
 	}
 
+	private abstract class SpinChangeListener implements ChangeListener {
+		public abstract void stateChanged(EntityAnimationEditor editor, int value);
+
+		public void stateChanged(ChangeEvent e){
+			if (!(e.getSource() instanceof IntegerSpinner)) throw new IllegalStateException("Spiner-specific change listener called on another component");
+			IntegerSpinner source = (IntegerSpinner)e.getSource();
+			try{
+				int value = source.getValueInt();
+				EntityAnimationEditor editor = getEAEDitor();
+				stateChanged(editor, value);
+				displayCanvas.repaint();
+			} catch (WindowStateException ex){
+				//TODO handle this better (threw once at initialization, normal behavior, can't see the difference with a legit error)
+			}
+		}
+	}
+
     public Window(){
         super("Le Test has Arrived");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -614,64 +631,65 @@ public class Window extends JFrame{
 			}
 		});
 
-		spinFrameOriginX.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent e){	
-				try{
-					int value = spinFrameOriginX.getValueInt();
-					EntityAnimationEditor editor = getEAEDitor();
-					editor.moveOriginX(value);
-					displayCanvas.repaint();
-				} catch (WindowStateException ex){
-					//TODO handle this better (threw once at initialization, normal behavior, can't see the difference with a legit error)
-				}
+		spinFrameOriginX.addChangeListener(new SpinChangeListener() {
+			public void stateChanged(EntityAnimationEditor editor, int value){
+				editor.moveOriginX(value);
+			}	
+		});
+
+		spinFrameOriginY.addChangeListener(new SpinChangeListener() {
+			public void stateChanged(EntityAnimationEditor editor, int value){
+				editor.moveOriginY(value);
 			}
 		});
 
-		spinFrameOriginY.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent e){	
-				try{
-					int value = spinFrameOriginY.getValueInt();
-					EntityAnimationEditor editor = getEAEDitor();
-					editor.moveOriginY(value);
-					displayCanvas.repaint();
-				} catch (WindowStateException ex){
-					//TODO handle this better (threw once at initialization, normal behavior, can't see the difference with a legit error)
-				}
-			}
-		});
-
-		ChangeListener cboxXChangeListener = new ChangeListener() {
-			public void stateChanged(ChangeEvent e){
-				if (!(e.getSource() instanceof IntegerSpinner)) throw new IllegalStateException("Spiner-specific change listener called on another component");
-				IntegerSpinner source = (IntegerSpinner)e.getSource();
-				try{
-					System.out.println("changelistener");
-					int value = source.getValueInt();
-					EntityAnimationEditor editor = getEAEDitor();
-					CollisionBox cbox = editor.getSelectedCBox();
+		ChangeListener cboxXChangeListener = new SpinChangeListener() {
+			@Override
+			public void stateChanged(EntityAnimationEditor editor, int value) {
+				CollisionBox cbox = editor.getSelectedCBox();
+				if (cbox != null)
 					cbox.x = value;
-					displayCanvas.repaint();
-				} catch (WindowStateException ex){
-					//TODO handle this better (threw once at initialization, normal behavior, can't see the difference with a legit error)
-				}
 			}
 		};
 
 		spinHurtboxX.addChangeListener(cboxXChangeListener);
 		spinHitboxX.addChangeListener(cboxXChangeListener);
 
-		spinFrameOriginY.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent e){	
-				try{
-					int value = spinFrameOriginY.getValueInt();
-					EntityAnimationEditor editor = getEAEDitor();
-					editor.moveOriginY(value);
-					displayCanvas.repaint();
-				} catch (WindowStateException ex){
-					
-				}
+		ChangeListener cboxYChangeListener = new SpinChangeListener() {
+			@Override
+			public void stateChanged(EntityAnimationEditor editor, int value) {
+				CollisionBox cbox = editor.getSelectedCBox();
+				if (cbox != null)
+					cbox.y = value;
 			}
-		});
+		};
+
+		spinHurtboxY.addChangeListener(cboxYChangeListener);
+		spinHitboxY.addChangeListener(cboxYChangeListener);
+
+		ChangeListener cboxWChangeListener = new SpinChangeListener() {
+			@Override
+			public void stateChanged(EntityAnimationEditor editor, int value) {
+				CollisionBox cbox = editor.getSelectedCBox();
+				if (cbox != null)
+					cbox.w = value;
+			}
+		};
+
+		spinHurtboxWidth.addChangeListener(cboxWChangeListener);
+		spinHitboxWidth.addChangeListener(cboxWChangeListener);
+		
+		ChangeListener cboxHChangeListener = new SpinChangeListener() {
+			@Override
+			public void stateChanged(EntityAnimationEditor editor, int value) {
+				CollisionBox cbox = editor.getSelectedCBox();
+				if (cbox != null)
+					cbox.h = value;
+			}
+		};
+
+		spinHurtboxHeight.addChangeListener(cboxHChangeListener);
+		spinHitboxHeight.addChangeListener(cboxHChangeListener);
 
 		comboHurtboxType.addItemListener(new ItemListener(){
 			public void itemStateChanged(ItemEvent e){

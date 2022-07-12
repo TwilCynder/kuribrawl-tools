@@ -187,9 +187,9 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         popup_menu.show(d, p.x, p.y);
     }
 
-    private void moveOrigin(Point display_point) throws IllegalStateException{
+    private void moveOrigin(Point animpoint) throws IllegalStateException{
         try {
-            Point animpoint = getAnimPosition(display_point);
+            //Point animpoint = getAnimPosition(display_point);
             //Size2D frame_size = current_anim.getFrameSize();
             //if (animpoint.x >= 0 && animpoint.x < frame_size.w && animpoint.y >= 0 && animpoint.y < frame_size.h){
                 EntityAnimation.moveOrigin(
