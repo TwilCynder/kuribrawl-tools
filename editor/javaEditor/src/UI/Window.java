@@ -764,7 +764,7 @@ public class Window extends JFrame{
 							if (index == -1) throw new IllegalStateException("Selected hitbox is not in the current frame hitboxes list");
 							frame.hitboxes.set(index, newHitbox);
 							getEAEDitor().setSelectedCBox(newHitbox);
-							//updateHitboxTypeSpecificControls(newHitbox, type);
+							updateHitboxTypeSpecificControls(newHitbox, type);
 
 							modifsOccured = true;
 						}
