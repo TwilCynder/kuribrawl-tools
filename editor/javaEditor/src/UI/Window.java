@@ -24,6 +24,7 @@ import javax.swing.Action;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -31,7 +32,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 import javax.swing.UIManager;
@@ -99,11 +99,11 @@ public class Window extends JFrame{
 	private JMenu animations_menu;
 
 	private JTextField tfDamages;
-	private JTextField tfAngle;
+	private TwilTextField tfAngle;
 	private JTextField tfBKB;
 	private JTextField tfSKB;
-	private JSpinner spinHitID;
-	private JSpinner spinHitboxPrio;
+	private IntegerSpinner spinHitID;
+	private IntegerSpinner spinHitboxPrio;
 	private JTextField textField_4;
 	private JTextField textField_5;
 	private JTextField textField_6;
@@ -164,11 +164,15 @@ public class Window extends JFrame{
 		JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
 	}
 
+	/**
+	 * Change listener made for IntegerSpinner's in the editor.  
+	 * stateChanged(EntityAnimationEditor, int) will be called on focus lost
+	 */
 	private abstract class SpinChangeListener implements ChangeListener {
 		public abstract void stateChanged(EntityAnimationEditor editor, int value);
 
 		public void stateChanged(ChangeEvent e){
-			if (!(e.getSource() instanceof IntegerSpinner)) throw new IllegalStateException("Spiner-specific change listener called on another component");
+			if (!(e.getSource() instanceof IntegerSpinner)) throw new IllegalStateException("IntegerSpinner-specific change listener called on another component");
 			IntegerSpinner source = (IntegerSpinner)e.getSource();
 			try{
 				int value = source.getValueInt();
@@ -177,6 +181,32 @@ public class Window extends JFrame{
 				displayCanvas.repaint();
 			} catch (WindowStateException ex){
 				//TODO handle this better (threw once at initialization, normal behavior, can't see the difference with a legit error)
+			}
+		}
+	}
+	
+	/**
+	 * Change listener made for TwilTextField's in the editor.  
+	 * focusLost(EntityAnimationEditor, TwiltextField) will be called on focus lost,
+	 * any NumberFormatException raised by your exception will be handled.  
+	 */
+	private abstract class TwilFocusListener<T extends JComponent> implements FocusListener {
+		Class <T> componentClass;
+		public TwilFocusListener(Class<T> componentType){
+			componentClass = componentType;
+		}
+
+		public abstract void focusLost(EntityAnimationEditor editor, T source) throws NumberFormatException;
+
+		public void focusGained(FocusEvent e){}
+		public void focusLost(FocusEvent e){
+			if (!componentClass.isInstance(e.getSource())) throw new IllegalStateException("Typed listener specific to " + componentClass.getName() + "used on different component : " + e.getSource());
+			T source = (T)e.getSource(); //do not worry
+			EntityAnimationEditor editor = getEAEDitor();
+			try{
+				focusLost(editor, source);
+			} catch (NumberFormatException ex){
+				System.out.println("Garbage input in tf frame duration");
 			}
 		}
 	}
@@ -402,9 +432,11 @@ public class Window extends JFrame{
 		dummyLabel = new JLabel("angle");
 		damage_hitbox.add(dummyLabel, "6, 2, right, default");
 		
-		tfAngle = new JTextField();
+		tfAngle = new TwilTextField();
 		damage_hitbox.add(tfAngle, "8, 2, fill, default");
 		tfAngle.setColumns(3);
+		tfAngle.setDocumentFilter(IntegerDocumentFilter.staticInstance);
+
 		
 		dummyLabel = new JLabel("knockback :");
 		damage_hitbox.add(dummyLabel, "2, 4, 5, 1");
@@ -426,13 +458,13 @@ public class Window extends JFrame{
 		dummyLabel = new JLabel("hitID");
 		damage_hitbox.add(dummyLabel, "2, 8, right, default");
 		
-		spinHitID = new JSpinner();
+		spinHitID = new IntegerSpinner();
 		damage_hitbox.add(spinHitID, "4, 8");
 		
 		dummyLabel = new JLabel("priority");
 		damage_hitbox.add(dummyLabel, "6, 8, right, default");
 		
-		spinHitboxPrio = new JSpinner();
+		spinHitboxPrio = new IntegerSpinner();
 		damage_hitbox.add(spinHitboxPrio, "8, 8");
 		
 		dummyLabel = new JLabel("angle mode");
@@ -599,47 +631,37 @@ public class Window extends JFrame{
 			}
 		});
 
-		tfAnimSpeed.addFocusListener(new FocusListener(){
-			public void focusGained(FocusEvent e){}
-			public void focusLost(FocusEvent e){
-				double value; 
-				try{
-					value = Double.parseDouble(tfAnimSpeed.getText());
-					EntityAnimationEditor editor = getEAEDitor();
-					EntityAnimation anim = editor.getAnimation();
-					anim.setSpeed(value);
-					modifsOccured = true;
-				} catch (NumberFormatException ex){
-					System.out.println("Garbage input in tf anim speed");
-				}
+		tfAnimSpeed.addFocusListener(new TwilFocusListener<TwilTextField>(TwilTextField.class){
+			public void focusLost(EntityAnimationEditor editor, TwilTextField source){
+				EntityAnimation anim = editor.getAnimation();
+				double value = Double.parseDouble(source.getText());
+				anim.setSpeed(value);
+
+				modifsOccured = true;
 			}
 		});
 
-		tfFrameDuration.addFocusListener(new FocusListener(){
-			public void focusGained(FocusEvent e){}
-			public void focusLost(FocusEvent e){
-				try{
-					int value;
-					value = tfFrameDuration.getInt();
-					EntityAnimationEditor editor = getEAEDitor();
-					Frame frame = editor.getCurrentFrame();
-					frame.setDuration(value);
-					modifsOccured = true;
-				} catch (NumberFormatException ex){
-					System.out.println("Garbage input in tf frame duration");
-				}
+		tfFrameDuration.addFocusListener(new TwilFocusListener<TwilTextField>(TwilTextField.class) {
+			public void focusLost(EntityAnimationEditor editor, TwilTextField source){
+				int value = source.getInt();
+				Frame frame = editor.getCurrentFrame();
+				frame.setDuration(value);
+
+				modifsOccured = true;
 			}
 		});
 
 		spinFrameOriginX.addChangeListener(new SpinChangeListener() {
 			public void stateChanged(EntityAnimationEditor editor, int value){
 				editor.moveOriginX(value);
+				modifsOccured = true;
 			}	
 		});
 
 		spinFrameOriginY.addChangeListener(new SpinChangeListener() {
 			public void stateChanged(EntityAnimationEditor editor, int value){
 				editor.moveOriginY(value);
+				modifsOccured = true;
 			}
 		});
 
@@ -649,6 +671,7 @@ public class Window extends JFrame{
 				CollisionBox cbox = editor.getSelectedCBox();
 				if (cbox != null)
 					cbox.x = value;
+					modifsOccured = true;
 			}
 		};
 
@@ -661,6 +684,7 @@ public class Window extends JFrame{
 				CollisionBox cbox = editor.getSelectedCBox();
 				if (cbox != null)
 					cbox.y = value;
+					modifsOccured = true;
 			}
 		};
 
@@ -673,6 +697,7 @@ public class Window extends JFrame{
 				CollisionBox cbox = editor.getSelectedCBox();
 				if (cbox != null)
 					cbox.w = value;
+					modifsOccured = true;
 			}
 		};
 
@@ -685,6 +710,7 @@ public class Window extends JFrame{
 				CollisionBox cbox = editor.getSelectedCBox();
 				if (cbox != null)
 					cbox.h = value;
+					modifsOccured = true;
 			}
 		};
 
@@ -703,6 +729,8 @@ public class Window extends JFrame{
 							Hurtbox hurtbox = displayer.getSelectedHurtbox();
 
 							hurtbox.type = type; //wooooo tout ça pour ça t content twil dmerd
+
+							modifsOccured = true;
 						}
 					}
 				} catch (WindowStateException ex){
@@ -737,6 +765,8 @@ public class Window extends JFrame{
 							frame.hitboxes.set(index, newHitbox);
 							getEAEDitor().setSelectedCBox(newHitbox);
 							//updateHitboxTypeSpecificControls(newHitbox, type);
+
+							modifsOccured = true;
 						}
 					} 
 					
@@ -745,6 +775,84 @@ public class Window extends JFrame{
 				}
 			}
 		});
+
+		tfDamages.addFocusListener(new TwilFocusListener<JTextField>(JTextField.class) {
+			@Override
+			public void focusLost(EntityAnimationEditor editor, JTextField source){
+				double value = Double.parseDouble(source.getText());
+				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
+				damage_hitbox.damage = value;
+				modifsOccured = true;
+			}
+		});
+
+		tfAngle.addFocusListener(new TwilFocusListener<TwilTextField>(TwilTextField.class) {
+			@Override
+			public void focusLost(EntityAnimationEditor editor, TwilTextField source){
+				int value = source.getInt();
+				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
+				damage_hitbox.angle = value;
+				modifsOccured = true;
+			}
+		});
+
+		tfBKB.addFocusListener(new TwilFocusListener<JTextField>(JTextField.class) {
+			@Override
+			public void focusLost(EntityAnimationEditor editor, JTextField source){
+				double value = Double.parseDouble(source.getText());
+				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
+				damage_hitbox.base_knockback = value;
+				modifsOccured = true;
+			}
+		});
+
+		tfSKB.addFocusListener(new TwilFocusListener<JTextField>(JTextField.class) {
+			@Override
+			public void focusLost(EntityAnimationEditor editor, JTextField source){
+				double value = Double.parseDouble(source.getText());
+				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
+				damage_hitbox.scaling_knockback = value;
+				modifsOccured = true;
+			}
+		});
+
+		spinHitboxPrio.addChangeListener(new SpinChangeListener() {
+			public void stateChanged(EntityAnimationEditor editor, int value){
+				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
+				damage_hitbox.priority = value;
+				modifsOccured = true;
+			}	
+		});
+
+		spinHitID.addChangeListener(new SpinChangeListener() {
+			public void stateChanged(EntityAnimationEditor editor, int value){
+				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
+				damage_hitbox.hitID = value;
+				modifsOccured = true;
+			}	
+		});
+
+		comboAngleMode.addItemListener(new ItemListener(){
+			public void itemStateChanged(ItemEvent e){
+				if (e.getStateChange() != ItemEvent.SELECTED) return;
+				try {
+					if (e.getItem() instanceof MapComboBoxItem){
+						MapComboBoxItem<?, ?> item = (MapComboBoxItem<?, ?>)e.getItem(); 
+						if (item.getValue() instanceof AngleMode){
+							AngleMode type = (AngleMode)item.getValue();
+							EntityAnimationDisplayer displayer = getEAEDitor();
+							DamageHitbox damage_hitbox = (DamageHitbox)displayer.getSelectedDamageHitbox();
+
+							damage_hitbox.angle_mode = type;
+
+							modifsOccured = true;
+						}
+					}
+				} catch (WindowStateException ex){
+					ex.printStackTrace();
+				}
+			}
+		});	
 
 		Action testAction = new AbstractAction(){
 			public void actionPerformed(ActionEvent e){

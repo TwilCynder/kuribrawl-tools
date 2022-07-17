@@ -1,11 +1,13 @@
 package UI;
 
 import gamedata.CollisionBox;
+import gamedata.DamageHitbox;
 import gamedata.EntityAnimation;
 import gamedata.EntityFrame;
 import gamedata.Frame;
 import gamedata.Hitbox;
 import gamedata.Hurtbox;
+import gamedata.WindHitbox;
 import gamedata.exceptions.FrameOutOfBoundsException;
 
 import java.awt.Graphics;
@@ -43,6 +45,7 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
         );
     }
 
+    @Deprecated
     private Rectangle getActualDisplayArea(int x, int y, int totalW, int totalH){
         return getActualDisplayArea(x, y, totalW, totalH, currentZoom);
     }
@@ -188,8 +191,18 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
     }
 
     public Hitbox getSelectedHitbox() throws IllegalStateException{
-        if (selected_cbox == null || !(selected_cbox instanceof Hitbox)) throw new IllegalStateException("Selected Cbox is " + selected_cbox + "(should be a Hurtbox)");
+        if (selected_cbox == null || !(selected_cbox instanceof Hitbox)) throw new IllegalStateException("Selected Cbox is " + selected_cbox + "(should be a Hitbox)");
         return (Hitbox)selected_cbox;
+    }
+
+    public DamageHitbox getSelectedDamageHitbox() throws IllegalStateException{
+        if (selected_cbox == null || !(selected_cbox instanceof Hitbox)) throw new IllegalStateException("Selected Cbox is " + selected_cbox + "(should be a DamageHitbox)");
+        return (DamageHitbox)selected_cbox;
+    }
+
+    public WindHitbox getSelectedWindHitbox() throws IllegalStateException{
+        if (selected_cbox == null || !(selected_cbox instanceof Hitbox)) throw new IllegalStateException("Selected Cbox is " + selected_cbox + "(should be a Windbox)");
+        return (WindHitbox)selected_cbox;
     }
 
     public int getFrameIndex(){

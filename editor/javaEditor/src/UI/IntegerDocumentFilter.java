@@ -5,6 +5,11 @@ import javax.swing.text.BadLocationException;
 
 public class IntegerDocumentFilter extends TwilDocumentFilter {
     /**
+     * Hide default constructor : you don't need to instanciate this class, as the static instance if enough.
+     */
+    private IntegerDocumentFilter(){};
+    
+    /**
      * Returns whether a string can be considered numeric (empty strings are considered numeric)
      * @param str must not be null
      * @return
