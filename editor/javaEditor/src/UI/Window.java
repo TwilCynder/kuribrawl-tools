@@ -723,7 +723,7 @@ public class Window extends JFrame{
 				try {
 					if (e.getItem() instanceof MapComboBoxItem){
 						MapComboBoxItem<?, ?> item = (MapComboBoxItem<?, ?>)e.getItem(); 
-						if (item.getValue() instanceof HurtboxType){
+						 if (item.getValue() instanceof HurtboxType){
 							HurtboxType type = (HurtboxType)item.getValue();
 							EntityAnimationDisplayer displayer = getEAEDitor();
 							Hurtbox hurtbox = displayer.getSelectedHurtbox();
