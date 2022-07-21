@@ -10,6 +10,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,6 +34,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SpringLayout;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -854,6 +856,8 @@ public class Window extends JFrame{
 			}
 		});	
 
+		//============= ACTIONS ==================
+
 		Action testAction = new AbstractAction(){
 			public void actionPerformed(ActionEvent e){
 				System.out.println("Test !");
@@ -947,6 +951,7 @@ public class Window extends JFrame{
 		JMenuItem dummyMenuItem = new JMenuItem("Test");
 		dummyMenuItem.addActionListener(testAction);
 		dummyMenu.add(dummyMenuItem);
+		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
 
 		dummyMenuItem = new JMenuItem("Save");
 		dummyMenuItem.addActionListener(saveAction);
@@ -967,6 +972,14 @@ public class Window extends JFrame{
 		menu_bar.add(animations_menu);
 
 		setJMenuBar(menu_bar);
+
+		//=========== SHORTCUTS ==============
+
+		/*getRootPane().getInputMap().put(KeyStroke.getKeyStroke("S"),"doSomething");
+		getRootPane().getActionMap().put("doSomething",
+				testAction);*/
+
+		//=========== END INIT ===================
 
         setMinimumSize(new Dimension(500, 400));
         setSize(500, 500);
