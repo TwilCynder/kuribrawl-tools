@@ -68,6 +68,8 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
                 throw new IllegalStateException("Current selected hurtbox is not part of the hitbox list of the current frame");
         }
 
+        selected_cbox = null;
+
         d.update();
         onSelectedCBoxChanged();
     }
@@ -246,6 +248,11 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     }
 
     public void onKeyPressed(KeyEvent ev, Displayer d){
+        switch (ev.getKeyCode()){
+            case KeyEvent.VK_DELETE:
+                deleteSelectedCbox(d);
+        }
+
         if ((ev.getModifiersEx() & KeyEvent.ALT_DOWN_MASK) > 0){
             switch (ev.getKeyCode()){
                 case KeyEvent.VK_UP:
@@ -280,11 +287,6 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
                 default:
                     return;
             }
-        }
-
-        switch (ev.getKeyCode()){
-            case KeyEvent.VK_DELETE:
-                deleteSelectedCbox(d);
         }
         
         d.update();

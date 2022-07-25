@@ -1222,7 +1222,6 @@ public class Window extends JFrame {
 		initializing = true;
 
 		if (cbox == null){
-			System.out.println("aha");
 			element_controls.show("blank");
 		}
 
