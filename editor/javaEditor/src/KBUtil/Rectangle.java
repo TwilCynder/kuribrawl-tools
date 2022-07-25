@@ -2,7 +2,7 @@ package KBUtil;
 
 import java.awt.Point;
 
-public class Rectangle extends Point {
+public class Rectangle extends Point implements Shape{
     public int w;
     public int h;
     public Rectangle() {};
@@ -16,6 +16,13 @@ public class Rectangle extends Point {
         h = s.h;
     }
 
+    public Rectangle(Point p, int w_, int h_){
+        x = p.x;
+        y = p.y;
+        w = w_;
+        h = h_;
+    }
+
     public boolean equals(Rectangle rect){
         return x == rect.x && y == rect.y && w == rect.w && h == rect.h;
     }
@@ -24,5 +31,14 @@ public class Rectangle extends Point {
         if (!(other instanceof Rectangle)) return false;
 
         return equals((Rectangle)other);
+    }
+
+    @Override
+    public boolean isInside(int px, int py){
+        return px >= x && px < x + w && py >= y && py < y + h;
+    }
+
+    public boolean isInside(Point p) {
+        return isInside(p.x, p.y);
     }
 }

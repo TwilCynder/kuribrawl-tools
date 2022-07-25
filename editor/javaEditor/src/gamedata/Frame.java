@@ -55,8 +55,19 @@ public class Frame {
         return duration == 0 || duration == 1;
     }
 
-    public void relativeToOrigin(Rectangle rect){
-        rect.x = - (origin.x - rect.x);
-        rect.y = origin.y - rect.y;
+    public void makeRelativeToOrigin(Point p){
+        p.x = - (origin.x - p.x);
+        p.y = origin.y - p.y;
+    }
+
+    public Point getRelativeToOrigin(Point p){
+        return new Point(
+            - (origin.x - p.x),
+            origin.y - p.y
+        );
+    }
+
+    public Rectangle getRelativeToOrigin(Rectangle r){
+        return new Rectangle(getRelativeToOrigin(r), r.w, r.h);
     }
 }

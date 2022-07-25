@@ -1,16 +1,12 @@
+//TODO : fix la sauvegarde de l'origine
+
 package UI;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,11 +34,13 @@ import javax.swing.KeyStroke;
 import javax.swing.SpringLayout;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.Timer;
 
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
@@ -68,11 +66,12 @@ import gamedata.exceptions.GameDataException;
 import gamedata.exceptions.InvalidRessourcePathException;
 import gamedata.exceptions.TransparentGameDataException;
 
-public class Window extends JFrame{
+public class Window extends JFrame {
 
 	private GameData currentData = null;
 	private RessourcePath currentRessourcePath = null;
 	private boolean modifsOccured = false;
+	private boolean initializing = true;
 	private List<String> currentFileList = null;
 	
 	private Canvas displayCanvas;
@@ -112,6 +111,8 @@ public class Window extends JFrame{
 	private JTextField textField_7;
 	private JPanel blank;
 	private CardPanel editor_controls;
+
+	private static final String baseTitle = "Kuribrawl GameData Editor"; 
 
 	private static Map <HurtboxType, String> hurtboxTypesNames = new EnumMap<>(HurtboxType.class){{
 		put(HurtboxType.NORMAL, "Normal");
@@ -214,8 +215,8 @@ public class Window extends JFrame{
 	}
 
     public Window(){
-        super("Le Test has Arrived");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        super(baseTitle);
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		setBounds(100, 100, 675, 441);
 
 		//============ Content ==================
@@ -639,7 +640,7 @@ public class Window extends JFrame{
 				double value = Double.parseDouble(source.getText());
 				anim.setSpeed(value);
 
-				modifsOccured = true;
+				notifyDataModified();
 			}
 		});
 
@@ -649,21 +650,21 @@ public class Window extends JFrame{
 				Frame frame = editor.getCurrentFrame();
 				frame.setDuration(value);
 
-				modifsOccured = true;
+				notifyDataModified();
 			}
 		});
 
 		spinFrameOriginX.addChangeListener(new SpinChangeListener() {
 			public void stateChanged(EntityAnimationEditor editor, int value){
 				editor.moveOriginX(value);
-				modifsOccured = true;
+				notifyDataModified();
 			}	
 		});
 
 		spinFrameOriginY.addChangeListener(new SpinChangeListener() {
 			public void stateChanged(EntityAnimationEditor editor, int value){
 				editor.moveOriginY(value);
-				modifsOccured = true;
+				notifyDataModified();
 			}
 		});
 
@@ -673,7 +674,7 @@ public class Window extends JFrame{
 				CollisionBox cbox = editor.getSelectedCBox();
 				if (cbox != null)
 					cbox.x = value;
-					modifsOccured = true;
+					notifyDataModified();
 			}
 		};
 
@@ -686,7 +687,7 @@ public class Window extends JFrame{
 				CollisionBox cbox = editor.getSelectedCBox();
 				if (cbox != null)
 					cbox.y = value;
-					modifsOccured = true;
+					notifyDataModified();
 			}
 		};
 
@@ -699,7 +700,7 @@ public class Window extends JFrame{
 				CollisionBox cbox = editor.getSelectedCBox();
 				if (cbox != null)
 					cbox.w = value;
-					modifsOccured = true;
+					notifyDataModified();
 			}
 		};
 
@@ -712,7 +713,7 @@ public class Window extends JFrame{
 				CollisionBox cbox = editor.getSelectedCBox();
 				if (cbox != null)
 					cbox.h = value;
-					modifsOccured = true;
+					notifyDataModified();
 			}
 		};
 
@@ -732,7 +733,7 @@ public class Window extends JFrame{
 
 							hurtbox.type = type; //wooooo tout ça pour ça t content twil dmerd
 
-							modifsOccured = true;
+							notifyDataModified();
 						}
 					}
 				} catch (WindowStateException ex){
@@ -768,7 +769,7 @@ public class Window extends JFrame{
 							getEAEDitor().setSelectedCBox(newHitbox);
 							updateHitboxTypeSpecificControls(newHitbox, type);
 
-							modifsOccured = true;
+							notifyDataModified();
 						}
 					} 
 					
@@ -784,7 +785,7 @@ public class Window extends JFrame{
 				double value = Double.parseDouble(source.getText());
 				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
 				damage_hitbox.damage = value;
-				modifsOccured = true;
+				notifyDataModified();
 			}
 		});
 
@@ -794,7 +795,7 @@ public class Window extends JFrame{
 				int value = source.getInt();
 				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
 				damage_hitbox.angle = value;
-				modifsOccured = true;
+				notifyDataModified();
 			}
 		});
 
@@ -804,7 +805,7 @@ public class Window extends JFrame{
 				double value = Double.parseDouble(source.getText());
 				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
 				damage_hitbox.base_knockback = value;
-				modifsOccured = true;
+				notifyDataModified();
 			}
 		});
 
@@ -814,7 +815,7 @@ public class Window extends JFrame{
 				double value = Double.parseDouble(source.getText());
 				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
 				damage_hitbox.scaling_knockback = value;
-				modifsOccured = true;
+				notifyDataModified();
 			}
 		});
 
@@ -822,7 +823,7 @@ public class Window extends JFrame{
 			public void stateChanged(EntityAnimationEditor editor, int value){
 				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
 				damage_hitbox.priority = value;
-				modifsOccured = true;
+				notifyDataModified();
 			}	
 		});
 
@@ -830,7 +831,7 @@ public class Window extends JFrame{
 			public void stateChanged(EntityAnimationEditor editor, int value){
 				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
 				damage_hitbox.hitID = value;
-				modifsOccured = true;
+				notifyDataModified();
 			}	
 		});
 
@@ -847,7 +848,7 @@ public class Window extends JFrame{
 
 							damage_hitbox.angle_mode = type;
 
-							modifsOccured = true;
+							notifyDataModified();
 						}
 					}
 				} catch (WindowStateException ex){
@@ -910,15 +911,187 @@ public class Window extends JFrame{
 
 		Action saveAction = new AbstractAction() {
 			public void actionPerformed(ActionEvent e){
-
-				saveData();
-				
+				if (modifsOccured()){
+					saveData();
+				}
 			}
 		};
 
 		Action saveAsAction = new AbstractAction() {
 			public void actionPerformed(ActionEvent e){
-				PathChooser chooser = new PathChooser(PathChooser.Mode.DIRECTORY, ".");
+				if (modifsOccured()){
+					saveDataAs();
+				}
+			}
+		};
+
+		//============= MENU ==================
+
+		JMenuBar menu_bar = new JMenuBar();
+
+		JMenu dummyMenu = new JMenu("File");
+
+		JMenuItem dummyMenuItem = new JMenuItem("Test");
+		dummyMenuItem.addActionListener(testAction);
+		dummyMenu.add(dummyMenuItem);
+		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.CTRL_DOWN_MASK));
+
+		dummyMenuItem = new JMenuItem("Save");
+		dummyMenuItem.addActionListener(saveAction);
+		dummyMenu.add(dummyMenuItem);
+		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
+
+		dummyMenuItem = new JMenuItem("Save As");
+		dummyMenuItem.addActionListener(saveAsAction);
+		dummyMenu.add(dummyMenuItem);
+		
+
+		dummyMenuItem = new JMenuItem("Save as Archive");
+		dummyMenuItem.addActionListener(saveArchiveAction);
+		dummyMenu.add(dummyMenuItem);
+
+		menu_bar.add(dummyMenu);
+
+
+		animations_menu = new JMenu("Animations");
+		menu_bar.add(animations_menu);
+
+		setJMenuBar(menu_bar);
+
+		//=========== SHORTCUTS ==================
+
+		/*getRootPane().getInputMap().put(KeyStroke.getKeyStroke("S"),"doSomething");
+		getRootPane().getActionMap().put("doSomething",
+				testAction);*/
+
+		//========== WINDOW LISTENER =============
+
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e){
+				if (modifsOccured()){
+					int result = JOptionPane.showConfirmDialog(Window.this, 
+						"Des modifications n'ont pas été sauvegardées. Voulez vous sauvegarder ?", "Confirm exit", JOptionPane.YES_NO_CANCEL_OPTION);
+				
+						switch (result){
+							case JOptionPane.YES_OPTION:
+								saveData();
+								break;
+							case JOptionPane.CANCEL_OPTION, JOptionPane.CLOSED_OPTION:
+								return;
+						}
+				}
+
+				System.exit(0);
+			}
+		});
+
+		ignoreModifications();
+
+		//=========== END INIT ===================
+
+        setMinimumSize(new Dimension(500, 400));
+        setSize(500, 500);
+        setLocationRelativeTo(null);
+
+
+		System.out.println("end init");
+    }
+
+	private void ignoreModifications(){
+		if (initializing) return;
+		Timer timer = new Timer(20, new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e){
+				initializing = false;
+			}
+		});
+		timer.setRepeats(false);
+		timer.start();
+	}
+
+	public void initAnimationsMenu(GameData gd){
+		animations_menu.removeAll();
+
+		for (Champion c : gd){
+			JMenu champion_submenu = new JMenu(c.getDislayName());
+            for (EntityAnimation anim : c){
+				champion_submenu.add(new AnimationMenuItem(anim, this));
+            }
+			animations_menu.add(champion_submenu);
+        }
+	}
+
+	public void notifyDataModified(){
+		if (initializing) return;
+		System.out.println("NOTIFY");
+		if (!modifsOccured){
+			setTitle(baseTitle + " | (modified) " + currentRessourcePath.getPath());
+			modifsOccured = true;
+		}
+
+	}
+
+	public void resetDataModified(){
+		System.out.println("RESET");
+		if (modifsOccured){
+			setTitle(baseTitle + " | " + currentRessourcePath.getPath());
+			modifsOccured = false;
+		}		
+	}
+
+	public void setGameData(GameData gd){
+		setGameData(gd, null);
+	}
+
+	public void setGameData(GameData gd, RessourcePath originPath){
+		setTitle(baseTitle + " | " + originPath.getPath());
+
+		if (gd == null){
+			throw new IllegalArgumentException("Passed null gamedata to Window.setGameData");
+		}
+
+		/*System.out.println("Using this GameData : ");
+		for (Champion c : gd){
+			System.out.println("==" + c.getDislayName() + "==");
+            for (EntityAnimation anim : c){
+                System.out.println(anim.getName());
+                //System.out.println(anim.getNbFrames());
+                //System.out.println(anim.getSpeed());
+            }
+        }*/
+		initAnimationsMenu(gd);
+		currentData = gd;
+		currentRessourcePath = originPath;
+		currentFileList = gd.getUsedFilenames();
+		resetDataModified();
+	}
+
+
+	/**
+	 * saves the current game data to a given ressource path
+	 * @param rPath a ressource path to save the data to.
+	 */
+	private void saveDataTo(RessourcePath rPath){
+		try {
+			rPath.saveGameData(currentData);
+		} catch (GameDataException ex){
+			errorPopup("Error : invalid game data.");
+			ex.printStackTrace();
+		} catch (TransparentGameDataException ex) {
+			errorPopup("Error : " + ex.getMessage());
+			ex.printStackTrace();
+		} catch (IOException ex){
+			errorPopup("Error : file system error while writing file " + ex.getMessage());
+			ex.printStackTrace();
+		}
+	}
+
+	/**
+	 * Ask the user for a path and saves the current game data to it.
+	 */
+	private void saveDataAs(){
+		PathChooser chooser = new PathChooser(PathChooser.Mode.DIRECTORY, ".");
 				Path selected = chooser.openPath(Window.this);
 				if (selected == null) return;
 
@@ -938,116 +1111,23 @@ public class Window extends JFrame{
 					ex.printStackTrace();
 					errorPopup("Unable to copy files : " + ex.getLocalizedMessage());
 				}
-				
-			}
-		};
-
-		//============= MENU ==================
-
-		JMenuBar menu_bar = new JMenuBar();
-
-		JMenu dummyMenu = new JMenu("File");
-
-		JMenuItem dummyMenuItem = new JMenuItem("Test");
-		dummyMenuItem.addActionListener(testAction);
-		dummyMenu.add(dummyMenuItem);
-		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
-
-		dummyMenuItem = new JMenuItem("Save");
-		dummyMenuItem.addActionListener(saveAction);
-		dummyMenu.add(dummyMenuItem);
-
-		dummyMenuItem = new JMenuItem("Save As");
-		dummyMenuItem.addActionListener(saveAsAction);
-		dummyMenu.add(dummyMenuItem);
-
-		dummyMenuItem = new JMenuItem("Save as Archive");
-		dummyMenuItem.addActionListener(saveArchiveAction);
-		dummyMenu.add(dummyMenuItem);
-
-		menu_bar.add(dummyMenu);
-
-
-		animations_menu = new JMenu("Animations");
-		menu_bar.add(animations_menu);
-
-		setJMenuBar(menu_bar);
-
-		//=========== SHORTCUTS ==============
-
-		/*getRootPane().getInputMap().put(KeyStroke.getKeyStroke("S"),"doSomething");
-		getRootPane().getActionMap().put("doSomething",
-				testAction);*/
-
-		//=========== END INIT ===================
-
-        setMinimumSize(new Dimension(500, 400));
-        setSize(500, 500);
-        setLocationRelativeTo(null);
-
-
-		System.out.println("end init");
-    }
-
-	public void initAnimationsMenu(GameData gd){
-		animations_menu.removeAll();
-
-		for (Champion c : gd){
-			JMenu champion_submenu = new JMenu(c.getDislayName());
-            for (EntityAnimation anim : c){
-				champion_submenu.add(new AnimationMenuItem(anim, this));
-            }
-			animations_menu.add(champion_submenu);
-        }
 	}
 
-	public void setGameData(GameData gd){
-		setGameData(gd, null);
-	}
-
-	public void setGameData(GameData gd, RessourcePath originPath){
-		if (gd == null){
-			throw new IllegalArgumentException("Passed null gamedata to Window.setGameData");
-		}
-
-		/*System.out.println("Using this GameData : ");
-		for (Champion c : gd){
-			System.out.println("==" + c.getDislayName() + "==");
-            for (EntityAnimation anim : c){
-                System.out.println(anim.getName());
-                //System.out.println(anim.getNbFrames());
-                //System.out.println(anim.getSpeed());
-            }
-        }*/
-		initAnimationsMenu(gd);
-		currentData = gd;
-		currentRessourcePath = originPath;
-		currentFileList = gd.getUsedFilenames();
-		modifsOccured = false;
-	}
-
+	/**
+	 * Saves the current gamedata to the current ressource path.
+	 * If there is none, asks the user for one by falling back to saveDataAs
+	 */
 	private void saveData(){
 		if (currentRessourcePath == null){
 			//TODO : utiliser le save-as
 			return;
 		}
 		saveDataTo(currentRessourcePath);
+		resetDataModified();
 	}
 
-	private void saveDataTo(RessourcePath rPath){
-		try {
-			rPath.saveGameData(currentData);
-		} catch (GameDataException ex){
-			errorPopup("Error : invalid game data.");
-			ex.printStackTrace();
-		} catch (TransparentGameDataException ex) {
-			errorPopup("Error : " + ex.getMessage());
-			ex.printStackTrace();
-		} catch (IOException ex){
-			errorPopup("Error : file system error while writing file " + ex.getMessage());
-			ex.printStackTrace();
-		}
-	}
+
+	
 
 	public void setDisplayedObject(EntityAnimation anim){
 		Interactable current = displayCanvas.getDisplayable();
@@ -1093,17 +1173,27 @@ public class Window extends JFrame{
 	}
 
 	public void updateAnimControls(EntityAnimation anim){
+		initializing = true;
+
 		tfAnimSpeed.setText(Double.toString(anim.getSpeed()));
+
+		initializing = false;
 	}
 
 	public void updateFrameControls(Frame frame, EntityFrame entity_frame){
+		initializing = true;
+
 		tfFrameDuration.setText(Integer.toString(frame.getDuration()));
 		Point origin = frame.getOrigin();
 		spinFrameOriginX.setValue(origin.x);
 		spinFrameOriginY.setValue(origin.y);
+
+		initializing = false;
 	}
 
 	private void updateHitboxTypeSpecificControls(Hitbox hitbox, HitboxType type){
+		initializing = true;
+		
 		hitbox_typespecific_controls.show(type.toString());
 
 		switch (type){
@@ -1124,9 +1214,13 @@ public class Window extends JFrame{
 			break;
 			default:
 		}
+
+		initializing = false;
 	}
 
 	public void updateElementControls(CollisionBox cbox){
+		initializing = true;
+
 		if (cbox == null){
 			element_controls.show("blank");
 		}
@@ -1152,13 +1246,11 @@ public class Window extends JFrame{
 			comboHitboxType.setSelectedItem(type);
 			updateHitboxTypeSpecificControls(hitbox, type);
 		}
+
+		initializing = false;
 	}
 
 	private boolean modifsOccured(){
 		return modifsOccured;
-	}
-
-	public void notifyGamedataModified(){
-		modifsOccured = true;
 	}
 }

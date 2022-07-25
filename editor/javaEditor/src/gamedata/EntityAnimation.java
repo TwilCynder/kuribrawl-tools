@@ -33,6 +33,12 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
         }
     }
 
+    /**
+     * Return the entity frame at the given index
+     * @param i index in the frames list
+     * @return an EntityFrame, never null
+     * @throws FrameOutOfBoundsException if the index if out of the array bounds.
+     */
     public EntityFrame getEntityFrame(int i) throws FrameOutOfBoundsException {
         if (i < 0 || i >= entity_frames.length) throw new FrameOutOfBoundsException(this, i);
 

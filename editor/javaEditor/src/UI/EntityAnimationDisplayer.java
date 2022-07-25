@@ -45,7 +45,7 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
         );
     }
 
-    @Deprecated
+    @SuppressWarnings("unused")
     private Rectangle getActualDisplayArea(int x, int y, int totalW, int totalH){
         return getActualDisplayArea(x, y, totalW, totalH, currentZoom);
     }
@@ -55,6 +55,11 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
     private static final Color hurtbox_color = new Color(0, 255, 0, 255);
     private static final Color selected_color = new Color(255, 0, 255);
 
+    /**
+     * Returns the current frame of the current animation
+     * @return a Frame, never null
+     * @throws IllegalStateException if the current frame index is out of the frame array bounds ; this should never be the case as the index is checked to avoid that
+     */
     public Frame getCurrentFrame() throws IllegalStateException {
         try {
             return current_anim.getFrame(currentFrame);
@@ -64,6 +69,11 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
         
     }
 
+    /**
+     * Returns the current entity frame of the current animation
+     * @return an EntityFrame, never null
+     * @throws IllegalStateException if the current frame index is out of the frame array bounds ; this should never be the case as the index is checked to avoid that
+     */
     public EntityFrame getCurrentEntityFrame() throws IllegalStateException {
         try {
             return current_anim.getEntityFrame(currentFrame);
@@ -161,7 +171,7 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
                 selected = h;
                 continue;
             }
-            if (animpos.x > origin.x + h.x && animpos.x < origin.x + h.x + h.w && animpos.y > origin.y - h.y && animpos.y < origin.y - h.y + h.h){
+            if (h.isInside(animpos, origin)){
                 return h;
             }
         }
@@ -171,7 +181,7 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
                 selected = h;
                 continue;
             }
-            if (animpos.x > origin.x + h.x && animpos.x < origin.x + h.x + h.w && animpos.y > origin.y - h.y && animpos.y < origin.y - h.y + h.h){
+            if (h.isInside(animpos, origin)){
                 return h;
             }
         }

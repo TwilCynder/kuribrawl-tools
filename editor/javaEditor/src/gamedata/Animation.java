@@ -45,6 +45,12 @@ public class Animation {
         return frame_size;
     }
 
+    /**
+     * Return the frame at the given index
+     * @param i index in the frames list
+     * @return a frame, never null
+     * @throws FrameOutOfBoundsException if the index if out of the array bounds.
+     */
     public Frame getFrame(int i) throws FrameOutOfBoundsException {
         if (i < 0 || i >= frames.length) throw new FrameOutOfBoundsException(this, i);
 

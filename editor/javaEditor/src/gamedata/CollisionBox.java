@@ -16,6 +16,26 @@ public abstract class CollisionBox extends Rectangle{
     public boolean isDefault(Point origin, Size2D frame_size){
         return x == -origin.x && y == origin.y && w == frame_size.w && h == frame_size.h;
     }
-    
+
+    /**
+     * Returns whether a point is inside the box
+     * @param p anim position, relative to the frame
+     * @param origin the origin point of the frame
+     */
+    public boolean isInside(Point p, Point origin){
+        return p.x >= origin.x + x && p.x < origin.x + x + w && p.y >= origin.y - y && p.y < origin.y - y + h;
+    }
+
+
+    @Override
+    /**
+     * Returns whether a point is inside the box
+     * @param p orogin position, relative to the origin (upwards y)
+     */
+    public boolean isInside(Point p){
+        return p.x >= x && p.x < x + w && p.y <= y && p.y > y - h;
+    }
+
+
     //this class inherits equals(Rectangle), so a cbox can be compared to a recangle    
 }

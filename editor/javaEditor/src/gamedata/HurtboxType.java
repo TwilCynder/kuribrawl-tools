@@ -18,7 +18,7 @@ public enum HurtboxType {
         for (int i = 0; i < vals.length; i++){
             codes.put(i, vals[i]);
         }
-    } 
+    }
 
     public static HurtboxType valueOf(int i){
         return codes.get(i);

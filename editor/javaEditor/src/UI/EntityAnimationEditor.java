@@ -16,13 +16,15 @@ import java.awt.Color;
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.KeyStroke;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
 import KBUtil.Rectangle;
-import KBUtil.Size2D;
 
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+
 import java.awt.event.ActionEvent;
 
 public class EntityAnimationEditor extends EntityAnimationDisplayer implements Interactable {
@@ -45,33 +47,75 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         }
     }
 
+    /**
+     * Move origin to a certain anim pos and then updates whatever needs ot be updated following this change
+     * @param displayer the Displayer to update
+     * @param pos the position at which origin should be moved to, relative to the displayer
+     */
+    private void moveOrigin(Displayer displayer, Point pos){
+        moveOriginToDisplayPos(pos);
+        displayer.update();
+        updateFrameControls();
+    }
+
+    private void deleteSelectedCbox() throws IllegalStateException{
+        if (selected_cbox == null) return;
+        if (selected_cbox instanceof Hitbox){
+            if (!getCurrentEntityFrame().hitboxes.remove(selected_cbox)) 
+                throw new IllegalStateException("Current selected hitbox is not part of the hitbox list of the current frame");
+        } else if (selected_cbox instanceof Hurtbox){
+            if (!getCurrentEntityFrame().hurtboxes.remove(selected_cbox)) 
+                throw new IllegalStateException("Current selected hurtbox is not part of the hitbox list of the current frame");
+        }
+    }
+
     private class PopupMenu extends InternalMenu {
         public PopupMenu() {
             JMenuItem item = new JMenuItem("Move origin here");
             item.addActionListener(new ActionListener(){
                 public void actionPerformed(ActionEvent e){
-                    moveOriginToDisplayPos(pos);
-                    displayer.update();
-                    updateFrameControls();
+                    moveOrigin(displayer, pos);
                 }
             });
             add(item);
         }
+        
+    };
 
+    private class PopupCollisionboxMenu extends PopupMenu {
+        public PopupCollisionboxMenu() {
+            JMenuItem item = new JMenuItem("Delete");
+            item.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    System.out.println("ACTION");
+                }
+            });
+            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0));
+            add(item);
+            addSeparator();
+            item = new JMenuItem("Move origin here");
+            item.addActionListener(new ActionListener(){
+                public void actionPerformed(ActionEvent e){
+                    moveOrigin(displayer, pos);
+                }
+            });
+            add(item);
+        }
         
     };
 
     private PopupMenu popup_menu = new PopupMenu();
+    private PopupCollisionboxMenu popup_collisionbox_menu = new PopupCollisionboxMenu();
 
-    private class SelectionPupupMenu extends InternalMenu {
-        public SelectionPupupMenu() {
+    private class SelectionPopupMenu extends InternalMenu {
+        public SelectionPopupMenu() {
             JMenuItem item = new JMenuItem("Create hurtbox");
             item.addActionListener(new ActionListener(){
                 public void actionPerformed(ActionEvent e){
                     Frame frame = getCurrentFrame();
                     EntityFrame entity_frame = getCurrentEntityFrame();
-                    frame.relativeToOrigin(selection);
-                    entity_frame.addHurtbox(selection.x, selection.y, selection.w, selection.h);
+                    frame.makeRelativeToOrigin(selection);
+                    setSelectedCBox(entity_frame.addHurtbox(selection.x, selection.y, selection.w, selection.h));
                     cancelSelection(displayer);
                 }
             });
@@ -82,8 +126,10 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
                 public void actionPerformed(ActionEvent e){
                     Frame frame = getCurrentFrame();
                     EntityFrame entity_frame = getCurrentEntityFrame();
-                    frame.relativeToOrigin(selection);
-                    entity_frame.addHitbox(new DamageHitbox(selection));
+                    frame.makeRelativeToOrigin(selection);
+                    DamageHitbox hb = new DamageHitbox(selection);
+                    entity_frame.addHitbox(hb);
+                    setSelectedCBox(hb);
                     cancelSelection(displayer);
                 }
             });
@@ -100,7 +146,7 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         }
     };
 
-    private SelectionPupupMenu selection_popup_menu = new SelectionPupupMenu();
+    private SelectionPopupMenu selection_popup_menu = new SelectionPopupMenu();
 
     public EntityAnimationEditor(EntityAnimation anim, Window win){
         super(anim);
@@ -111,7 +157,7 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     @Override
     public void draw(Graphics g, int x, int y, int w, int h, double zoom) throws IllegalStateException{
         super.draw(g, x, y, w, h, zoom);
-        if (selection != null){
+        if (selection != null && selection.w + selection.h > 6){
             Rectangle display_selection = getDisplayRectangle(selection);
             g.setColor(selection_color);
             g.drawRect(display_selection.x, display_selection.y, display_selection.w, display_selection.h);
@@ -184,7 +230,63 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     public void onPopupTrigger(Point p, Displayer d){
         JComponent component = d.getComponent();
         if (component == null) return;
-        popup_menu.show(d, p.x, p.y);
+        
+        Frame frame = getCurrentFrame();
+
+        Point animpos = getAnimPosition(p);
+
+        if (selected_cbox != null && selected_cbox.isInside(animpos, frame.getOrigin())) {
+            popup_collisionbox_menu.show(d, p.x, p.y);
+        } else {
+            popup_menu.show(d, p.x, p.y);
+        }
+    }
+
+    public void onKeyPressed(KeyEvent ev, Displayer d){
+        if ((ev.getModifiersEx() & KeyEvent.ALT_DOWN_MASK) > 0){
+            switch (ev.getKeyCode()){
+                case KeyEvent.VK_UP:
+                if (selected_cbox != null) selected_cbox.h -= 1;
+                break;
+            case KeyEvent.VK_DOWN:
+                if (selected_cbox != null) selected_cbox.h += 1;
+                break;
+            case KeyEvent.VK_LEFT:
+                if (selected_cbox != null) selected_cbox.w -= 1;
+                break;
+            case KeyEvent.VK_RIGHT:
+                if (selected_cbox != null) selected_cbox.w += 1;
+                break;
+            default:
+                return;
+            }
+        } else {
+            switch (ev.getKeyCode()){
+                case KeyEvent.VK_UP:
+                    if (selected_cbox != null) selected_cbox.y += 1;
+                    break;
+                case KeyEvent.VK_DOWN:
+                    if (selected_cbox != null) selected_cbox.y -= 1;
+                    break;
+                case KeyEvent.VK_LEFT:
+                    if (selected_cbox != null) selected_cbox.x -= 1;
+                    break;
+                case KeyEvent.VK_RIGHT:
+                    if (selected_cbox != null) selected_cbox.x += 1;
+                    break;
+                default:
+                    return;
+            }
+        }
+
+        switch (ev.getKeyCode()){
+            case KeyEvent.VK_DELETE:
+                deleteSelectedCbox();
+        }
+        
+        d.update();
+        updateElementControls();
+
     }
 
     private void moveOrigin(Point animpoint) throws IllegalStateException{
@@ -227,6 +329,7 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         }   
     }
 
+    @SuppressWarnings("unused")
     private void moveOriginToDisplayPos(Point p){
         moveOrigin(getAnimPosition(p));
     }
@@ -259,6 +362,10 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     }
 
     private void onSelectedCBoxChanged(){
+        updateElementControls();
+    }
+
+    private void updateElementControls(){
         window.updateElementControls(selected_cbox);
     }
 

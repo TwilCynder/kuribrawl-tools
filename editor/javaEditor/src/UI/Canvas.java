@@ -11,6 +11,8 @@ import java.awt.Cursor;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.FocusEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.event.FocusAdapter;
 
@@ -19,8 +21,11 @@ public class Canvas extends JPanel implements Displayer{
 
     public Canvas(){
         super();
+        setFocusable(true);
+
         addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e){
+                System.out.println("MOUSE EVENT");
                 if (current_object == null) return;
                 switch (e.getButton()){
                     case MouseEvent.BUTTON1:
@@ -31,10 +36,10 @@ public class Canvas extends JPanel implements Displayer{
                     break;
                 }
 
-
             }
 
             public void mousePressed(MouseEvent e){
+                requestFocus();
                 if (current_object != null){
                     current_object.mousePressed(e.getPoint(), Canvas.this);
                     if ( e.isPopupTrigger()){
@@ -71,27 +76,53 @@ public class Canvas extends JPanel implements Displayer{
 			}
         });
 
+        addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent ev){
+                current_object.onKeyPressed(ev, Canvas.this);
+            }   
+        });
+
         setBackground(Color.WHITE);
         setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
     }
 
+    /**
+     * Creates a new canvas already loaded with an interactable object
+     * @param obj
+     */
     public Canvas(Interactable obj){
         this();
         current_object = obj;
     }
 
+    /**
+     * Should be called whenever data regarding the current object has been modified  
+     * (for example by callbacks of the current object)
+     */
     public void update(){
         repaint();
     }
 
+    /**
+     * Returns itself ? why did i do that
+     */
     public JComponent getComponent(){
         return this;
     }
 
+    /**
+     * Sets the current object.
+     * @param obj
+     */
     public void setDisplayable(Interactable obj){
         current_object = obj;
     }
 
+    /**
+     * Returns the current object (as an interactable, and not displayable as the method name could imply)
+     * @return the current Interactable object
+     */
     public Interactable getDisplayable(){
         return current_object;
     }
