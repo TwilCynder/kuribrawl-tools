@@ -58,7 +58,7 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         updateFrameControls();
     }
 
-    private void deleteSelectedCbox() throws IllegalStateException{
+    private void deleteSelectedCbox(Displayer d) throws IllegalStateException{
         if (selected_cbox == null) return;
         if (selected_cbox instanceof Hitbox){
             if (!getCurrentEntityFrame().hitboxes.remove(selected_cbox)) 
@@ -67,6 +67,9 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
             if (!getCurrentEntityFrame().hurtboxes.remove(selected_cbox)) 
                 throw new IllegalStateException("Current selected hurtbox is not part of the hitbox list of the current frame");
         }
+
+        d.update();
+        onSelectedCBoxChanged();
     }
 
     private class PopupMenu extends InternalMenu {
@@ -82,12 +85,12 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         
     };
 
-    private class PopupCollisionboxMenu extends PopupMenu {
+    private class PopupCollisionboxMenu extends InternalMenu {
         public PopupCollisionboxMenu() {
             JMenuItem item = new JMenuItem("Delete");
             item.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e){
-                    System.out.println("ACTION");
+                    deleteSelectedCbox(displayer);
                 }
             });
             item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0));
@@ -281,7 +284,7 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
 
         switch (ev.getKeyCode()){
             case KeyEvent.VK_DELETE:
-                deleteSelectedCbox();
+                deleteSelectedCbox(d);
         }
         
         d.update();
