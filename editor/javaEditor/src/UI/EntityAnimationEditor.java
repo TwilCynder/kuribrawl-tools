@@ -74,7 +74,13 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         onSelectedCBoxChanged();
     }
 
-    
+    private void copyCollisionBox(CollisionBox cbox){
+        
+    }
+
+    private void copyCollisionBox(){
+        copyCollisionBox(selected_cbox);
+    }
 
     private class PopupMenu extends InternalMenu {
         public PopupMenu() {
@@ -346,34 +352,46 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     }
 
     private void onAnimationChanged(){
-        updateAnimationControls();
+        updateAnimationControls(true);
         onFrameChanged();
     }
 
+    private void updateAnimationControls(boolean ignoreModifications){
+        window.updateAnimControls(current_anim, ignoreModifications);
+    }
+
     private void updateAnimationControls(){
-        window.updateAnimControls(current_anim);
+        updateAnimationControls(false);
     }
 
     private void onFrameChanged(){
         selected_cbox = null;
-        updateFrameControls();
+        updateFrameControls(true);
         onSelectedCBoxChanged();
     }
 
-    private void updateFrameControls(){
+    private void updateFrameControls(boolean ignoreModifications){
         try {
-            window.updateFrameControls(current_anim.getFrame(currentFrame), current_anim.getEntityFrame(currentFrame));
+            window.updateFrameControls(current_anim.getFrame(currentFrame), current_anim.getEntityFrame(currentFrame), ignoreModifications);
         } catch (FrameOutOfBoundsException e){
             throw new IllegalStateException(e);
         }
     }
 
+    private void updateFrameControls(){
+        updateFrameControls(false);
+    }
+
     private void onSelectedCBoxChanged(){
-        updateElementControls();
+        updateElementControls(true);
+    }
+
+    private void updateElementControls(boolean ignoreModifications){
+        window.updateElementControls(selected_cbox, ignoreModifications);
     }
 
     private void updateElementControls(){
-        window.updateElementControls(selected_cbox);
+        updateElementControls(false);
     }
 
     @Override

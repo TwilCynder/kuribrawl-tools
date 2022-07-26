@@ -103,6 +103,11 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
         return speed == 0 || speed == 1;
     }
 
+    /**
+     * Returns whether a frame is default, meaning that it has a default origin (at (w/2, h)) and a default duration (0 or 1)  
+     * @param frame the frame to test
+     * @return boolean
+     */
     private boolean isFrameDefault(Frame frame){
         return frame.hasDefaultOrigin() && frame.hasDefaultDuration();
     }
@@ -152,31 +157,12 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
         }
 
         for (Hurtbox h : entityFrame.hurtboxes){
-            res += 'c';
-            if (!indexWritten){
-                res+= index;
-                indexWritten = true;
-            }
-            res += ' ';
-
-            if (h.isDefault(frame.getOrigin(), frame_size)){
-                res += "whole";
-            } else {
-                res += h.x + " " + h.y + " " + h.w + " " + h.h;
-            }
-
-            res+= System.lineSeparator();
+            res += h.generateDescriptor(indexWritten |= !indexWritten, index, frame, frame_size);
+            res += System.lineSeparator();
         }
 
         for (Hitbox h : entityFrame.hitboxes){
-            res += 'h';
-            if (!indexWritten){
-                res+= index;
-                indexWritten = true;
-            }
-            res += ' ';
-
-            res += h.x + " " + h.y + " " + h.w + " " + h.h + " " + Integer.toString(h.getTypeCode()) + " " + h.stringifyTypeSpecificInfo();
+            res += h.generateDescriptor(indexWritten |= !indexWritten, index);
             res += System.lineSeparator();
         }
 

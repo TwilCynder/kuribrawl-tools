@@ -767,7 +767,7 @@ public class Window extends JFrame {
 							if (index == -1) throw new IllegalStateException("Selected hitbox is not in the current frame hitboxes list");
 							frame.hitboxes.set(index, newHitbox);
 							getEAEDitor().setSelectedCBox(newHitbox);
-							updateHitboxTypeSpecificControls(newHitbox, type);
+							updateHitboxTypeSpecificControls(newHitbox, type, false);
 
 							notifyDataModified();
 						}
@@ -1172,16 +1172,16 @@ public class Window extends JFrame {
 		throw new UnsupportedOperationException();
 	}
 
-	public void updateAnimControls(EntityAnimation anim){
-		initializing = true;
+	public void updateAnimControls(EntityAnimation anim, boolean ignoreModifications){
+		initializing = ignoreModifications;
 
 		tfAnimSpeed.setText(Double.toString(anim.getSpeed()));
 
 		initializing = false;
 	}
 
-	public void updateFrameControls(Frame frame, EntityFrame entity_frame){
-		initializing = true;
+	public void updateFrameControls(Frame frame, EntityFrame entity_frame, boolean ignoreModifications){
+		initializing = ignoreModifications;
 
 		tfFrameDuration.setText(Integer.toString(frame.getDuration()));
 		Point origin = frame.getOrigin();
@@ -1191,8 +1191,8 @@ public class Window extends JFrame {
 		initializing = false;
 	}
 
-	private void updateHitboxTypeSpecificControls(Hitbox hitbox, HitboxType type){
-		initializing = true;
+	private void updateHitboxTypeSpecificControls(Hitbox hitbox, HitboxType type, boolean ignoreModifications){
+		initializing = ignoreModifications;
 		
 		hitbox_typespecific_controls.show(type.toString());
 
@@ -1218,8 +1218,8 @@ public class Window extends JFrame {
 		initializing = false;
 	}
 
-	public void updateElementControls(CollisionBox cbox){
-		initializing = true;
+	public void updateElementControls(CollisionBox cbox, boolean ignoreModifications){
+		initializing = ignoreModifications;
 
 		if (cbox == null){
 			element_controls.show("blank");
@@ -1244,7 +1244,7 @@ public class Window extends JFrame {
 			spinHitboxHeight.setValue(hitbox.h);	
 			HitboxType type = hitboxTypes.get(hitbox.getClass());
 			comboHitboxType.setSelectedItem(type);
-			updateHitboxTypeSpecificControls(hitbox, type);
+			updateHitboxTypeSpecificControls(hitbox, type, ignoreModifications);
 		}
 
 		initializing = false;

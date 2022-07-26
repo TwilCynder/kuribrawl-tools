@@ -5,7 +5,7 @@ import KBUtil.Size2D;
 
 import java.awt.Point;
 
-public abstract class CollisionBox extends Rectangle{
+public abstract class CollisionBox extends Rectangle {
     public CollisionBox(){
         super();
     }
@@ -37,18 +37,11 @@ public abstract class CollisionBox extends Rectangle{
     }
 
     /**
-     * Appends the descriptor line of this Collision Box to a string
-     * @param base string to append to
+     * Returns the descriptor line of this Collision Box
      * @param writeIndex whether the given (frame) index should be written in the line
      * @param index the index to write if writeIndex is true
      */
-    public abstract void generateDescriptor(String base, boolean writeIndex, int index);
-
-    public String generateDescriptor(boolean writeIndex, int index){
-        String res = new String();
-        generateDescriptor(res, writeIndex, index);
-        return res;
-    }
+    public abstract String generateDescriptor(boolean writeIndex, int index);
 
     //this class inherits equals(Rectangle), so a cbox can be compared to a recangle    
 }

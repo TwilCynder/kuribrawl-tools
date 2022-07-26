@@ -12,21 +12,23 @@ public class Hurtbox extends CollisionBox {
         super(x, y, w, h);
     }
 
-    public void generateDescriptor(String base, boolean writeIndex, int index){
-        generateDescriptor(base, writeIndex, index, null, null);
+    public String generateDescriptor(boolean writeIndex, int index){
+        return generateDescriptor(writeIndex, index, null, null);
     }
 
-    public void generateDescriptor(String base, boolean writeIndex, int index, Frame frame, Size2D frame_size){
-        base += 'c';
+    public String generateDescriptor(boolean writeIndex, int index, Frame frame, Size2D frame_size){
+        String res = "c";
         if (writeIndex){
-            base+= index;
+            res+= index;
         }
-        base += ' ';
+        res += ' ';
 
         if (frame != null && isDefault(frame.getOrigin(), frame_size)){
-            base += "whole";
+            res += "whole";
         } else {
-            base += x + " " + y + " " + w + " " + h;
+            res += x + " " + y + " " + w + " " + h;
         }
+
+        return res;
     }
 }

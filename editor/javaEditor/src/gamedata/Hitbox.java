@@ -14,14 +14,16 @@ public abstract class Hitbox extends CollisionBox {
         super(rect.x, rect.y, rect.w, rect.h);
     }
 
-    public void generateDescriptor(String base, boolean writeIndex, int index){
-        base += 'h';
-        if (writeIndex){
-            base += index;
-        }
-        base += ' ';
+    public String generateDescriptor(boolean writeIndex, int index){
+        String res = "h";
 
-        base += x + " " + y + " " + w + " " + h + " " + Integer.toString(getTypeCode()) + " " + stringifyTypeSpecificInfo();
+        if (writeIndex){
+            res += index;
+        }
+        res += ' ';
+
+        res += x + " " + y + " " + w + " " + h + " " + Integer.toString(getTypeCode()) + " " + stringifyTypeSpecificInfo();
+        return res;
     }
 
     abstract public char getTypeCode();
