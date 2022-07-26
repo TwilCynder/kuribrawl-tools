@@ -36,6 +36,19 @@ public abstract class CollisionBox extends Rectangle{
         return p.x >= x && p.x < x + w && p.y <= y && p.y > y - h;
     }
 
+    /**
+     * Appends the descriptor line of this Collision Box to a string
+     * @param base string to append to
+     * @param writeIndex whether the given (frame) index should be written in the line
+     * @param index the index to write if writeIndex is true
+     */
+    public abstract void generateDescriptor(String base, boolean writeIndex, int index);
+
+    public String generateDescriptor(boolean writeIndex, int index){
+        String res = new String();
+        generateDescriptor(res, writeIndex, index);
+        return res;
+    }
 
     //this class inherits equals(Rectangle), so a cbox can be compared to a recangle    
 }

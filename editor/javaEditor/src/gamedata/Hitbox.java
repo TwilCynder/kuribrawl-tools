@@ -2,7 +2,7 @@ package gamedata;
 
 import KBUtil.Rectangle;
 
-public abstract class Hitbox extends CollisionBox{
+public abstract class Hitbox extends CollisionBox {
     public Hitbox(){
         super();
     }
@@ -12,6 +12,16 @@ public abstract class Hitbox extends CollisionBox{
 
     public Hitbox(Rectangle rect){
         super(rect.x, rect.y, rect.w, rect.h);
+    }
+
+    public void generateDescriptor(String base, boolean writeIndex, int index){
+        base += 'h';
+        if (writeIndex){
+            base += index;
+        }
+        base += ' ';
+
+        base += x + " " + y + " " + w + " " + h + " " + Integer.toString(getTypeCode()) + " " + stringifyTypeSpecificInfo();
     }
 
     abstract public char getTypeCode();

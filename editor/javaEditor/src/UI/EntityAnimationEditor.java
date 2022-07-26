@@ -74,6 +74,8 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         onSelectedCBoxChanged();
     }
 
+    
+
     private class PopupMenu extends InternalMenu {
         public PopupMenu() {
             JMenuItem item = new JMenuItem("Move origin here");

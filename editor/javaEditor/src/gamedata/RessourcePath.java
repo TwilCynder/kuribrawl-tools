@@ -66,6 +66,7 @@ public class RessourcePath {
         }
     }
 
+    @SuppressWarnings("unused")
     private InputStream fileStream(String name) throws IOException, InvalidPathException{
         return Files.newInputStream(path.resolve(name), symlinks_behavior);
     }
