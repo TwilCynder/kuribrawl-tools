@@ -11,6 +11,9 @@ import gamedata.exceptions.FrameOutOfBoundsException;
 
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.Transferable;
 import java.awt.Color;
 
 import javax.swing.JComponent;
@@ -27,7 +30,7 @@ import java.awt.event.KeyEvent;
 
 import java.awt.event.ActionEvent;
 
-public class EntityAnimationEditor extends EntityAnimationDisplayer implements Interactable {
+public class EntityAnimationEditor extends EntityAnimationDisplayer implements Interactable, ClipboardOwner {
     private Window window;
     private Point drag_start_pos;
     private Rectangle selection;
@@ -75,7 +78,8 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     }
 
     private void copyCollisionBox(CollisionBox cbox){
-        
+        if (selected_cbox == null) return;
+        ClipboardManager.setClipboardText(cbox.generateDescriptor(false, 0), this);
     }
 
     private void copyCollisionBox(){
@@ -103,8 +107,15 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
                     deleteSelectedCbox(displayer);
                 }
             });
-            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0));
+            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
             add(item);
+            item = new JMenuItem("Copy");
+            item.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    deleteSelectedCbox(displayer);
+                }
+            });
+            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK));
             addSeparator();
             item = new JMenuItem("Move origin here");
             item.addActionListener(new ActionListener(){
@@ -261,6 +272,13 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
                 deleteSelectedCbox(d);
         }
 
+        if ((ev.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) > 0){
+            switch (ev.getKeyCode()){
+                case KeyEvent.VK_C:
+                    copyCollisionBox();
+            }
+        }
+
         if ((ev.getModifiersEx() & KeyEvent.ALT_DOWN_MASK) > 0){
             switch (ev.getKeyCode()){
                 case KeyEvent.VK_UP:
@@ -342,7 +360,6 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         }   
     }
 
-    @SuppressWarnings("unused")
     private void moveOriginToDisplayPos(Point p){
         moveOrigin(getAnimPosition(p));
     }
@@ -352,6 +369,7 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     }
 
     private void onAnimationChanged(){
+        currentFrame = 0;
         updateAnimationControls(true);
         onFrameChanged();
     }
@@ -360,6 +378,7 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         window.updateAnimControls(current_anim, ignoreModifications);
     }
 
+    @SuppressWarnings("unused")
     private void updateAnimationControls(){
         updateAnimationControls(false);
     }
@@ -410,6 +429,10 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     public void setAnimation(EntityAnimation anim){
         super.setAnimation(anim);
         onAnimationChanged();
+    }
+
+    public void lostOwnership(Clipboard clipboard, Transferable contents){
+        //menfou
     }
 
 }

@@ -15,7 +15,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import java.awt.Image;
@@ -129,11 +128,8 @@ public class RessourcePath {
         return Arrays.stream(str.split(sep)).filter(e -> e.trim().length() > 0).toArray(String[]::new);
     }
 
-    private static Hurtbox fullFrameHurtbox(Frame frame, EntityFrame entity_frame){
-        Point origin = frame.getOrigin();
-        Rectangle display = frame.getDisplay();        
-        
-        return entity_frame.addHurtbox(- origin.x, origin.y, display.w, display.h);
+    private static void fullFrameHurtbox(Frame frame, EntityFrame entity_frame){
+        entity_frame.addHurtbox(new Hurtbox(frame));
     }
 
     private static void parseFrameMovementAxis(EntityFrame.FrameMovementAxis axis, String info) throws RessourceException{
@@ -305,7 +301,6 @@ public class RessourcePath {
                             fullFrameHurtbox(frame, entity_frame);
                         }
                     } else {
-                        
 
                         if (fields.length < 2){
                             throw new RessourceException("Hurtbox info line does not contain any information", descriptor_filename, line_index);
@@ -324,40 +319,18 @@ public class RessourcePath {
                         if (!current_frame.valid()){
                             throw new RessourceException("Hurtbox info with no frame index found before any frame info", descriptor_filename, line_index);
                         }
-                        Hurtbox h;
-                        int currentField = 1;
-                        if (fields[currentField].equals("whole")){
-                            h = fullFrameHurtbox(current_frame.frame, current_frame.entity_frame);
-                            currentField++;
-                        } else {
-                            if (fields.length < 5){
-                                throw new RessourceException("Hurtbox info should contain either 4 coordinates or \"whole\"", descriptor_filename, line_index);
-                            }
-    
-                            try {
-                                h = current_frame.entity_frame.addHurtbox(Integer.parseInt(fields[1]), Integer.parseInt(fields[2]), Integer.parseInt(fields[3]), Integer.parseInt(fields[4]));
-                            } catch (NumberFormatException e){
-                                throw new RessourceException("Hurtbox coordinate is not a valid number", descriptor_filename, line_index);
-                            }
-                            currentField = 5;
+
+                        try {
+                            current_frame.entity_frame.addHurtbox(Hurtbox.parseDescriptorFields(fields, 1, current_frame.frame));
+                        } catch (RessourceException ex){
+                            throw new RessourceException(ex.getMessage(), descriptor_filename, line_index, ex.getCause());
                         }
 
-                        if (fields.length > currentField){
-                            try {
-                                h.type = HurtboxType.valueOfSafe(Integer.parseInt(fields[currentField]));
-                            } catch (NumberFormatException | NoSuchElementException e){
-                                throw new RessourceException("Hurtbox type is not a valid hurtbox type code", descriptor_filename, line_index);
-                            }
-                        }
                     }
 
                     break;
                     case "h":
                     fields = split(line, " ");
-
-                    if (fields.length < 6){
-                        throw new RessourceException("Hurtbox info line does not contain enough information (must be at least 4 coordinates and a type code)", descriptor_filename, line_index);
-                    }
 
                     if (fields[0].length() > 1){ //we have a "c<frame number>" at the beginning
                         valInt = parseInt(fields[0].substring(1), "Frame index is not a valid integer", descriptor_filename, line_index);
@@ -369,41 +342,11 @@ public class RessourcePath {
                         }   
                     }
 
-                    if (!current_frame.valid()){
-                        throw new RessourceException("Hurtbox info with no frame index found before any frame info", descriptor_filename, line_index);
-                    }
-
                     try {
-                        //coordinates
-                        Rectangle rect = new Rectangle(Integer.parseInt(fields[1]), Integer.parseInt(fields[2]), Integer.parseInt(fields[3]), Integer.parseInt(fields[4]));
-                        switch (Integer.parseInt(fields[5])){
-                            case Hitbox.DAMAGE_HITBOX_CODE:
-                            {
-                                DamageHitbox hitbox = new DamageHitbox(rect);
-                                if (fields.length < 10) throw new RessourceException("Hitbox info line should contain at least 9 fields (x y w h type dmg angle bkb skb [hit[prio]]", descriptor_filename, line_index);
-                                hitbox.damage = Double.parseDouble(fields[6]);
-                                hitbox.angle = Integer.parseInt(fields[7]);
-                                hitbox.base_knockback= Double.parseDouble(fields[8]);
-                                hitbox.scaling_knockback = Double.parseDouble(fields[9]);
-                                if (fields.length > 10){
-                                    hitbox.hitID = Integer.parseInt(fields[10]);
-                                    if (fields.length > 11) hitbox.priority = Integer.parseInt(fields[11]);
-                                }
-                                current_frame.entity_frame.addHitbox(hitbox);
-                            }
-                            break;
-                            case Hitbox.GRAB_HITBOX_CODE:
-
-                            break;
-                            case Hitbox.WIND_HITBOX_CODE:
-                            break;
-                            case Hitbox.SPECIAL_HITBOX_CODE:
-                            break;
-                            default:
-                            throw new RessourceException("Unsupported hitbox type : " + fields[5], descriptor_filename, line_index);
-                        }
-                    } catch (NumberFormatException e){
-                        throw new RessourceException("One of the numeric values could not be parsed", descriptor_filename, line_index);
+                        Hitbox h = Hitbox.parseDescriptorFields(fields);
+                        if (h != null) current_frame.entity_frame.addHitbox(h);
+                    } catch (RessourceException ex){
+                        throw new RessourceException(ex.getMessage(), descriptor_filename, line_index, ex.getCause());
                     }
 
                     break;

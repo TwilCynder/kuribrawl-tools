@@ -5,7 +5,8 @@ import KBUtil.Size2D;
 
 import java.awt.Point;
 
-public abstract class CollisionBox extends Rectangle {
+
+public abstract class CollisionBox extends Rectangle implements DescriptorElement {
     public CollisionBox(){
         super();
     }

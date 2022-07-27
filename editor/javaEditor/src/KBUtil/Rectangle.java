@@ -23,6 +23,10 @@ public class Rectangle extends Point implements Shape{
         h = h_;
     }
 
+    public void set(int x_, int y_, int w_, int h_){
+        x = x_; y = y_; w = w_; h = h_; //Using horrible formatting to piss off stackoverflow : Day 2
+    }
+
     public boolean equals(Rectangle rect){
         return x == rect.x && y == rect.y && w == rect.w && h == rect.h;
     }
