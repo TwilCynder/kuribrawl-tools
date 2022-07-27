@@ -8,6 +8,7 @@ import gamedata.Frame;
 import gamedata.Hitbox;
 import gamedata.Hurtbox;
 import gamedata.exceptions.FrameOutOfBoundsException;
+import gamedata.exceptions.RessourceException;
 
 import java.awt.Graphics;
 import java.awt.Point;
@@ -24,6 +25,7 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
 import KBUtil.Rectangle;
+import KBUtil.StringHelper;
 
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -84,6 +86,34 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
 
     private void copyCollisionBox(){
         copyCollisionBox(selected_cbox);
+    }
+
+    private void pasteCollisionBox(){
+        String descriptor = ClipboardManager.getClipboardText();
+        if (descriptor == null) return; //there was no text in the clipboard
+
+        String[] fields = StringHelper.split(descriptor, " ");
+
+        //TODO EAD keeps the current frame + entityFrame as well as the index because fuck these try catches every time we need them
+
+        try {
+            switch (descriptor.substring(0, 1)){
+                case "c":
+                    Hurtbox.parseDescriptorFields(fields, 1);
+                    break;
+                case "h":
+                    cbox = Hitbox.parseDescriptorFields(fields);
+                    break;
+            }
+        } catch (RessourceException ex){
+            System.out.println("Clipboard contains invalid collisionbox data");
+            ex.printStackTrace();
+        }
+
+        if (cbox != null){
+
+        }
+
     }
 
     private class PopupMenu extends InternalMenu {

@@ -13,7 +13,6 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -22,7 +21,8 @@ import java.awt.Image;
 import javax.imageio.ImageIO;
 
 import java.awt.Point;
-import KBUtil.Rectangle;
+
+import KBUtil.StringHelper;
 import KBUtil.Vec2;
 import gamedata.EntityAnimation.Defaultness;
 import gamedata.exceptions.FrameOutOfBoundsException;
@@ -124,10 +124,6 @@ public class RessourcePath {
         }
     }
 
-    private static String[] split(String str, String sep){
-        return Arrays.stream(str.split(sep)).filter(e -> e.trim().length() > 0).toArray(String[]::new);
-    }
-
     private static void fullFrameHurtbox(Frame frame, EntityFrame entity_frame){
         entity_frame.addHurtbox(new Hurtbox(frame));
     }
@@ -157,7 +153,7 @@ public class RessourcePath {
      * Handles the interpretation of these informations (loading the given image file, parsing the tag, etc)
      */
     private EntityAnimation addAnimation(GameData gd, String tag, int nbFrames, String source_filename, String descriptor_filename) throws RessourceException{
-        String[] tagSplit = split(tag, "/");
+        String[] tagSplit = StringHelper.split(tag, "/");
 
         if (tagSplit.length != 2 && tagSplit[0] != ""){
             throw new RessourceException("Ill-formed animation file info : tag should contain 2 non-empty fields separated by \\ : (" + tag + ")");
@@ -234,7 +230,7 @@ public class RessourcePath {
                     break;
 
                     case "f":
-                    fields = split(line.substring(1), " ");
+                    fields = StringHelper.split(line.substring(1), " ");
                     if (fields.length < 1){
                         throw new RessourceException("Frame info line doesn't even contain a frame index", descriptor_filename, line_index);
                     }
@@ -287,7 +283,7 @@ public class RessourcePath {
                     }
                     break;
                     case "c":
-                    fields = split(line, " ");
+                    fields = StringHelper.split(line, " ");
                     if (fields.length > 1 && fields[1].equals("all")){
                         for (int i = 0; i < anim.getNbFrames(); i++){
                             Frame frame; EntityFrame entity_frame;
@@ -330,7 +326,7 @@ public class RessourcePath {
 
                     break;
                     case "h":
-                    fields = split(line, " ");
+                    fields = StringHelper.split(line, " ");
 
                     if (fields[0].length() > 1){ //we have a "c<frame number>" at the beginning
                         valInt = parseInt(fields[0].substring(1), "Frame index is not a valid integer", descriptor_filename, line_index);
@@ -363,7 +359,7 @@ public class RessourcePath {
     private void parseAnimation(GameData gd, String file, String info) throws RessourceException, WhatTheHellException{
         String[] fields;
 
-        fields = split(info, " ");
+        fields = StringHelper.split(info, " ");
 
         if (fields.length < 2){
             throw new RessourceException("Ill-formed animation file info, should contain a tag and infos separated by spaces : " + info);

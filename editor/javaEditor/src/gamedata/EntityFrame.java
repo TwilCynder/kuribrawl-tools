@@ -44,6 +44,11 @@ public class EntityFrame {
         return hb;
     }
 
+    public void addCollisionBox(CollisionBox cbox){
+        if (cbox instanceof Hurtbox) addHurtbox((Hurtbox)cbox);
+        if (cbox instanceof Hitbox) addHitbox((Hitbox)cbox);
+    }
+
     public Vec2<FrameMovementAxis> getMovement(){
         return movement;
     }

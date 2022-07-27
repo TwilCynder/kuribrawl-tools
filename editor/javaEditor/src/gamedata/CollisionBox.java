@@ -44,5 +44,5 @@ public abstract class CollisionBox extends Rectangle implements DescriptorElemen
      */
     public abstract String generateDescriptor(boolean writeIndex, int index);
 
-    //this class inherits equals(Rectangle), so a cbox can be compared to a recangle    
+    //this class inherits equals(Rectangle), so a cbox can be compared to a recangle 
 }

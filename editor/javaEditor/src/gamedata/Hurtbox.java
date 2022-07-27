@@ -75,7 +75,7 @@ public class Hurtbox extends CollisionBox {
         return h;
     }
 
-    public static void parseDescriptorFields(String[] fields, int firstField) throws RessourceException{
-        parseDescriptorFields(fields, firstField, null);
+    public static Hurtbox parseDescriptorFields(String[] fields, int firstField) throws RessourceException{
+        return parseDescriptorFields(fields, firstField, null);
     }
 }
