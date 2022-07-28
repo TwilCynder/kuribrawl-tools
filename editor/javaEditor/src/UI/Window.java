@@ -66,7 +66,7 @@ import gamedata.exceptions.GameDataException;
 import gamedata.exceptions.InvalidRessourcePathException;
 import gamedata.exceptions.TransparentGameDataException;
 
-public class Window extends JFrame {
+public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 	private GameData currentData = null;
 	private RessourcePath currentRessourcePath = null;

@@ -33,7 +33,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.ActionEvent;
 
 public class EntityAnimationEditor extends EntityAnimationDisplayer implements Interactable, ClipboardOwner {
-    private Window window;
+    private EntityAnimationEditorWindow editorWindow;
     private Point drag_start_pos;
     private Rectangle selection;
 
@@ -50,7 +50,142 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
             pos = new Point(x, y);
             super.show(invoker.getComponent(), x, y);
         }
+
+        public abstract void initItems();
+
+        public InternalMenu(){
+            initItems();
+        }
     }
+
+    private class PopupMenu extends InternalMenu {
+        @Override
+        public void initItems(){
+            JMenuItem item;
+
+            item = new JMenuItem("Paste");
+            item.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    pasteIntoFrame(displayer);
+                }
+            });
+            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.CTRL_DOWN_MASK));
+            add(item);
+
+            item = new JMenuItem("Move origin here");
+            item.addActionListener(new ActionListener(){
+                public void actionPerformed(ActionEvent e){
+                    moveOrigin(displayer, pos);
+                }
+            });
+            add(item);
+        }
+        
+    };
+
+    private class PopupCollisionboxMenu extends PopupMenu {
+        public void initItems() {
+            JMenuItem item;
+
+            item = new JMenuItem("Delete");
+            item.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    deleteSelectedCbox(displayer);
+                }
+            });
+            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
+            add(item);
+
+            item = new JMenuItem("Copy");
+            item.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e){
+                    copyCollisionBox();
+                }
+            });
+            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK));
+            add(item);
+
+            addSeparator();
+
+            super.initItems();
+        }
+        
+    };
+
+    private PopupMenu popup_menu = new PopupMenu();
+    private PopupCollisionboxMenu popup_collisionbox_menu = new PopupCollisionboxMenu();
+
+    private class SelectionPopupMenu extends InternalMenu {
+        public void initItems() {
+            JMenuItem item = new JMenuItem("Create hurtbox");
+            item.addActionListener(new ActionListener(){
+                public void actionPerformed(ActionEvent e){
+                    Frame frame = getCurrentFrame();
+                    EntityFrame entity_frame = getCurrentEntityFrame();
+                    frame.makeRelativeToOrigin(selection);
+                    setSelectedCBox(entity_frame.addHurtbox(selection.x, selection.y, selection.w, selection.h));
+                    cancelSelection(displayer);
+
+                    editorWindow.notifyDataModified();
+                }
+            });
+            add(item);
+
+            item = new JMenuItem("Create hitbox");
+            item.addActionListener(new ActionListener(){
+                public void actionPerformed(ActionEvent e){
+                    Frame frame = getCurrentFrame();
+                    EntityFrame entity_frame = getCurrentEntityFrame();
+                    frame.makeRelativeToOrigin(selection);
+                    DamageHitbox hb = new DamageHitbox(selection);
+                    entity_frame.addHitbox(hb);
+                    setSelectedCBox(hb);
+                    cancelSelection(displayer);
+
+                    editorWindow.notifyDataModified();
+                }
+            });
+            add(item);
+
+            addPopupMenuListener(new PopupMenuListener() {
+                @Override
+                public void popupMenuCanceled(PopupMenuEvent e){
+                    cancelSelection(displayer);
+                }
+                @Override public void popupMenuWillBecomeVisible(PopupMenuEvent e){}
+                @Override public void popupMenuWillBecomeInvisible(PopupMenuEvent e){}
+            });
+        }
+    };
+
+    private SelectionPopupMenu selection_popup_menu = new SelectionPopupMenu();
+
+    public EntityAnimationEditor(EntityAnimation anim, EntityAnimationEditorWindow win){
+        super(anim);
+        this.editorWindow = win;
+        onAnimationChanged();
+    }
+
+    @Override
+    public void draw(Graphics g, int x, int y, int w, int h, double zoom) throws IllegalStateException{
+        super.draw(g, x, y, w, h, zoom);
+        if (selection != null && selection.w + selection.h > 6){
+            Rectangle display_selection = getDisplayRectangle(selection);
+            g.setColor(selection_color);
+            g.drawRect(display_selection.x, display_selection.y, display_selection.w, display_selection.h);
+        }
+    }
+
+    public void setSelectedCBox(CollisionBox cbox){
+        selected_cbox = cbox;
+        onSelectedCBoxChanged();
+    }
+
+    private void cancelSelection(Displayer d){
+        selection = null;
+        d.update();
+    }
+
 
     /**
      * Move origin to a certain anim pos and then updates whatever needs ot be updated following this change
@@ -88,21 +223,28 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         copyCollisionBox(selected_cbox);
     }
 
-    private void pasteCollisionBox(){
+    /**
+     * Pastes into the current frame, i.e. parses the content of the clipboard and adds it to the current frame if it could be resolved to an element.
+     */
+    private void pasteIntoFrame(Displayer d){
         String descriptor = ClipboardManager.getClipboardText();
-        if (descriptor == null) return; //there was no text in the clipboard
+
+        if (descriptor == null || descriptor.length() < 1) return; //there was no text in the clipboard
 
         String[] fields = StringHelper.split(descriptor, " ");
 
-        //TODO EAD keeps the current frame + entityFrame as well as the index because fuck these try catches every time we need them
+        System.out.println(fields);
+        System.out.println(descriptor.substring(0, 1));
 
         try {
             switch (descriptor.substring(0, 1)){
                 case "c":
-                    Hurtbox.parseDescriptorFields(fields, 1);
+                    getCurrentEntityFrame().addHurtbox(Hurtbox.parseDescriptorFields(fields, 1));
+                    d.update();
                     break;
                 case "h":
-                    cbox = Hitbox.parseDescriptorFields(fields);
+                    getCurrentEntityFrame().addHitbox(Hitbox.parseDescriptorFields(fields));
+                    d.update();
                     break;
             }
         } catch (RessourceException ex){
@@ -110,123 +252,8 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
             ex.printStackTrace();
         }
 
-        if (cbox != null){
-
-        }
-
     }
 
-    private class PopupMenu extends InternalMenu {
-        public PopupMenu() {
-            JMenuItem item = new JMenuItem("Move origin here");
-            item.addActionListener(new ActionListener(){
-                public void actionPerformed(ActionEvent e){
-                    moveOrigin(displayer, pos);
-                }
-            });
-            add(item);
-        }
-        
-    };
-
-    private class PopupCollisionboxMenu extends InternalMenu {
-        public PopupCollisionboxMenu() {
-            JMenuItem item = new JMenuItem("Delete");
-            item.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e){
-                    deleteSelectedCbox(displayer);
-                }
-            });
-            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
-            add(item);
-            item = new JMenuItem("Copy");
-            item.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e){
-                    deleteSelectedCbox(displayer);
-                }
-            });
-            item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK));
-            addSeparator();
-            item = new JMenuItem("Move origin here");
-            item.addActionListener(new ActionListener(){
-                public void actionPerformed(ActionEvent e){
-                    moveOrigin(displayer, pos);
-                }
-            });
-            add(item);
-        }
-        
-    };
-
-    private PopupMenu popup_menu = new PopupMenu();
-    private PopupCollisionboxMenu popup_collisionbox_menu = new PopupCollisionboxMenu();
-
-    private class SelectionPopupMenu extends InternalMenu {
-        public SelectionPopupMenu() {
-            JMenuItem item = new JMenuItem("Create hurtbox");
-            item.addActionListener(new ActionListener(){
-                public void actionPerformed(ActionEvent e){
-                    Frame frame = getCurrentFrame();
-                    EntityFrame entity_frame = getCurrentEntityFrame();
-                    frame.makeRelativeToOrigin(selection);
-                    setSelectedCBox(entity_frame.addHurtbox(selection.x, selection.y, selection.w, selection.h));
-                    cancelSelection(displayer);
-                }
-            });
-            add(item);
-
-            item = new JMenuItem("Create hitbox");
-            item.addActionListener(new ActionListener(){
-                public void actionPerformed(ActionEvent e){
-                    Frame frame = getCurrentFrame();
-                    EntityFrame entity_frame = getCurrentEntityFrame();
-                    frame.makeRelativeToOrigin(selection);
-                    DamageHitbox hb = new DamageHitbox(selection);
-                    entity_frame.addHitbox(hb);
-                    setSelectedCBox(hb);
-                    cancelSelection(displayer);
-                }
-            });
-            add(item);
-
-            addPopupMenuListener(new PopupMenuListener() {
-                @Override
-                public void popupMenuCanceled(PopupMenuEvent e){
-                    cancelSelection(displayer);
-                }
-                @Override public void popupMenuWillBecomeVisible(PopupMenuEvent e){}
-                @Override public void popupMenuWillBecomeInvisible(PopupMenuEvent e){}
-            });
-        }
-    };
-
-    private SelectionPopupMenu selection_popup_menu = new SelectionPopupMenu();
-
-    public EntityAnimationEditor(EntityAnimation anim, Window win){
-        super(anim);
-        this.window = win;
-        onAnimationChanged();
-    }
-
-    @Override
-    public void draw(Graphics g, int x, int y, int w, int h, double zoom) throws IllegalStateException{
-        super.draw(g, x, y, w, h, zoom);
-        if (selection != null && selection.w + selection.h > 6){
-            Rectangle display_selection = getDisplayRectangle(selection);
-            g.setColor(selection_color);
-            g.drawRect(display_selection.x, display_selection.y, display_selection.w, display_selection.h);
-        }
-    }
-
-    public void setSelectedCBox(CollisionBox cbox){
-        selected_cbox = cbox;
-        onSelectedCBoxChanged();
-    }
-
-    private void cancelSelection(Displayer d){
-        selection = null;
-        d.update();
-    }
 
     @Override
     public void mousePressed(Point pos, Displayer displayer){
@@ -306,6 +333,10 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
             switch (ev.getKeyCode()){
                 case KeyEvent.VK_C:
                     copyCollisionBox();
+                    break;
+                case KeyEvent.VK_V:
+                    pasteIntoFrame(d);;
+                    break;    
             }
         }
 
@@ -356,8 +387,8 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
             //Size2D frame_size = current_anim.getFrameSize();
             //if (animpoint.x >= 0 && animpoint.x < frame_size.w && animpoint.y >= 0 && animpoint.y < frame_size.h){
                 EntityAnimation.moveOrigin(
-                    current_anim.getFrame(currentFrame),
-                    current_anim.getEntityFrame(currentFrame),
+                    current_anim.getFrame(currentFrameIndex),
+                    current_anim.getEntityFrame(currentFrameIndex),
                     animpoint
                 );           
             //}
@@ -369,8 +400,8 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     public void moveOriginX(int x) throws IllegalStateException {
         try {
             EntityAnimation.moveOriginX(
-                    current_anim.getFrame(currentFrame),
-                    current_anim.getEntityFrame(currentFrame),
+                    current_anim.getFrame(currentFrameIndex),
+                    current_anim.getEntityFrame(currentFrameIndex),
                     x
                 ); 
         } catch (FrameOutOfBoundsException e){
@@ -381,8 +412,8 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     public void moveOriginY(int y) throws IllegalStateException {
         try {
             EntityAnimation.moveOriginY(
-                    current_anim.getFrame(currentFrame),
-                    current_anim.getEntityFrame(currentFrame),
+                    current_anim.getFrame(currentFrameIndex),
+                    current_anim.getEntityFrame(currentFrameIndex),
                     y
                 ); 
         } catch (FrameOutOfBoundsException e){
@@ -394,18 +425,18 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         moveOrigin(getAnimPosition(p));
     }
 
-    public Window getWindow(){
-        return window;
+    public EntityAnimationEditorWindow getWindow(){
+        return editorWindow;
     }
 
     private void onAnimationChanged(){
-        currentFrame = 0;
+        setFrameIndex(0);
         updateAnimationControls(true);
         onFrameChanged();
     }
 
     private void updateAnimationControls(boolean ignoreModifications){
-        window.updateAnimControls(current_anim, ignoreModifications);
+        editorWindow.updateAnimControls(current_anim, ignoreModifications);
     }
 
     @SuppressWarnings("unused")
@@ -421,7 +452,7 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
 
     private void updateFrameControls(boolean ignoreModifications){
         try {
-            window.updateFrameControls(current_anim.getFrame(currentFrame), current_anim.getEntityFrame(currentFrame), ignoreModifications);
+            editorWindow.updateFrameControls(current_anim.getFrame(currentFrameIndex), current_anim.getEntityFrame(currentFrameIndex), ignoreModifications);
         } catch (FrameOutOfBoundsException e){
             throw new IllegalStateException(e);
         }
@@ -436,7 +467,7 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     }
 
     private void updateElementControls(boolean ignoreModifications){
-        window.updateElementControls(selected_cbox, ignoreModifications);
+        editorWindow.updateElementControls(selected_cbox, ignoreModifications);
     }
 
     private void updateElementControls(){

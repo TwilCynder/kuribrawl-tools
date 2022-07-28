@@ -1,6 +1,6 @@
 package gamedata.exceptions;
 
-public class WhatTheHellException extends Exception {
+public class WhatTheHellException extends RuntimeException {
 
     public WhatTheHellException() {
         super();

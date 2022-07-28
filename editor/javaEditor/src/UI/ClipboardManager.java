@@ -3,8 +3,12 @@ package UI;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.IOException;
+
+import gamedata.exceptions.WhatTheHellException;
 
 public abstract class ClipboardManager {
 
@@ -20,13 +24,22 @@ public abstract class ClipboardManager {
         current_clipboard.setContents(new StringSelection(text), owner);
     }
 
-    public static String getClipboardText(){
+    public static String getClipboardText() throws WhatTheHellException {
         fetchClipboard();
-        Transferable data =  current_clipboard.getContents(null);
 
-        if (data != null && data instanceof StringSelection){
-            return ((StringSelection)data).toString();
+        try {
+            Object data = current_clipboard.getData(DataFlavor.stringFlavor);
+
+            if (data != null && data instanceof String){
+                return (String)data;
+            }
+
+        } catch (UnsupportedFlavorException ex) {
+            throw new WhatTheHellException("So apparently the string flavor is not supported ?", ex);
+        } catch (IOException ex){
+            return "";
         }
+
 
         return "";
     }

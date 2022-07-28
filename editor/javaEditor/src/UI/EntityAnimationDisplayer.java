@@ -19,19 +19,37 @@ import KBUtil.Size2D;
 
 public class EntityAnimationDisplayer extends ZoomingDisplayer{
     protected EntityAnimation current_anim = null;
-    protected int currentFrame = 0;
+    protected int currentFrameIndex = 0;
+
+    private Frame currentFrame = null;
+    private EntityFrame currentEntityFrame = null;
+
     protected CollisionBox selected_cbox = null;
 
     protected Rectangle last_display_area = null;
 
     public EntityAnimationDisplayer(EntityAnimation anim, int frame_){
         this.current_anim = anim;
-        this.currentFrame = frame_;
+        this.currentFrameIndex = frame_;
+        updateCurrentFrame();
     }
 
     public EntityAnimationDisplayer(EntityAnimation anim){
         this (anim, 0);
     }
+
+    /**
+     * SHOULD NEVER RETURN FALSE but if it ever happens any method call will result in a NullPointer or sum
+     * @return whether it is safe to use this EAD
+     */
+    public boolean isValid(){
+        return current_anim != null;
+    }
+
+    protected void setFrameIndex(int index){
+        currentFrameIndex = index;
+        updateCurrentFrame();
+    }   
 
     private Rectangle getActualDisplayArea(int x, int y, int totalW, int totalH, double zoom){
         Size2D source_size = current_anim.getFrameSize();
@@ -61,12 +79,7 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
      * @throws IllegalStateException if the current frame index is out of the frame array bounds ; this should never be the case as the index is checked to avoid that
      */
     public Frame getCurrentFrame() throws IllegalStateException {
-        try {
-            return current_anim.getFrame(currentFrame);
-        } catch (FrameOutOfBoundsException ex){
-            throw new IllegalArgumentException("Current frame of EADisplayer was out of bounds", ex);
-        }
-        
+        return currentFrame; 
     }
 
     /**
@@ -75,12 +88,7 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
      * @throws IllegalStateException if the current frame index is out of the frame array bounds ; this should never be the case as the index is checked to avoid that
      */
     public EntityFrame getCurrentEntityFrame() throws IllegalStateException {
-        try {
-            return current_anim.getEntityFrame(currentFrame);
-        } catch (FrameOutOfBoundsException ex){
-            throw new IllegalArgumentException("Current frame of EADisplayer was out of bounds", ex);
-        }
-        
+        return currentEntityFrame;
     }
 
     public void draw(Graphics g, int x, int y, int w, int h, double zoom) throws IllegalStateException{
@@ -88,7 +96,7 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
             last_display_area = getActualDisplayArea(x, y, w, h, zoom);
             int dw = last_display_area.w;
             int dh = last_display_area.h;
-            current_anim.draw(g, currentFrame, last_display_area.x, last_display_area.y, dw, dh);
+            current_anim.draw(g, currentFrameIndex, last_display_area.x, last_display_area.y, dw, dh);
 
             Frame frame = getCurrentFrame();
             Point origin = frame.getOrigin();
@@ -98,7 +106,7 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
             g.drawLine(0, origin.y, x + w, origin.y);
             g.drawLine(origin.x, 0, origin.x, 0 + h);
             g.setColor(hurtbox_color);
-            for (Hurtbox hb : current_anim.getHurtboxes(currentFrame)){
+            for (Hurtbox hb : current_anim.getHurtboxes(currentFrameIndex)){
                 if (hb == selected_cbox){
                     g.setColor(selected_color);
                     g.drawRect(origin.x + (int)(hb.x * zoom), origin.y - (int)(hb.y * zoom), (int)(hb.w * zoom), (int)(hb.h * zoom));
@@ -108,7 +116,7 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
                 }
             }
             g.setColor(hitbox_color);
-            for (Hitbox hb : current_anim.getHitboxes(currentFrame)){
+            for (Hitbox hb : current_anim.getHitboxes(currentFrameIndex)){
                 if (hb == selected_cbox){
                     g.setColor(selected_color);
                     g.drawRect(origin.x + (int)(hb.x * zoom), origin.y - (int)(hb.y * zoom), (int)(hb.w * zoom), (int)(hb.h * zoom));
@@ -216,17 +224,28 @@ public class EntityAnimationDisplayer extends ZoomingDisplayer{
     }
 
     public int getFrameIndex(){
-        return currentFrame;
+        return currentFrameIndex;
+    }
+
+    private void updateCurrentFrame() throws IllegalStateException {
+        try {
+            currentFrame = current_anim.getFrame(currentFrameIndex);
+            currentEntityFrame = current_anim.getEntityFrame(currentFrameIndex);
+        } catch (FrameOutOfBoundsException ex){
+            throw new IllegalStateException("Current frame of EADisplayer was out of bounds", ex);
+        }
     }
 
     public void incrFrame(){
-        if (currentFrame < current_anim.getNbFrames() -1)
-        currentFrame++;
+        if (currentFrameIndex < current_anim.getNbFrames() -1)
+        currentFrameIndex++;
+        updateCurrentFrame();
     }
 
     public void decrFrame(){
-        if (currentFrame > 0)
-        currentFrame--;
+        if (currentFrameIndex > 0)
+        currentFrameIndex--;
+        updateCurrentFrame();
     }
 
     public EntityAnimation getAnimation(){
