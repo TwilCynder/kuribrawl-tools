@@ -3,6 +3,7 @@
 package UI;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Point;
@@ -10,6 +11,7 @@ import java.awt.event.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
@@ -24,6 +26,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -31,7 +34,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.ListCellRenderer;
 import javax.swing.SpringLayout;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.WindowConstants;
@@ -211,6 +216,102 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			} catch (NumberFormatException ex){
 				System.out.println("Garbage input in tf frame duration");
 			}
+		}
+	}
+
+	private class NewAnimationForm extends Form {
+		private class ChampionCellRenderer extends JLabel implements ListCellRenderer<Champion> {
+
+			@Override
+			public Component getListCellRendererComponent(JList<? extends Champion> list, Champion value, int index,
+					boolean isSelected, boolean cellHasFocus) {
+				setText("  " + value.getDislayName());
+				setHorizontalAlignment(SwingConstants.LEADING);
+				return this;
+			}
+
+		}
+
+		private JTextField animationName;
+		private JTextField sourceImageFile;
+		private JTextField descriptorFile;
+		private JComboBox<Champion> champion;
+
+		public NewAnimationForm(Window frame, String title){
+			super(frame, title);
+		}
+
+		@Override
+		protected Component initForm(){
+			JPanel panel = new JPanel();
+			getContentPane().add(panel, BorderLayout.CENTER);
+			panel.setLayout(new FormLayout(new ColumnSpec[] {
+					FormSpecs.RELATED_GAP_COLSPEC,
+					ColumnSpec.decode("default:grow"),
+					FormSpecs.RELATED_GAP_COLSPEC,
+					ColumnSpec.decode("default:grow"),
+					ColumnSpec.decode("default:grow"),
+					FormSpecs.DEFAULT_COLSPEC,},
+				new RowSpec[] {
+					FormSpecs.RELATED_GAP_ROWSPEC,
+					FormSpecs.DEFAULT_ROWSPEC,
+					FormSpecs.RELATED_GAP_ROWSPEC,
+					FormSpecs.DEFAULT_ROWSPEC,
+					FormSpecs.RELATED_GAP_ROWSPEC,
+					FormSpecs.DEFAULT_ROWSPEC,
+					FormSpecs.RELATED_GAP_ROWSPEC,
+					FormSpecs.DEFAULT_ROWSPEC,
+					FormSpecs.RELATED_GAP_ROWSPEC}));
+			
+			JLabel label = new JLabel("Champion");
+			label.setHorizontalAlignment(SwingConstants.RIGHT);
+			panel.add(label, "2, 2");
+			
+			label = new JLabel("Animation Name");
+			panel.add(label, "4, 2");
+			
+			label = new JLabel("/");
+			panel.add(label, "3, 2");
+			
+			Collection<Champion> champions = currentData.getChampions();
+			champion = new JComboBox<Champion>(champions.toArray(new Champion[champions.size()]));
+			champion.setRenderer(new ChampionCellRenderer());
+
+			panel.add(champion, "2, 4, fill, default");
+			
+			label = new JLabel("/");
+			panel.add(label, "3, 4, right, default");
+			
+			animationName = new JTextField();
+			panel.add(animationName, "4, 4, fill, default");
+			animationName.setColumns(40);
+			
+			label = new JLabel("Source Image ");
+			panel.add(label, "2, 6, right, default");
+			
+			sourceImageFile = new JTextField();
+			panel.add(sourceImageFile, "4, 6, fill, default");
+			sourceImageFile.setColumns(10);
+			
+			JButton openExplorerSourceImageFile = new JButton("", UIManager.getIcon("FileView.directoryIcon"));
+			openExplorerSourceImageFile.setPreferredSize(new Dimension(25, 25));
+			panel.add(openExplorerSourceImageFile, "5, 6");
+			
+			label = new JLabel("Descriptor file");
+			panel.add(label, "2, 8, right, default");
+			
+			descriptorFile = new JTextField();
+			panel.add(descriptorFile, "4, 8, fill, default");
+			descriptorFile.setColumns(10);
+			
+			JButton openExplorerDescriptorFile = new JButton("", UIManager.getIcon("FileView.directoryIcon"));
+			panel.add(openExplorerDescriptorFile, "5, 8");
+
+			return panel;
+		}
+		@Override
+		protected void confirm(){
+
 		}
 	}
 
@@ -925,6 +1026,12 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			}
 		};
 
+		Action newAnimationAction = new AbstractAction() {
+			public void actionPerformed(ActionEvent e){
+				new NewAnimationForm(Window.this, "test");
+			}
+		};
+
 		//============= MENU ==================
 
 		JMenuBar menu_bar = new JMenuBar();
@@ -952,6 +1059,14 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		menu_bar.add(dummyMenu);
 
+		dummyMenu = new JMenu("Game Data");
+
+		dummyMenuItem = new JMenuItem("New animation");
+		dummyMenuItem.addActionListener(newAnimationAction);
+		dummyMenu.add(dummyMenuItem);
+		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
+
+		menu_bar.add(dummyMenu);
 
 		animations_menu = new JMenu("Animations");
 		menu_bar.add(animations_menu);

@@ -1,5 +1,8 @@
 package gamedata.exceptions;
 
+/**
+ * When things just don't make sense
+ */
 public class WhatTheHellException extends RuntimeException {
 
     public WhatTheHellException() {

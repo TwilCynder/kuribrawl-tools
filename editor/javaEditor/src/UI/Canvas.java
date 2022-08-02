@@ -42,7 +42,7 @@ public class Canvas extends JPanel implements Displayer{
                 requestFocus();
                 if (current_object != null){
                     current_object.mousePressed(e.getPoint(), Canvas.this);
-                    if ( e.isPopupTrigger()){
+                    if (e.isPopupTrigger()){
                         System.out.println("popup Trigger");
                         current_object.onPopupTrigger(e.getPoint(), Canvas.this);
                     }
@@ -79,6 +79,7 @@ public class Canvas extends JPanel implements Displayer{
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent ev){
+                if (current_object == null) return;
                 current_object.onKeyPressed(ev, Canvas.this);
             }   
         });

@@ -236,15 +236,17 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         System.out.println(fields);
         System.out.println(descriptor.substring(0, 1));
 
+        boolean modif = false;
+
         try {
             switch (descriptor.substring(0, 1)){
                 case "c":
                     getCurrentEntityFrame().addHurtbox(Hurtbox.parseDescriptorFields(fields, 1));
-                    d.update();
+                    modif = true;
                     break;
                 case "h":
                     getCurrentEntityFrame().addHitbox(Hitbox.parseDescriptorFields(fields));
-                    d.update();
+                    modif = true;
                     break;
             }
         } catch (RessourceException ex){
@@ -252,8 +254,12 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
             ex.printStackTrace();
         }
 
-    }
+        if (modif){
+            d.update();
+            editorWindow.notifyDataModified();
+        }
 
+    }
 
     @Override
     public void mousePressed(Point pos, Displayer displayer){

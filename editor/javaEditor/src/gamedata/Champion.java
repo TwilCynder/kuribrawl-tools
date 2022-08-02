@@ -112,4 +112,11 @@ public class Champion implements Iterable<EntityAnimation>{
     public void setDescriptorFilename(String filename){
         descriptor_filename = filename;
     }
+
+    @Override
+    public String toString() {
+        return "Champion [name=" + name + "]";
+    }
+
+    
 }

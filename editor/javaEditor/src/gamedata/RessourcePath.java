@@ -198,6 +198,52 @@ public class RessourcePath {
         }
     }
 
+    /**
+     * Object used to read lines from a descriptor file, using a BufferedReader
+     */
+    private class DescriptorReader implements AutoCloseable {
+        private BufferedReader reader;
+        private int linesRead;
+
+        public DescriptorReader(BufferedReader reader){
+            this.reader = reader;
+        }
+
+        /**
+         * Returns the first valid descriptor line.  
+         * A descriptor line is a line where all text that follows a '#' has been removed.
+         * A valid descriptor line is a non-empty descriptor line.
+         * @param reader the reader used to obtain lines.
+         * @return A line or null if end of file was reached
+         */
+        private String readLine() throws IOException{
+            linesRead = 0;
+            while (reader.ready()) {
+                linesRead++;
+                String line = reader.readLine();
+                line = line.split("#")[0]; //garanti non nul
+                if (line.length() > 0) return line; //si on a une descriptor line non vide on return, sinon on passe à la suivante
+            }
+            Integer i = 0;
+            i = i + 1;
+            return null; //if we reached this point, we didn't find anything before eof, so returning null
+        }
+
+        public boolean ready() throws IOException {
+            return reader.ready();
+        }
+
+        public int getLinesRead() {
+            return linesRead;
+        }
+
+        @Override
+        public void close() throws IOException {
+            reader.close();
+        }
+    }
+
+
     private EntityAnimation parseAnimationDescriptor(GameData gd, String tag, String source_filename, String descriptor_filename) throws RessourceException, WhatTheHellException{
         String line;
         String[] fields;
@@ -205,11 +251,11 @@ public class RessourcePath {
 
         if (descriptor_filename == null) throw new RessourceException("null descriptor filename");
 
-        try (BufferedReader reader = fileReader(descriptor_filename)){
+        try (DescriptorReader reader = new DescriptorReader(fileReader(descriptor_filename))){
 
             line = reader.readLine();
             if (line == null){
-                throw new RessourceException("Descriptor contains no shit", descriptor_filename, 1);
+                throw new RessourceException("Descriptor doesn't contain shit", descriptor_filename, 1);
             }
 
             EntityAnimation anim = addAnimation(gd, tag, 
@@ -219,8 +265,9 @@ public class RessourcePath {
             CurrentFrame current_frame = new CurrentFrame();
 
             int line_index = 1;
+            
             while (reader.ready()){
-                line_index++;
+                line_index += reader.getLinesRead();
                 line = reader.readLine();
                 //System.out.println(line);
                 switch(line.substring(0, 1)){
@@ -397,9 +444,21 @@ public class RessourcePath {
 
     }
 
-    public void parseChampion(GameData gd, String file, String info){
+    private void parseChampionDescriptor(Champion c, String filename) throws RessourceException, WhatTheHellException {
+        if (filename == null) throw new RessourceException("null descriptor filename for champion " + c.getName());
+
+        try (DescriptorReader reader = new DescriptorReader(fileReader(filename))){
+            String line = reader.readLine();
+            c.setDisplayName(line);
+        }  catch (IOException e){
+            throw new RessourceException("Couldn't descriptor file " + filename, e);
+        }
+    }
+
+    public void parseChampion(GameData gd, String file, String info) throws RessourceException, WhatTheHellException{
         Champion c = gd.tryChampion(info);
         c.setDescriptorFilename(file);
+        parseChampionDescriptor(c, file);
     }
 
     private static final String listFilename = "project_db.txt";
