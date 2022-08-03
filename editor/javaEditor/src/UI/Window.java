@@ -311,7 +311,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		}
 		@Override
 		protected void confirm(){
-
+			System.out.println("Confirm : animation name : " + animationName.getText());
 		}
 	}
 
@@ -1059,6 +1059,9 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		menu_bar.add(dummyMenu);
 
+		animations_menu = new JMenu("Animations");
+		menu_bar.add(animations_menu);
+
 		dummyMenu = new JMenu("Game Data");
 
 		dummyMenuItem = new JMenuItem("New animation");
@@ -1067,9 +1070,6 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
 
 		menu_bar.add(dummyMenu);
-
-		animations_menu = new JMenu("Animations");
-		menu_bar.add(animations_menu);
 
 		setJMenuBar(menu_bar);
 
