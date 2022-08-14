@@ -1,5 +1,6 @@
 package gamedata;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -84,12 +85,12 @@ public class Champion implements Iterable<EntityAnimation>{
         return animations.get(name);
     }
 
-    public Iterator<EntityAnimation> getAnimations(){
-        return animations.values().iterator();
+    public Collection<EntityAnimation> getAnimations(){
+        return animations.values();
     }
 
     public Iterator<EntityAnimation> iterator(){
-        return getAnimations();
+        return getAnimations().iterator();
     }
 
     public EntityAnimation addAnimation(String name, Image source, int nbFrames, String source_filename, String descriptor_filename){

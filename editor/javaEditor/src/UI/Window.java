@@ -78,7 +78,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	private boolean modifsOccured = false;
 	private boolean initializing = true;
 	private List<String> currentFileList = null;
-	
+
 	private Canvas displayCanvas;
     private JPanel contentPane;
 	private TwilTextField tfAnimSpeed;

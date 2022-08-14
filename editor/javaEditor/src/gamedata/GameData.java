@@ -53,6 +53,15 @@ public class GameData implements Iterable<Champion> {
         return getChampions().iterator();
     }
 
+    public Champion getEntityAnimationOwner(EntityAnimation anim){
+        for (Champion c : getChampions()){
+            for (EntityAnimation a : c.getAnimations()){
+                if (a == anim) return c;
+            }
+        }   
+        return null;
+    }
+
     /**
      * Returns a list of files that are not saved to (images, etc).
      * @return the list (see above)
