@@ -116,7 +116,7 @@ public class Canvas extends JPanel implements Displayer{
      * Sets the current object.
      * @param obj
      */
-    public void setDisplayable(Interactable obj){
+    public void setInteractable(Interactable obj){
         current_object = obj;
     }
 
@@ -124,7 +124,7 @@ public class Canvas extends JPanel implements Displayer{
      * Returns the current object (as an interactable, and not displayable as the method name could imply)
      * @return the current Interactable object
      */
-    public Interactable getDisplayable(){
+    public Interactable getInteractable(){
         return current_object;
     }
 

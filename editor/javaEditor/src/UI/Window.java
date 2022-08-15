@@ -8,6 +8,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Point;
 import java.awt.event.*;
+import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -52,6 +54,7 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
+import KBUtil.PathHelper;
 import KBUtil.functional.DoubleToString;
 import UI.exceptions.WindowStateException;
 import gamedata.AngleMode;
@@ -235,15 +238,72 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		private JTextField animationName;
 		private JTextField sourceImageFile;
 		private JTextField descriptorFile;
-		private JComboBox<Champion> champion;
+		private JComboBox<Champion> championList;
 
+		private Action openExplorerSourceImageFileAction;
+		private Action openExplorerDescriptorFileAction;
+		
 		public NewAnimationForm(Window frame, String title){
 			super(frame, title);
 		}
 
-		@Override
-		protected Component initForm(){
-			JPanel panel = new JPanel();
+		private void initActions(){
+			FileFilter datFilter = new FileFilter() {
+				@Override
+				public boolean accept(File pathname) {
+					String extension = PathHelper.getExtenstion(pathname);
+					return extension == ".dat";
+				}
+			};
+
+			openExplorerSourceImageFileAction = new AbstractAction() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					if (currentRessourcePath == null){
+						throw new WindowStateException("New animation form was opened with no current ressource path");
+					}
+
+					Path currentPath = currentRessourcePath.getPath();
+
+					RestrictedRootPathChooser chooser = new RestrictedRootPathChooser(PathChooser.Mode.FILE, currentPath);
+					Path selected = chooser.openPath(NewAnimationForm.this);
+
+					if (selected == null) return;
+
+					Path relativePath = currentPath.relativize(selected);
+					sourceImageFile.setText(relativePath.toString());
+				}
+			};
+	
+			openExplorerDescriptorFileAction = new AbstractAction() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					Path currentPath = currentRessourcePath.getPath();
+					RestrictedRootPathChooser chooser = new RestrictedRootPathChooser(PathChooser.Mode.FILE, currentPath);
+					Path selected = chooser.savePath(NewAnimationForm.this);
+
+					Path relativePath = currentPath.relativize(selected);
+					descriptorFile.setText(relativePath.toString());
+				}
+			};
+		}
+
+		private void fillFields(){
+			Interactable i = getCurrentEditor();
+			if (i != null){
+				if (i instanceof EntityAnimationEditor){
+					EntityAnimationEditor editor = (EntityAnimationEditor)i;
+					EntityAnimation anim = editor.getAnimation();
+					Champion current_champion = currentData.getEntityAnimationOwner(anim);
+
+					championList.setSelectedItem(current_champion);
+				} 
+			}
+		}
+
+		private void createLayout(JPanel panel){
+			initActions();
+
 			getContentPane().add(panel, BorderLayout.CENTER);
 			panel.setLayout(new FormLayout(new ColumnSpec[] {
 					FormSpecs.RELATED_GAP_COLSPEC,
@@ -274,10 +334,10 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			panel.add(label, "3, 2");
 			
 			Collection<Champion> champions = currentData.getChampions();
-			champion = new JComboBox<Champion>(champions.toArray(new Champion[champions.size()]));
-			champion.setRenderer(new ChampionCellRenderer());
+			championList = new JComboBox<Champion>(champions.toArray(new Champion[champions.size()]));
+			championList.setRenderer(new ChampionCellRenderer());
 
-			panel.add(champion, "2, 4, fill, default");
+			panel.add(championList, "2, 4, fill, default");
 			
 			label = new JLabel("/");
 			panel.add(label, "3, 4, right, default");
@@ -292,9 +352,11 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			sourceImageFile = new JTextField();
 			panel.add(sourceImageFile, "4, 6, fill, default");
 			sourceImageFile.setColumns(10);
-			
-			JButton openExplorerSourceImageFile = new JButton("", UIManager.getIcon("FileView.directoryIcon"));
-			openExplorerSourceImageFile.setPreferredSize(new Dimension(25, 25));
+		
+
+			JButton openExplorerSourceImageFile = new JButton(openExplorerSourceImageFileAction);
+			openExplorerSourceImageFile.setPreferredSize(new Dimension(25, 22));
+			openExplorerSourceImageFile.setIcon(UIManager.getIcon("FileView.directoryIcon"));
 			panel.add(openExplorerSourceImageFile, "5, 6");
 			
 			label = new JLabel("Descriptor file");
@@ -304,14 +366,57 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			panel.add(descriptorFile, "4, 8, fill, default");
 			descriptorFile.setColumns(10);
 			
-			JButton openExplorerDescriptorFile = new JButton("", UIManager.getIcon("FileView.directoryIcon"));
+			JButton openExplorerDescriptorFile = new JButton(openExplorerDescriptorFileAction);
+			openExplorerDescriptorFile.setPreferredSize(new Dimension(25, 22));
+			openExplorerDescriptorFile.setIcon(UIManager.getIcon("FileView.directoryIcon"));
 			panel.add(openExplorerDescriptorFile, "5, 8");
+			
+		}
+
+		@Override
+		protected Component initForm(){
+			JPanel panel = new JPanel();
+
+			createLayout(panel);
+			fillFields();
 
 			return panel;
 		}
+
 		@Override
-		protected void confirm(){
+		protected boolean confirm(){
+			Champion champion = (Champion)championList.getSelectedItem();
+			if (champion == null) {
+				JOptionPane.showMessageDialog(Window.this, "No champion selected", "Inane error", JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
+
+			String animName = animationName.getText();
+			if (animName.isEmpty()){
+				JOptionPane.showMessageDialog(Window.this, "Animation name cannot be empty", "Inane error", JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
+
+			String sourceImageFilename = sourceImageFile.getText();
+			if (sourceImageFilename.isEmpty()){
+				JOptionPane.showMessageDialog(Window.this, "You must select a source image", "Inane error", JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
+
+			String descriptorFilename = descriptorFile.getText(); 
+			if (descriptorFilename.isEmpty()){
+				int res = JOptionPane.showOptionDialog(Window.this, 
+				"If you don't specify a descriptor file, you will have to do it later if the animation does now follow the default elements configuration. Proceed ?",
+				"Warning", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
+
+				if (res == JOptionPane.CANCEL_OPTION) return false;
+			}
 			System.out.println("Confirm : animation name : " + animationName.getText());
+			System.out.println("Confirm : source image file : " + sourceImageFile.getText());
+			System.out.println("Confirm : descriptor file : " + descriptorFile.getText());
+			System.out.println("Confirm : champion " + championList.getSelectedItem());
+
+			return true;
 		}
 	}
 
@@ -1028,6 +1133,12 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		Action newAnimationAction = new AbstractAction() {
 			public void actionPerformed(ActionEvent e){
+				if (currentData == null) return;
+				if (currentRessourcePath == null) {
+					JOptionPane.showMessageDialog(Window.this, "Cannot create a new animation with a ressource path to get files from.", "Inane error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+					
 				new NewAnimationForm(Window.this, "test");
 			}
 		};
@@ -1241,23 +1352,24 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		resetDataModified();
 	}
 
-
-	
-
 	public void setDisplayedObject(EntityAnimation anim){
-		Interactable current = displayCanvas.getDisplayable();
+		Interactable current = displayCanvas.getInteractable();
 		EntityAnimationEditor editor;
 		if (current instanceof EntityAnimationEditor){
 			editor = (EntityAnimationEditor)current;
 			editor.setAnimation(anim);
 		} else {
 			editor = new EntityAnimationEditor(anim, this);
-			displayCanvas.setDisplayable(editor);
+			displayCanvas.setInteractable(editor);
 		}
 		editor_controls.show("EntityAnimation");
 		updateCurrentFrameField(editor);
 		updateCurrentZoomField(editor);
 		repaint();
+	}
+
+	public Interactable getCurrentEditor(){
+		return displayCanvas.getInteractable();
 	}
 
 	/**
@@ -1267,7 +1379,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	 * @throws WindowStateException
 	 */
 	public EntityAnimationEditor getEAEDitor() throws WindowStateException {
-		Displayable disp = displayCanvas.getDisplayable();
+		Displayable disp = displayCanvas.getInteractable();
 		if (disp instanceof EntityAnimationEditor){
 			return (EntityAnimationEditor)disp;
 		} else {

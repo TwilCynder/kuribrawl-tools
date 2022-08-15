@@ -116,8 +116,8 @@ public class Champion implements Iterable<EntityAnimation>{
 
     @Override
     public String toString() {
-        return "Champion [name=" + name + "]";
+        return "Champion [displayName=" + displayName + ", name=" + name + "]";
     }
-
+    
     
 }

@@ -53,6 +53,11 @@ public class RessourcePath {
         this(stringToPath(pathname));
     }
 
+    /**
+     * Return the Path at which the ressources directory is located.  
+     * CANNOT RETURN NULL.
+     * @return
+     */
     public Path getPath(){
         return path;
     }

@@ -4,7 +4,7 @@ import java.nio.file.Path;
 import java.awt.Component;
 import java.io.File;
 import javax.swing.filechooser.FileFilter;
-
+import javax.swing.filechooser.FileSystemView;
 import javax.swing.JFileChooser;
 
 public class PathChooser extends JFileChooser {
@@ -24,6 +24,11 @@ public class PathChooser extends JFileChooser {
 
     public PathChooser(Mode mode, Path path){
         super (path == null ? null : path.toFile());
+        setFileSelectionMode(mode.toInt());
+    }
+
+    public PathChooser(Mode mode, Path path, FileSystemView fsv){
+        super (path == null ? null : path.toFile(), fsv);
         setFileSelectionMode(mode.toInt());
     }
 
