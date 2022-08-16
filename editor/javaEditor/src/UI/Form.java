@@ -19,8 +19,6 @@ public abstract class Form extends JDialog {
     public Form(Window frame, String title){
         super(frame, title);
 
-        Object[] options = {"oui", "non"};
-
         form = initForm();
         optionPane = new JOptionPane(form, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null, null);
         setContentPane(optionPane);
@@ -37,17 +35,16 @@ public abstract class Form extends JDialog {
     }
 
     private void __initListener(){
-        optionPane.addPropertyChangeListener(JOptionPane.VALUE_PROPERTY, 
+        optionPane.addPropertyChangeListener(JOptionPane.VALUE_PROPERTY,
             new PropertyChangeListener() {
                 boolean resetting = false;
 
                 public void propertyChange(PropertyChangeEvent evt) {
                     if (resetting) return;
-                    String prop = evt.getPropertyName();
 
-                    if (isVisible() 
+                    if (isVisible()
                             && (evt.getSource() == optionPane)) {
-                        
+
                         Integer res = (Integer)evt.getNewValue();
                         if (res.intValue() != JOptionPane.OK_OPTION || confirm()){
                             setVisible(false); //close if ok was not selected OR if it was but confirm returns false
@@ -56,7 +53,6 @@ public abstract class Form extends JDialog {
                             optionPane.setValue(-1);
                             resetting = false;
                         }
-
                     }
                 }
             }

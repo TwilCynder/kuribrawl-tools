@@ -120,7 +120,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	private JPanel blank;
 	private CardPanel editor_controls;
 
-	private static final String baseTitle = "Kuribrawl GameData Editor"; 
+	private static final String baseTitle = "Kuribrawl GameData Editor";
 
 	private static Map <HurtboxType, String> hurtboxTypesNames = new EnumMap<>(HurtboxType.class){{
 		put(HurtboxType.NORMAL, "Normal");
@@ -146,7 +146,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			return name;
 		}
 
-		public Class<? extends Hitbox> getHitboxClass(){ 
+		public Class<? extends Hitbox> getHitboxClass(){
 
 			return hitboxClass;
 		}
@@ -157,6 +157,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	}};
 
 	private static Map<Class<? extends Hitbox>, HitboxType> hitboxTypes = new TreeMap<>(new Comparator<Class<? extends Hitbox>>() {
+		@Override
 		public int compare(Class<? extends Hitbox> left, Class<? extends Hitbox> right){
 			return left.getName().compareTo(right.getName());
 		}
@@ -176,7 +177,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	}
 
 	/**
-	 * Change listener made for IntegerSpinner's in the editor.  
+	 * Change listener made for IntegerSpinner's in the editor.
 	 * stateChanged(EntityAnimationEditor, int) will be called on focus lost
 	 */
 	private abstract class SpinChangeListener implements ChangeListener {
@@ -195,11 +196,11 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			}
 		}
 	}
-	
+
 	/**
-	 * Change listener made for TwilTextField's in the editor.  
+	 * Change listener made for TwilTextField's in the editor.
 	 * focusLost(EntityAnimationEditor, TwiltextField) will be called on focus lost,
-	 * any NumberFormatException raised by your exception will be handled.  
+	 * any NumberFormatException raised by your exception will be handled.
 	 */
 	private abstract class TwilFocusListener<T extends JComponent> implements FocusListener {
 		Class <T> componentClass;
@@ -242,7 +243,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		private Action openExplorerSourceImageFileAction;
 		private Action openExplorerDescriptorFileAction;
-		
+
 		public NewAnimationForm(Window frame, String title){
 			super(frame, title);
 		}
@@ -274,7 +275,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 					sourceImageFile.setText(relativePath.toString());
 				}
 			};
-	
+
 			openExplorerDescriptorFileAction = new AbstractAction() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -297,7 +298,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 					Champion current_champion = currentData.getEntityAnimationOwner(anim);
 
 					championList.setSelectedItem(current_champion);
-				} 
+				}
 			}
 		}
 
@@ -322,55 +323,55 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 					FormSpecs.RELATED_GAP_ROWSPEC,
 					FormSpecs.DEFAULT_ROWSPEC,
 					FormSpecs.RELATED_GAP_ROWSPEC}));
-			
+
 			JLabel label = new JLabel("Champion");
 			label.setHorizontalAlignment(SwingConstants.RIGHT);
 			panel.add(label, "2, 2");
-			
+
 			label = new JLabel("Animation Name");
 			panel.add(label, "4, 2");
-			
+
 			label = new JLabel("/");
 			panel.add(label, "3, 2");
-			
+
 			Collection<Champion> champions = currentData.getChampions();
 			championList = new JComboBox<Champion>(champions.toArray(new Champion[champions.size()]));
 			championList.setRenderer(new ChampionCellRenderer());
 
 			panel.add(championList, "2, 4, fill, default");
-			
+
 			label = new JLabel("/");
 			panel.add(label, "3, 4, right, default");
-			
+
 			animationName = new JTextField();
 			panel.add(animationName, "4, 4, fill, default");
 			animationName.setColumns(40);
-			
+
 			label = new JLabel("Source Image ");
 			panel.add(label, "2, 6, right, default");
-			
+
 			sourceImageFile = new JTextField();
 			panel.add(sourceImageFile, "4, 6, fill, default");
 			sourceImageFile.setColumns(10);
-		
+
 
 			JButton openExplorerSourceImageFile = new JButton(openExplorerSourceImageFileAction);
 			openExplorerSourceImageFile.setPreferredSize(new Dimension(25, 22));
 			openExplorerSourceImageFile.setIcon(UIManager.getIcon("FileView.directoryIcon"));
 			panel.add(openExplorerSourceImageFile, "5, 6");
-			
+
 			label = new JLabel("Descriptor file");
 			panel.add(label, "2, 8, right, default");
-			
+
 			descriptorFile = new JTextField();
 			panel.add(descriptorFile, "4, 8, fill, default");
 			descriptorFile.setColumns(10);
-			
+
 			JButton openExplorerDescriptorFile = new JButton(openExplorerDescriptorFileAction);
 			openExplorerDescriptorFile.setPreferredSize(new Dimension(25, 22));
 			openExplorerDescriptorFile.setIcon(UIManager.getIcon("FileView.directoryIcon"));
 			panel.add(openExplorerDescriptorFile, "5, 8");
-			
+
 		}
 
 		@Override
@@ -385,6 +386,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		@Override
 		protected boolean confirm(){
+			//checking if the content of the fields are correct, if not, returning false will cancel the confirmation.
 			Champion champion = (Champion)championList.getSelectedItem();
 			if (champion == null) {
 				JOptionPane.showMessageDialog(Window.this, "No champion selected", "Inane error", JOptionPane.ERROR_MESSAGE);
@@ -396,6 +398,12 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				JOptionPane.showMessageDialog(Window.this, "Animation name cannot be empty", "Inane error", JOptionPane.ERROR_MESSAGE);
 				return false;
 			}
+			//TODO : do better than just a on-confirm check for this
+			if (!animName.matches("\\w+")){
+				JOptionPane.showMessageDialog(Window.this, "Animation name can only contain alphanumeric characters and underscores", "Inane error", JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
+
 
 			String sourceImageFilename = sourceImageFile.getText();
 			if (sourceImageFilename.isEmpty()){
@@ -403,9 +411,9 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				return false;
 			}
 
-			String descriptorFilename = descriptorFile.getText(); 
+			String descriptorFilename = descriptorFile.getText();
 			if (descriptorFilename.isEmpty()){
-				int res = JOptionPane.showOptionDialog(Window.this, 
+				int res = JOptionPane.showOptionDialog(Window.this,
 				"If you don't specify a descriptor file, you will have to do it later if the animation does now follow the default elements configuration. Proceed ?",
 				"Warning", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
 
@@ -415,6 +423,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			System.out.println("Confirm : source image file : " + sourceImageFile.getText());
 			System.out.println("Confirm : descriptor file : " + descriptorFile.getText());
 			System.out.println("Confirm : champion " + championList.getSelectedItem());
+
+			//champion.addAnimation(animName, source, nbFrames, source_filename, descriptor_filename)
 
 			return true;
 		}
@@ -430,19 +440,19 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
-		
+
 		try {
             // Set System L&F
 	        UIManager.setLookAndFeel(
 	            UIManager.getSystemLookAndFeelClassName());
-	    } 
+	    }
 	    catch (UnsupportedLookAndFeelException e) {
 	       System.out.println("Cannot use system native Look&Feel (not supported), the window will be ugly asf");
 	    }
         catch  (Exception e){
             System.out.println("Error while trying to set the Look&Feel, the window will be ugly asf");
         }
-		
+
 		JPanel dummyPanel;
 		JLabel dummyLabel;
 
@@ -455,47 +465,47 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		animation_controls = new JPanel();
 		editor_controls.add(animation_controls, "EntityAnimation");
 		animation_controls.setLayout(new BoxLayout(animation_controls, BoxLayout.Y_AXIS));
-		
+
 		JPanel anim_prop_controls = new JPanel();
 		anim_prop_controls.setBorder(new TitledBorder(null, "Animation properties", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		animation_controls.add(anim_prop_controls);
 		anim_prop_controls.setLayout(new BoxLayout(anim_prop_controls, BoxLayout.Y_AXIS));
-		
+
 		JPanel panel = new JPanel();
 		panel.setToolTipText("An integer value will be the total number of cycles the animation takes.  \r\nA real number < 1 will be a multiplier (0.5 -> 2 cycles per frame).  \r\nA real number > 1 is invalid. I haven't enforced that yet please just don't use these values");
 		anim_prop_controls.add(panel);
-		
+
 		dummyLabel = new JLabel("Speed");
 		panel.add(dummyLabel);
-		
+
 		tfAnimSpeed = new TwilTextField();
 		panel.add(tfAnimSpeed);
 		tfAnimSpeed.setColumns(10);
 		tfAnimSpeed.setDocumentFilter(RealNumberDocumentFilter.staticInstance);
-		
+
 		JPanel frame_controls = new JPanel();
 		frame_controls.setBorder(new TitledBorder(null, "Frame properties", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		animation_controls.add(frame_controls);
 		frame_controls.setLayout(new BoxLayout(frame_controls, BoxLayout.Y_AXIS));
-		
+
 		dummyPanel = new JPanel();
 		dummyPanel.setBorder(null);
 		frame_controls.add(dummyPanel);
-		
+
 		dummyLabel = new JLabel("Duration");
 		dummyPanel.add(dummyLabel);
-		
+
 		tfFrameDuration = new TwilTextField();
 		dummyPanel.add(tfFrameDuration);
 		tfFrameDuration.setColumns(10);
 		tfFrameDuration.setDocumentFilter(IntegerDocumentFilter.staticInstance);
-		
+
 		dummyPanel = new JPanel();
 		frame_controls.add(dummyPanel);
-		
+
 		dummyLabel = new JLabel("Origin");
 		dummyPanel.add(dummyLabel);
-		
+
 		spinFrameOriginX = new IntegerSpinner();
 		dummyPanel.add(spinFrameOriginX);
 		spinFrameOriginX.setColumns(2);
@@ -506,7 +516,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		element_controls = new CardPanel();
 		animation_controls.add(element_controls);
-		
+
 		JPanel hurtbox = new JPanel();
 		hurtbox.setBorder(new TitledBorder(null, "Hurtbox properties", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		element_controls.add(hurtbox, "hurtbox");
@@ -528,34 +538,34 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				FormSpecs.DEFAULT_ROWSPEC,
 				FormSpecs.RELATED_GAP_ROWSPEC,
 				FormSpecs.DEFAULT_ROWSPEC,}));
-		
+
 		dummyLabel = new JLabel("X");
 		hurtbox.add(dummyLabel, "2, 2, left, default");
-		
+
 		spinHurtboxX = new IntegerSpinner();
 		hurtbox.add(spinHurtboxX, "4, 2");
-		
+
 		dummyLabel = new JLabel("Y");
 		hurtbox.add(dummyLabel, "6, 2, left, default");
-		
+
 		spinHurtboxY = new IntegerSpinner();
 		hurtbox.add(spinHurtboxY, "8, 2");
-		
+
 		dummyLabel = new JLabel("width");
 		hurtbox.add(dummyLabel, "2, 4, left, default");
-		
+
 		spinHurtboxWidth = new IntegerSpinner();
 		hurtbox.add(spinHurtboxWidth, "4, 4");
-		
+
 		dummyLabel = new JLabel("height");
 		hurtbox.add(dummyLabel, "6, 4, right, default");
-		
+
 		spinHurtboxHeight = new IntegerSpinner();
 		hurtbox.add(spinHurtboxHeight, "8, 4");
-		
+
 		comboHurtboxType = new MapComboBox<>(hurtboxTypesNames);
 		hurtbox.add(comboHurtboxType, "2, 6, 7, 1, fill, default");
-		
+
 		JPanel hitbox = new JPanel();
 		hitbox.setBorder(new TitledBorder(null, "Hitbox properties", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		element_controls.add(hitbox, "hitbox");
@@ -577,37 +587,37 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				FormSpecs.DEFAULT_ROWSPEC,
 				FormSpecs.RELATED_GAP_ROWSPEC,
 				RowSpec.decode("default:grow"),}));
-		
+
 		dummyLabel = new JLabel("X");
 		hitbox.add(dummyLabel, "2, 2, left, default");
-		
+
 		spinHitboxX = new IntegerSpinner();
 		hitbox.add(spinHitboxX, "4, 2");
-		
+
 		dummyLabel = new JLabel("Y");
 		hitbox.add(dummyLabel, "6, 2, left, default");
-		
+
 		spinHitboxY = new IntegerSpinner();
 		hitbox.add(spinHitboxY, "8, 2");
-		
+
 		dummyLabel = new JLabel("width");
 		hitbox.add(dummyLabel, "2, 4, left, default");
-		
+
 		spinHitboxWidth = new IntegerSpinner();
 		hitbox.add(spinHitboxWidth, "4, 4");
-		
+
 		dummyLabel = new JLabel("height");
 		hitbox.add(dummyLabel, "6, 4, right, default");
-		
+
 		spinHitboxHeight = new IntegerSpinner();
 		hitbox.add(spinHitboxHeight, "8, 4");
-		
+
 		comboHitboxType = new JComboBox<HitboxType>(HitboxType.values());
 		hitbox.add(comboHitboxType, "2, 6, 7, 1, fill, default");
-		
+
 		hitbox_typespecific_controls = new CardPanel();
 		hitbox.add(hitbox_typespecific_controls, "2, 8, 7, 1, fill, fill");
-		
+
 		damage_hitbox = new JPanel();
 		hitbox_typespecific_controls.add(damage_hitbox, HitboxType.DAMAGE.toString());
 		damage_hitbox.setLayout(new FormLayout(new ColumnSpec[] {
@@ -630,59 +640,59 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				FormSpecs.DEFAULT_ROWSPEC,
 				FormSpecs.RELATED_GAP_ROWSPEC,
 				FormSpecs.DEFAULT_ROWSPEC,}));
-		
+
 		dummyLabel = new JLabel("damages");
 		damage_hitbox.add(dummyLabel, "2, 2, right, default");
-		
+
 		tfDamages = new JTextField();
 		damage_hitbox.add(tfDamages, "4, 2, fill, default");
 		tfDamages.setColumns(4);
-		
+
 		dummyLabel = new JLabel("angle");
 		damage_hitbox.add(dummyLabel, "6, 2, right, default");
-		
+
 		tfAngle = new TwilTextField();
 		damage_hitbox.add(tfAngle, "8, 2, fill, default");
 		tfAngle.setColumns(3);
 		tfAngle.setDocumentFilter(IntegerDocumentFilter.staticInstance);
 
-		
+
 		dummyLabel = new JLabel("knockback :");
 		damage_hitbox.add(dummyLabel, "2, 4, 5, 1");
-		
+
 		dummyLabel = new JLabel("base");
 		damage_hitbox.add(dummyLabel, "2, 6, right, default");
-		
+
 		tfBKB = new JTextField();
 		damage_hitbox.add(tfBKB, "4, 6, fill, default");
 		tfBKB.setColumns(3);
-		
+
 		dummyLabel = new JLabel("scaling");
 		damage_hitbox.add(dummyLabel, "6, 6, right, default");
-		
+
 		tfSKB = new JTextField();
 		damage_hitbox.add(tfSKB, "8, 6, fill, default");
 		tfSKB.setColumns(3);
-		
+
 		dummyLabel = new JLabel("hitID");
 		damage_hitbox.add(dummyLabel, "2, 8, right, default");
-		
+
 		spinHitID = new IntegerSpinner();
 		damage_hitbox.add(spinHitID, "4, 8");
-		
+
 		dummyLabel = new JLabel("priority");
 		damage_hitbox.add(dummyLabel, "6, 8, right, default");
-		
+
 		spinHitboxPrio = new IntegerSpinner();
 		damage_hitbox.add(spinHitboxPrio, "8, 8");
-		
+
 		dummyLabel = new JLabel("angle mode");
 		damage_hitbox.add(dummyLabel, "2, 10, right, default");
-		
+
 		//items = new String[] {"Normal"};
 		comboAngleMode = new MapComboBox<>(angleModeNames);
 		damage_hitbox.add(comboAngleMode, "4, 10, 5, 1, fill, default");
-		
+
 		wind_hitbox = new JPanel();
 		hitbox_typespecific_controls.add(wind_hitbox, HitboxType.WIND.toString());
 		wind_hitbox.setLayout(new FormLayout(new ColumnSpec[] {
@@ -699,41 +709,41 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				FormSpecs.DEFAULT_ROWSPEC,
 				FormSpecs.RELATED_GAP_ROWSPEC,
 				FormSpecs.DEFAULT_ROWSPEC,}));
-		
+
 		dummyLabel = new JLabel("place");
 		wind_hitbox.add(dummyLabel, "2, 2, right, default");
-		
+
 		textField_5 = new JTextField();
 		wind_hitbox.add(textField_5, "4, 2, fill, default");
 		textField_5.setColumns(4);
-		
+
 		dummyLabel = new JLabel("place");
 		wind_hitbox.add(dummyLabel, "6, 2, right, default");
-		
+
 		textField_4 = new JTextField();
 		wind_hitbox.add(textField_4, "8, 2, fill, default");
 		textField_4.setColumns(4);
-		
+
 		dummyLabel = new JLabel("place");
 		wind_hitbox.add(dummyLabel, "2, 4, right, default");
-		
+
 		textField_6 = new JTextField();
 		wind_hitbox.add(textField_6, "4, 4, fill, default");
 		textField_6.setColumns(4);
-		
+
 		dummyLabel = new JLabel("place");
 		wind_hitbox.add(dummyLabel, "6, 4, right, default");
-		
+
 		textField_7 = new JTextField();
 		wind_hitbox.add(textField_7, "8, 4, fill, default");
 		textField_7.setColumns(4);
-		
+
 		blank = new JPanel();
 		hitbox_typespecific_controls.add(blank, "name_1186107637016000");
 
 		JPanel blank_card = new JPanel();
 		element_controls.add(blank_card, "blank");
-		
+
 		element_controls.show("blank");
 
 		JPanel blank_space = new JPanel();
@@ -749,30 +759,30 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		FlowLayout fl_Current_frame_controls = (FlowLayout) Current_frame_controls.getLayout();
 		fl_Current_frame_controls.setAlignment(FlowLayout.LEFT);
 		contentPane.add(Current_frame_controls, BorderLayout.SOUTH);
-		
+
 		JButton btnButtonLeft = new JButton("<-");
 		Current_frame_controls.add(btnButtonLeft);
-		
+
 		tfCurrentFrame = new TwilTextField(2);
 		Current_frame_controls.add(tfCurrentFrame);
 		tfCurrentFrame.setEditable(false);
-		
+
 		JButton btnButtonRight = new JButton("->");
 		Current_frame_controls.add(btnButtonRight);
-		
+
 		JButton btnzoomout = new JButton("-");
 		Current_frame_controls.add(btnzoomout);
-		
+
 		tfCurrentZoom = new TwilTextField(4);
 		Current_frame_controls.add(tfCurrentZoom);
 		tfCurrentZoom.setEditable(false);
-		
+
 		JButton btnzoomin = new JButton("+");
 		Current_frame_controls.add(btnzoomin);
 
 		//============= CALLBACKS =============
 
-		
+
 
 		btnButtonRight.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -864,7 +874,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			public void stateChanged(EntityAnimationEditor editor, int value){
 				editor.moveOriginX(value);
 				notifyDataModified();
-			}	
+			}
 		});
 
 		spinFrameOriginY.addChangeListener(new SpinChangeListener() {
@@ -912,7 +922,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		spinHurtboxWidth.addChangeListener(cboxWChangeListener);
 		spinHitboxWidth.addChangeListener(cboxWChangeListener);
-		
+
 		ChangeListener cboxHChangeListener = new SpinChangeListener() {
 			@Override
 			public void stateChanged(EntityAnimationEditor editor, int value) {
@@ -931,7 +941,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				if (e.getStateChange() != ItemEvent.SELECTED) return;
 				try {
 					if (e.getItem() instanceof MapComboBoxItem){
-						MapComboBoxItem<?, ?> item = (MapComboBoxItem<?, ?>)e.getItem(); 
+						MapComboBoxItem<?, ?> item = (MapComboBoxItem<?, ?>)e.getItem();
 						 if (item.getValue() instanceof HurtboxType){
 							HurtboxType type = (HurtboxType)item.getValue();
 							EntityAnimationDisplayer displayer = getEAEDitor();
@@ -946,7 +956,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 					ex.printStackTrace();
 				}
 			}
-		});	
+		});
 
 		comboHitboxType.addItemListener(new ItemListener(){
 			public void itemStateChanged(ItemEvent e){
@@ -977,8 +987,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 							notifyDataModified();
 						}
-					} 
-					
+					}
+
 				} catch (WindowStateException ex){
 					ex.printStackTrace();
 				}
@@ -1030,7 +1040,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
 				damage_hitbox.priority = value;
 				notifyDataModified();
-			}	
+			}
 		});
 
 		spinHitID.addChangeListener(new SpinChangeListener() {
@@ -1038,7 +1048,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
 				damage_hitbox.hitID = value;
 				notifyDataModified();
-			}	
+			}
 		});
 
 		comboAngleMode.addItemListener(new ItemListener(){
@@ -1046,7 +1056,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				if (e.getStateChange() != ItemEvent.SELECTED) return;
 				try {
 					if (e.getItem() instanceof MapComboBoxItem){
-						MapComboBoxItem<?, ?> item = (MapComboBoxItem<?, ?>)e.getItem(); 
+						MapComboBoxItem<?, ?> item = (MapComboBoxItem<?, ?>)e.getItem();
 						if (item.getValue() instanceof AngleMode){
 							AngleMode type = (AngleMode)item.getValue();
 							EntityAnimationDisplayer displayer = getEAEDitor();
@@ -1061,7 +1071,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 					ex.printStackTrace();
 				}
 			}
-		});	
+		});
 
 		//============= ACTIONS ==================
 
@@ -1080,7 +1090,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				}
 
 				if (modifsOccured()){
-					switch (JOptionPane.showConfirmDialog(Window.this, 
+					switch (JOptionPane.showConfirmDialog(Window.this,
 						"This feature saves the ressource files to an archive in their current state.\nSome modifications to the game data have not been saved to the ressource files and will not be present in the archive.\nDo you want to save before archiving ?", "Editor", JOptionPane.YES_NO_CANCEL_OPTION))
 					{
 						case JOptionPane.YES_OPTION:
@@ -1092,7 +1102,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 							return;
 					}
 				}
-				
+
 				PathChooser chooser = new PathChooser(PathChooser.Mode.FILE, currentRessourcePath.getPath());
 				chooser.addFileFilters(new FileNameExtensionFilter("ZIP Archives", "zip"));
 				chooser.setAcceptAllFileFilterUsed(false);
@@ -1100,18 +1110,18 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 				if (dest != null){
 					try {
-						if (Files.exists(dest) && JOptionPane.showConfirmDialog(Window.this, 
+						if (Files.exists(dest) && JOptionPane.showConfirmDialog(Window.this,
 						dest.toAbsolutePath().toString() + " already exists. Overwrite it ?", "Editor", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION){
 							return;
 						}
-						
+
 						currentRessourcePath.saveAsArchive(currentFileList, dest);
 					} catch (IOException ex){
 						ex.printStackTrace();
 						errorPopup("Could not save ressource directory as archive : \n" + ex.toString());
 					}
 				}
-				
+
 			}
 		};
 
@@ -1138,7 +1148,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 					JOptionPane.showMessageDialog(Window.this, "Cannot create a new animation with a ressource path to get files from.", "Inane error", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
-					
+
 				new NewAnimationForm(Window.this, "test");
 			}
 		};
@@ -1162,7 +1172,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		dummyMenuItem = new JMenuItem("Save As");
 		dummyMenuItem.addActionListener(saveAsAction);
 		dummyMenu.add(dummyMenuItem);
-		
+
 
 		dummyMenuItem = new JMenuItem("Save as Archive");
 		dummyMenuItem.addActionListener(saveArchiveAction);
@@ -1196,14 +1206,15 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			@Override
 			public void windowClosing(WindowEvent e){
 				if (modifsOccured()){
-					int result = JOptionPane.showConfirmDialog(Window.this, 
+					int result = JOptionPane.showConfirmDialog(Window.this,
 						"Des modifications n'ont pas été sauvegardées. Voulez vous sauvegarder ?", "Confirm exit", JOptionPane.YES_NO_CANCEL_OPTION);
-				
+
 						switch (result){
 							case JOptionPane.YES_OPTION:
 								saveData();
 								break;
-							case JOptionPane.CANCEL_OPTION, JOptionPane.CLOSED_OPTION:
+							case JOptionPane.CANCEL_OPTION:
+							case JOptionPane.CLOSED_OPTION:
 								return;
 						}
 				}
@@ -1263,7 +1274,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		if (modifsOccured){
 			setTitle(baseTitle + " | " + currentRessourcePath.getPath());
 			modifsOccured = false;
-		}		
+		}
 	}
 
 	public void setGameData(GameData gd){
@@ -1373,7 +1384,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	}
 
 	/**
-	 * Returns the current Editor of the Canvas as an EAEditor, or throws is Canvas is not currently holding an EAEditor. 
+	 * Returns the current Editor of the Canvas as an EAEditor, or throws is Canvas is not currently holding an EAEditor.
 	 * Cannot return null.
 	 * @return EntityAnimationEditor : the current editor of the Canvas
 	 * @throws WindowStateException
@@ -1420,7 +1431,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 	private void updateHitboxTypeSpecificControls(Hitbox hitbox, HitboxType type, boolean ignoreModifications){
 		initializing = ignoreModifications;
-		
+
 		hitbox_typespecific_controls.show(type.toString());
 
 		switch (type){
@@ -1465,10 +1476,10 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		if (cbox instanceof Hitbox){
 			element_controls.show("hitbox");
 			Hitbox hitbox = (Hitbox)cbox;
-			spinHitboxX.setValue(hitbox.x); 
+			spinHitboxX.setValue(hitbox.x);
 			spinHitboxY.setValue(hitbox.y);
 			spinHitboxWidth.setValue(hitbox.w);
-			spinHitboxHeight.setValue(hitbox.h);	
+			spinHitboxHeight.setValue(hitbox.h);
 			HitboxType type = hitboxTypes.get(hitbox.getClass());
 			comboHitboxType.setSelectedItem(type);
 			updateHitboxTypeSpecificControls(hitbox, type, ignoreModifications);

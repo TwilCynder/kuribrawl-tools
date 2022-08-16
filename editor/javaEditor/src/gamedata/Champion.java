@@ -34,7 +34,7 @@ class ChampionVals  {
     int dash_turn_duration;
     int landing_duration;
     int guard_start_duration;
-    int guard_stop_duration;     
+    int guard_stop_duration;
     int shield_x;
     int shield_y;
     int shield_size;
@@ -50,7 +50,7 @@ public class Champion implements Iterable<EntityAnimation>{
 
     private Map<String, EntityAnimation> animations = new TreeMap<>();
     private Map<String, Move> moves = new TreeMap<>();
-    
+
     public Champion(String name, String filename){
         this(name);
         this.descriptor_filename = filename;
@@ -118,6 +118,6 @@ public class Champion implements Iterable<EntityAnimation>{
     public String toString() {
         return "Champion [displayName=" + displayName + ", name=" + name + "]";
     }
-    
-    
+
+
 }
