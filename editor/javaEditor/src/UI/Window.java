@@ -1,5 +1,3 @@
-//TODO : fix la sauvegarde de l'origine
-
 package UI;
 
 import java.awt.BorderLayout;
@@ -8,8 +6,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Point;
 import java.awt.event.*;
-import java.io.File;
-import java.io.FileFilter;
+import javax.swing.filechooser.FileFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -54,7 +51,6 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
-import KBUtil.PathHelper;
 import KBUtil.functional.DoubleToString;
 import UI.exceptions.WindowStateException;
 import gamedata.AngleMode;
@@ -72,6 +68,7 @@ import gamedata.RessourcePath;
 import gamedata.WindHitbox;
 import gamedata.exceptions.GameDataException;
 import gamedata.exceptions.InvalidRessourcePathException;
+import gamedata.exceptions.RessourceException;
 import gamedata.exceptions.TransparentGameDataException;
 
 public class Window extends JFrame implements EntityAnimationEditorWindow {
@@ -240,22 +237,19 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		private JTextField sourceImageFile;
 		private JTextField descriptorFile;
 		private JComboBox<Champion> championList;
+		private IntegerSpinner nbFramesSpinner;
 
 		private Action openExplorerSourceImageFileAction;
 		private Action openExplorerDescriptorFileAction;
 
-		public NewAnimationForm(Window frame, String title){
+		public NewAnimationForm(Window frame, String title) throws IllegalStateException {
 			super(frame, title);
+			if (currentRessourcePath == null) throw new IllegalStateException("A new animation form was opened with no current ressource path");
 		}
 
 		private void initActions(){
-			FileFilter datFilter = new FileFilter() {
-				@Override
-				public boolean accept(File pathname) {
-					String extension = PathHelper.getExtenstion(pathname);
-					return extension == ".dat";
-				}
-			};
+			FileFilter datFilter = new FileNameExtensionFilter("Descriptor files", "dat");
+			FileFilter pngFilter = new FileNameExtensionFilter("PNG Image files", "png");
 
 			openExplorerSourceImageFileAction = new AbstractAction() {
 				@Override
@@ -265,8 +259,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 					}
 
 					Path currentPath = currentRessourcePath.getPath();
-
 					RestrictedRootPathChooser chooser = new RestrictedRootPathChooser(PathChooser.Mode.FILE, currentPath);
+					chooser.setFileFilter(pngFilter);
 					Path selected = chooser.openPath(NewAnimationForm.this);
 
 					if (selected == null) return;
@@ -281,6 +275,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				public void actionPerformed(ActionEvent e) {
 					Path currentPath = currentRessourcePath.getPath();
 					RestrictedRootPathChooser chooser = new RestrictedRootPathChooser(PathChooser.Mode.FILE, currentPath);
+					chooser.setFileFilter(datFilter);
 					Path selected = chooser.savePath(NewAnimationForm.this);
 
 					Path relativePath = currentPath.relativize(selected);
@@ -300,6 +295,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 					championList.setSelectedItem(current_champion);
 				}
 			}
+
+			nbFramesSpinner.setValue(1);
 		}
 
 		private void createLayout(JPanel panel){
@@ -322,7 +319,10 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 					FormSpecs.DEFAULT_ROWSPEC,
 					FormSpecs.RELATED_GAP_ROWSPEC,
 					FormSpecs.DEFAULT_ROWSPEC,
-					FormSpecs.RELATED_GAP_ROWSPEC}));
+					FormSpecs.RELATED_GAP_ROWSPEC,
+					FormSpecs.DEFAULT_ROWSPEC,
+					FormSpecs.RELATED_GAP_ROWSPEC
+			}));
 
 			JLabel label = new JLabel("Champion");
 			label.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -372,6 +372,13 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			openExplorerDescriptorFile.setIcon(UIManager.getIcon("FileView.directoryIcon"));
 			panel.add(openExplorerDescriptorFile, "5, 8");
 
+			label = new JLabel("Number of frames");
+			panel.add(label, "2, 10, right, default");
+
+			nbFramesSpinner = new IntegerSpinner();
+			nbFramesSpinner.setColumns(3);
+			panel.add(nbFramesSpinner, "4, 10, fill, default");
+
 		}
 
 		@Override
@@ -419,40 +426,28 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 				if (res == JOptionPane.CANCEL_OPTION) return false;
 			}
+
+			int nbFrames = nbFramesSpinner.getValueInt();
+
 			System.out.println("Confirm : animation name : " + animationName.getText());
 			System.out.println("Confirm : source image file : " + sourceImageFile.getText());
 			System.out.println("Confirm : descriptor file : " + descriptorFile.getText());
 			System.out.println("Confirm : champion " + championList.getSelectedItem());
+			System.out.println("Confirm : nb frames " + nbFrames);
 
-			//champion.addAnimation(animName, source, nbFrames, source_filename, descriptor_filename)
+			if (currentRessourcePath == null) throw new IllegalStateException("Cannot create a new animation with no current ressource path");
+
+			try {
+				currentRessourcePath.addAnimation(champion, animName, nbFrames, sourceImageFilename, descriptorFilename);
+			} catch (RessourceException ex){
+				JOptionPane.showMessageDialog(Window.this, "Error while creating the animation : \n" + ex.getLocalizedMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+			}
 
 			return true;
 		}
 	}
 
-    public Window(){
-        super(baseTitle);
-        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-		setBounds(100, 100, 675, 441);
-
-		//============ Content ==================
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		contentPane.setLayout(new BorderLayout(0, 0));
-		setContentPane(contentPane);
-
-		try {
-            // Set System L&F
-	        UIManager.setLookAndFeel(
-	            UIManager.getSystemLookAndFeelClassName());
-	    }
-	    catch (UnsupportedLookAndFeelException e) {
-	       System.out.println("Cannot use system native Look&Feel (not supported), the window will be ugly asf");
-	    }
-        catch  (Exception e){
-            System.out.println("Error while trying to set the Look&Feel, the window will be ugly asf");
-        }
-
+	private void createLayout(){
 		JPanel dummyPanel;
 		JLabel dummyLabel;
 
@@ -1072,6 +1067,33 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				}
 			}
 		});
+
+	}
+
+    public Window(){
+        super(baseTitle);
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		setBounds(100, 100, 675, 441);
+
+		//============ Content ==================
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		contentPane.setLayout(new BorderLayout(0, 0));
+		setContentPane(contentPane);
+
+		try {
+            // Set System L&F
+	        UIManager.setLookAndFeel(
+	            UIManager.getSystemLookAndFeelClassName());
+	    }
+	    catch (UnsupportedLookAndFeelException e) {
+	       System.out.println("Cannot use system native Look&Feel (not supported), the window will be ugly asf");
+	    }
+        catch  (Exception e){
+            System.out.println("Error while trying to set the Look&Feel, the window will be ugly asf");
+        }
+
+		createLayout();
 
 		//============= ACTIONS ==================
 
