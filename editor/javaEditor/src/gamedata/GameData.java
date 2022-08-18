@@ -105,4 +105,19 @@ public class GameData implements Iterable<Champion> {
 
         return res;
     }
+
+    @Override
+    public String toString() {
+        return "GameData (originPath :" + originPath + ", " + champions.size() + " champions)";
+    }
+
+    public void printAnimations(){
+        System.out.println("Using this GameData : ");
+		for (Champion c : this){
+			System.out.println("==" + c.getDislayName() + "==");
+            for (EntityAnimation anim : c){
+                System.out.println(anim.getName());
+            }
+        }
+    }
 }

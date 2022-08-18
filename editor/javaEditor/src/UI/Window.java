@@ -242,8 +242,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		private Action openExplorerSourceImageFileAction;
 		private Action openExplorerDescriptorFileAction;
 
-		public NewAnimationForm(Window frame, String title) throws IllegalStateException {
-			super(frame, title);
+		public NewAnimationForm(Window frame) throws IllegalStateException {
+			super(frame, "New animation");
 			if (currentRessourcePath == null) throw new IllegalStateException("A new animation form was opened with no current ressource path");
 		}
 
@@ -355,7 +355,6 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			panel.add(sourceImageFile, "4, 6, fill, default");
 			sourceImageFile.setColumns(10);
 
-
 			JButton openExplorerSourceImageFile = new JButton(openExplorerSourceImageFileAction);
 			openExplorerSourceImageFile.setPreferredSize(new Dimension(25, 22));
 			openExplorerSourceImageFile.setIcon(UIManager.getIcon("FileView.directoryIcon"));
@@ -440,6 +439,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 			try {
 				currentRessourcePath.addAnimation(champion, animName, nbFrames, sourceImageFilename, descriptorFilename);
+				currentData.printAnimations();
 			} catch (RessourceException ex){
 				JOptionPane.showMessageDialog(Window.this, "Error while creating the animation : \n" + ex.getLocalizedMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 			}
@@ -1172,7 +1172,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 					return;
 				}
 
-				new NewAnimationForm(Window.this, "test");
+				new NewAnimationForm(Window.this);
 			}
 		};
 
@@ -1311,15 +1311,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			throw new IllegalArgumentException("Passed null gamedata to Window.setGameData");
 		}
 
-		/*System.out.println("Using this GameData : ");
-		for (Champion c : gd){
-			System.out.println("==" + c.getDislayName() + "==");
-            for (EntityAnimation anim : c){
-                System.out.println(anim.getName());
-                //System.out.println(anim.getNbFrames());
-                //System.out.println(anim.getSpeed());
-            }
-        }*/
+		
 		initAnimationsMenu(gd);
 		currentData = gd;
 		currentRessourcePath = originPath;
