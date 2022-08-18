@@ -406,11 +406,14 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			String descriptorFilename = descriptorFile.getText(); 
 			if (descriptorFilename.isEmpty()){
 				int res = JOptionPane.showOptionDialog(Window.this, 
-				"If you don't specify a descriptor file, you will have to do it later if the animation does now follow the default elements configuration. Proceed ?",
-				"Warning", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
+				"If you don't specify a descriptor file, you will have to do it later if the animation does \nnow follow the default elements configuration. Proceed ?",
+				"Warning", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
 
 				if (res == JOptionPane.CANCEL_OPTION) return false;
 			}
+
+			
+
 			System.out.println("Confirm : animation name : " + animationName.getText());
 			System.out.println("Confirm : source image file : " + sourceImageFile.getText());
 			System.out.println("Confirm : descriptor file : " + descriptorFile.getText());
