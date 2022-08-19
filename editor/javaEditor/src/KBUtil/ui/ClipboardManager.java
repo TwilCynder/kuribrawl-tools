@@ -1,4 +1,4 @@
-package UI;
+package KBUtil.ui;
 
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -8,7 +8,6 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 
-import gamedata.exceptions.WhatTheHellException;
 
 public abstract class ClipboardManager {
 
@@ -24,7 +23,7 @@ public abstract class ClipboardManager {
         current_clipboard.setContents(new StringSelection(text), owner);
     }
 
-    public static String getClipboardText() throws WhatTheHellException {
+    public static String getClipboardText() throws UnsupportedFlavorException {
         fetchClipboard();
 
         try {
@@ -33,9 +32,6 @@ public abstract class ClipboardManager {
             if (data != null && data instanceof String){
                 return (String)data;
             }
-
-        } catch (UnsupportedFlavorException ex) {
-            throw new WhatTheHellException("So apparently the string flavor is not supported ?", ex);
         } catch (IOException ex){
             return "";
         }

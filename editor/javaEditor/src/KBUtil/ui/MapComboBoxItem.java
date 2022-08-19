@@ -1,4 +1,4 @@
-package UI;
+package KBUtil.ui;
 
 public class MapComboBoxItem <Val, Disp> {
     private Val value;

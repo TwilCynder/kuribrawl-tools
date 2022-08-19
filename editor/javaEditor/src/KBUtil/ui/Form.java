@@ -1,4 +1,4 @@
-package UI;
+package KBUtil.ui;
 
 import java.awt.Component;
 import java.awt.Window;

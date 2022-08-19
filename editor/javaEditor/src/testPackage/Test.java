@@ -1,6 +1,6 @@
 package testPackage;
 
-import UI.PathChooser;
+import KBUtil.ui.PathChooser;
 import UI.Window;
 
 import gamedata.GameData;

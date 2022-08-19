@@ -27,7 +27,12 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
-import UI.OpenPathButton.SelectionListener;
+import KBUtil.ui.Form;
+import KBUtil.ui.IntegerSpinner;
+import KBUtil.ui.Interactable;
+import KBUtil.ui.PathChooser;
+import KBUtil.ui.RestrictedRootPathChooser;
+import KBUtil.ui.OpenPathButton.SelectionListener;
 import gamedata.Champion;
 import gamedata.EntityAnimation;
 import gamedata.GameData;

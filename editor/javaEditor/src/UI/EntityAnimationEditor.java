@@ -9,12 +9,14 @@ import gamedata.Hitbox;
 import gamedata.Hurtbox;
 import gamedata.exceptions.FrameOutOfBoundsException;
 import gamedata.exceptions.RessourceException;
+import gamedata.exceptions.WhatTheHellException;
 
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.Color;
 
 import javax.swing.JComponent;
@@ -26,6 +28,9 @@ import javax.swing.event.PopupMenuListener;
 
 import KBUtil.Rectangle;
 import KBUtil.StringHelper;
+import KBUtil.ui.ClipboardManager;
+import KBUtil.ui.Displayer;
+import KBUtil.ui.Interactable;
 
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -227,37 +232,42 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
      * Pastes into the current frame, i.e. parses the content of the clipboard and adds it to the current frame if it could be resolved to an element.
      */
     private void pasteIntoFrame(Displayer d){
-        String descriptor = ClipboardManager.getClipboardText();
-
-        if (descriptor == null || descriptor.length() < 1) return; //there was no text in the clipboard
-
-        String[] fields = StringHelper.split(descriptor, " ");
-
-        System.out.println(fields);
-        System.out.println(descriptor.substring(0, 1));
-
-        boolean modif = false;
-
         try {
-            switch (descriptor.substring(0, 1)){
-                case "c":
-                    getCurrentEntityFrame().addHurtbox(Hurtbox.parseDescriptorFields(fields, 1));
-                    modif = true;
-                    break;
-                case "h":
-                    getCurrentEntityFrame().addHitbox(Hitbox.parseDescriptorFields(fields));
-                    modif = true;
-                    break;
+            String descriptor = ClipboardManager.getClipboardText();
+                    
+            if (descriptor == null || descriptor.length() < 1) return; //there was no text in the clipboard
+
+            String[] fields = StringHelper.split(descriptor, " ");
+
+            System.out.println(fields);
+            System.out.println(descriptor.substring(0, 1));
+
+            boolean modif = false;
+
+            try {
+                switch (descriptor.substring(0, 1)){
+                    case "c":
+                        getCurrentEntityFrame().addHurtbox(Hurtbox.parseDescriptorFields(fields, 1));
+                        modif = true;
+                        break;
+                    case "h":
+                        getCurrentEntityFrame().addHitbox(Hitbox.parseDescriptorFields(fields));
+                        modif = true;
+                        break;
+                }
+            } catch (RessourceException ex){
+                System.out.println("Clipboard contains invalid collisionbox data");
+                ex.printStackTrace();
             }
-        } catch (RessourceException ex){
-            System.out.println("Clipboard contains invalid collisionbox data");
-            ex.printStackTrace();
+
+            if (modif){
+                d.update();
+                editorWindow.notifyDataModified();
+            }
+        }  catch (UnsupportedFlavorException ex) {
+            throw new WhatTheHellException("So apparently the string flavor is not supported ?", ex);
         }
 
-        if (modif){
-            d.update();
-            editorWindow.notifyDataModified();
-        }
 
     }
 
