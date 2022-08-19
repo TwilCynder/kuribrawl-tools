@@ -528,7 +528,49 @@ public class RessourcePath {
         writer.write(str, 0, str.length());
     }
 
-    public void saveGameData(GameData gd) throws GameDataException, TransparentGameDataException, IOException{
+    /**
+     * Class used to define code to be ran if information required to save data is missing.   
+     * Each method is called for a specific missing info. If a call to these methods returns false, an exception is raised.
+    */
+    public static abstract class MissingInfoListener {
+        public boolean missingEntityAnimationDescriptor(RessourcePath r, EntityAnimation anim, Champion c){return false;}
+        public boolean missingChampionDescriptor(RessourcePath r, Champion c){return false;}
+    }
+
+    /**
+     * Obtains the descriptor filename of a champion, calling the right method of a specified MissingInfoListener if it can't be found
+     * TODO : actually use it when we can manipulate the descriptor filename of champions
+     */
+    private String getChampionDescriptorFilename(Champion c, MissingInfoListener mil) throws TransparentGameDataException{
+        String toWrite = c.getDescriptorFilename();
+
+        if (toWrite != null){   //if the info isn't missing in the first place
+            return toWrite;     //just return it
+        } else if (mil != null && mil.missingChampionDescriptor(this, c)){  //if is is, do we have a MIL and did it's method supposedly succeed ?
+            toWrite = c.getDescriptorFilename(); //if so, we test the info again
+            if (toWrite != null) return toWrite;
+        }   //if the info is actually still missing OR the method indicated that it failed OR we didn't even have a MIL
+
+        throw new TransparentGameDataException("Champion " + c.getName() + " does not have a descriptor file. Please set one."); //just raise an exception
+    }
+
+    /**
+     * Obtains the descriptor filename of an EntityAnimation, calling the right method of a specified MissingInfoListener if it can't be found
+     */
+    private String getEntityAnimationDescriptorFilename(EntityAnimation anim, Champion c, MissingInfoListener mil) throws TransparentGameDataException{
+        String toWrite = anim.getDescriptorFilename();
+
+        if (toWrite != null){   //if the info isn't missing in the first place
+            return toWrite;     //just return it
+        } else if (mil != null && mil.missingEntityAnimationDescriptor(this, anim, c)){  //if is is, do we have a MIL and did it's method supposedly succeed ?
+            toWrite = anim.getDescriptorFilename(); //if so, we test the info again
+            if (toWrite != null) return toWrite;
+        }   //if the info is actually still missing OR the method indicated that it failed OR we didn't even have a MIL
+
+        throw new TransparentGameDataException("Animation" + anim.getName() + "of champion " + anim.getName() + " does not have a descriptor file but needs one. Please set one."); //just raise an exception
+    }
+
+    public void saveGameData(GameData gd, MissingInfoListener mil) throws GameDataException, TransparentGameDataException, IOException{
         try (BufferedWriter listWriter = fileWriter(listPath)){
             String toWrite;
             for (var file : gd.getOtherFiles()){
@@ -540,8 +582,7 @@ public class RessourcePath {
             for (Champion c : gd){
                 System.out.println("Writing champion " + c.getDislayName() + " " + c.getDescriptorFilename());
 
-                toWrite = c.getDescriptorFilename();
-                if(toWrite == null) throw new TransparentGameDataException("Champion" + c.getName() + " does not have a descriptor file. Please set one.");
+                toWrite = getChampionDescriptorFilename(c, mil);
 
                 writeString(listWriter, c.getDescriptorFilename()); listWriter.newLine();
                 writeString(listWriter, "C:" + c.getName()); listWriter.newLine();
@@ -553,9 +594,7 @@ public class RessourcePath {
                     Defaultness defaultness = anim.areFramesDefault();
                     if (defaultness.needDescriptor()){
 
-                        toWrite = anim.getDescriptorFilename();
-                        if(toWrite == null) throw new TransparentGameDataException("Animation" + anim.getName() + "of champion " + c.getName() + " does not have a descriptor file but needs one. Please set one.");
-
+                        toWrite = getEntityAnimationDescriptorFilename(anim, c, mil);
                         writeString(listWriter, toWrite);
 
                         try (BufferedWriter descriptorWriter = fileWriter(anim.getDescriptorFilename())){
@@ -576,6 +615,10 @@ public class RessourcePath {
         }
     }
 
+    public void saveGameData(GameData gd) throws GameDataException, TransparentGameDataException, IOException{
+        saveGameData(gd, null);
+    }
+
     private void copyFiles(Path origin, List<String> files) throws IOException {
         for (String filename : files){
             Files.copy(origin.resolve(filename), path.resolve(filename));
@@ -584,6 +627,10 @@ public class RessourcePath {
 
     public void copyUnmodifiedFiles(RessourcePath origin, GameData gd) throws IOException {
         copyFiles(origin.getPath(), gd.getUnmodifiedFilenames());
+    }
+
+    public void saveGameDataFrom(RessourcePath origin, GameData gd, MissingInfoListener mil) throws IOException, GameDataException, TransparentGameDataException{
+        saveGameData(gd);
     }
 
     public void saveGameDataFrom(RessourcePath origin, GameData gd) throws IOException, GameDataException, TransparentGameDataException{

@@ -77,6 +77,10 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
         return descriptor_filename;
     }
 
+    public void setDescriptorFilename(String filename){
+        descriptor_filename = filename;
+    }
+
     public List<Hitbox> getHitboxes(int i){
         if (i < 0 || i >= entity_frames.length) return null;
         EntityFrame frame = entity_frames[i];

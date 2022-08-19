@@ -66,6 +66,7 @@ import gamedata.Hurtbox;
 import gamedata.HurtboxType;
 import gamedata.RessourcePath;
 import gamedata.WindHitbox;
+import gamedata.RessourcePath.MissingInfoListener;
 import gamedata.exceptions.GameDataException;
 import gamedata.exceptions.InvalidRessourcePathException;
 import gamedata.exceptions.RessourceException;
@@ -1319,6 +1320,12 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		resetDataModified();
 	}
 
+	private MissingInfoListener missingInfoListener = new MissingInfoListener() {
+		@Override public boolean missingEntityAnimationDescriptor(RessourcePath r, EntityAnimation anim, Champion c) {
+			anim.setDescriptorFilename("yeet.dat");
+			return true;
+		};
+	};
 
 	/**
 	 * saves the current game data to a given ressource path
@@ -1326,7 +1333,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	 */
 	private void saveDataTo(RessourcePath rPath){
 		try {
-			rPath.saveGameData(currentData);
+			rPath.saveGameData(currentData, missingInfoListener);
 		} catch (GameDataException ex){
 			errorPopup("Error : invalid game data.");
 			ex.printStackTrace();
