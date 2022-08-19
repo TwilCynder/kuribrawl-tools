@@ -18,7 +18,9 @@ public abstract class Form extends JDialog {
 
     public Form(Window frame, String title){
         super(frame, title);
+    }
 
+    protected void init(){
         form = initForm();
         optionPane = new JOptionPane(form, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null, null);
         setContentPane(optionPane);
