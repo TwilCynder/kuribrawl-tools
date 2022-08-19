@@ -35,10 +35,8 @@ public class RestrictedRootFileSystemView extends FileSystemView{
                 return true;
             }
         }
-        return false;
+        return super.isRoot(file);
     }
-
-
     
     @Override
     public File createNewFolder(File containingDir) throws IOException {

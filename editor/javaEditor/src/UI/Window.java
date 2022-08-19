@@ -52,6 +52,7 @@ import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
 import KBUtil.functional.DoubleToString;
+import UI.OpenPathButton.SelectionListener;
 import UI.exceptions.WindowStateException;
 import gamedata.AngleMode;
 import gamedata.Champion;
@@ -242,24 +243,31 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		private Action openExplorerSourceImageFileAction;
 		private Action openExplorerDescriptorFileAction;
+		private SelectionListener sourceImageSelectionListener;
+
+		private Path currentPath;
 
 		public NewAnimationForm(Window frame) throws IllegalStateException {
 			super(frame, "New animation");
 			if (currentRessourcePath == null) throw new IllegalStateException("A new animation form was opened with no current ressource path");
+			currentPath = currentRessourcePath.getPath();
 		}
 
 		private void initActions(){
 			FileFilter datFilter = new FileNameExtensionFilter("Descriptor files", "dat");
 			FileFilter pngFilter = new FileNameExtensionFilter("PNG Image files", "png");
 
+			sourceImageSelectionListener = new SelectionListener() {
+				@Override
+				public void pathSelected(Path selected) {
+					Path relativePath = currentPath.relativize(selected);
+					sourceImageFile.setText(relativePath.toString());
+				}
+			};
+
 			openExplorerSourceImageFileAction = new AbstractAction() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					if (currentRessourcePath == null){
-						throw new WindowStateException("New animation form was opened with no current ressource path");
-					}
-
-					Path currentPath = currentRessourcePath.getPath();
 					RestrictedRootPathChooser chooser = new RestrictedRootPathChooser(PathChooser.Mode.FILE, currentPath);
 					chooser.setFileFilter(pngFilter);
 					Path selected = chooser.openPath(NewAnimationForm.this);
@@ -274,10 +282,11 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			openExplorerDescriptorFileAction = new AbstractAction() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					Path currentPath = currentRessourcePath.getPath();
 					RestrictedRootPathChooser chooser = new RestrictedRootPathChooser(PathChooser.Mode.FILE, currentPath);
 					chooser.setFileFilter(datFilter);
 					Path selected = chooser.savePath(NewAnimationForm.this);
+
+					if (selected == null) return;
 
 					Path relativePath = currentPath.relativize(selected);
 					descriptorFile.setText(relativePath.toString());
@@ -440,6 +449,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 			try {
 				currentRessourcePath.addAnimation(champion, animName, nbFrames, sourceImageFilename, descriptorFilename);
+				updateAnimations();
 				currentData.printAnimations();
 			} catch (RessourceException ex){
 				JOptionPane.showMessageDialog(Window.this, "Error while creating the animation : \n" + ex.getLocalizedMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -1214,6 +1224,9 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		dummyMenu.add(dummyMenuItem);
 		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
 
+		dummyMenuItem = new JMenuItem("Set descriptor file");
+		dummyMenu.add(dummyMenuItem);
+
 		menu_bar.add(dummyMenu);
 
 		setJMenuBar(menu_bar);
@@ -1283,6 +1296,13 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
         }
 	}
 
+	/**
+	 * Call this when the animations list has been modified (animation added, removed or renamed)
+	 */
+	public void updateAnimations(){
+		initAnimationsMenu(currentData);
+	}
+
 	public void notifyDataModified(){
 		if (initializing) return;
 		System.out.println("NOTIFY");
@@ -1318,7 +1338,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		currentRessourcePath = originPath;
 		currentFileList = gd.getUsedFilenames();
 		resetDataModified();
-	}
+	} 
 
 	private MissingInfoListener missingInfoListener = new MissingInfoListener() {
 		@Override public boolean missingEntityAnimationDescriptor(RessourcePath r, EntityAnimation anim, Champion c) {

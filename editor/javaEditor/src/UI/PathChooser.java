@@ -33,8 +33,12 @@ public class PathChooser extends JFileChooser {
     }
 
     public PathChooser(Mode mode){
-        super();
+        this();
         setFileSelectionMode(mode.toInt()); 
+    }
+
+    public PathChooser(){
+        super();
     }
 
     public void addFileFilters(FileFilter... filters){
