@@ -41,7 +41,7 @@ public class PathChooser extends JFileChooser {
         super();
     }
 
-    public void addFileFilters(FileFilter... filters){
+    public void addChoosableFileFilters(FileFilter... filters){
         for (FileFilter filter : filters){
             addChoosableFileFilter(filter);
         }

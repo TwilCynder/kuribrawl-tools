@@ -3,13 +3,9 @@ package UI;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
 import java.nio.file.Path;
 import java.util.Collection;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -18,7 +14,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -30,8 +25,8 @@ import com.jgoodies.forms.layout.RowSpec;
 import KBUtil.ui.Form;
 import KBUtil.ui.IntegerSpinner;
 import KBUtil.ui.Interactable;
-import KBUtil.ui.PathChooser;
-import KBUtil.ui.RestrictedRootPathChooser;
+import KBUtil.ui.OpenPathButton;
+import KBUtil.ui.OpenPathRestrictedButton;
 import KBUtil.ui.OpenPathButton.SelectionListener;
 import gamedata.Champion;
 import gamedata.EntityAnimation;
@@ -57,9 +52,8 @@ class NewAnimationForm extends Form {
     private JComboBox<Champion> championList;
     private IntegerSpinner nbFramesSpinner;
 
-    private Action openExplorerSourceImageFileAction;
-    private Action openExplorerDescriptorFileAction;
     private SelectionListener sourceImageSelectionListener;
+    private SelectionListener descriptorSelectionListener;
 
     private RessourcePath currentRessourcePath;
     private GameData currentData;
@@ -81,9 +75,10 @@ class NewAnimationForm extends Form {
         init();
     }
 
+    private static final FileFilter datFilter = new FileNameExtensionFilter("Descriptor files", "dat");
+    private static final FileFilter pngFilter = new FileNameExtensionFilter("PNG Image files", "png");
+
     private void initActions(){
-        FileFilter datFilter = new FileNameExtensionFilter("Descriptor files", "dat");
-        FileFilter pngFilter = new FileNameExtensionFilter("PNG Image files", "png");
 
         sourceImageSelectionListener = new SelectionListener() {
             @Override
@@ -93,29 +88,9 @@ class NewAnimationForm extends Form {
             }
         };
 
-        openExplorerSourceImageFileAction = new AbstractAction() {
+        descriptorSelectionListener = new SelectionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                RestrictedRootPathChooser chooser = new RestrictedRootPathChooser(PathChooser.Mode.FILE, currentPath);
-                chooser.setFileFilter(pngFilter);
-                Path selected = chooser.openPath(NewAnimationForm.this);
-
-                if (selected == null) return;
-
-                Path relativePath = currentPath.relativize(selected);
-                sourceImageFile.setText(relativePath.toString());
-            }
-        };
-
-        openExplorerDescriptorFileAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                RestrictedRootPathChooser chooser = new RestrictedRootPathChooser(PathChooser.Mode.FILE, currentPath);
-                chooser.setFileFilter(datFilter);
-                Path selected = chooser.savePath(NewAnimationForm.this);
-
-                if (selected == null) return;
-
+            public void pathSelected(Path selected) {
                 Path relativePath = currentPath.relativize(selected);
                 descriptorFile.setText(relativePath.toString());
             }
@@ -193,9 +168,11 @@ class NewAnimationForm extends Form {
         panel.add(sourceImageFile, "4, 6, fill, default");
         sourceImageFile.setColumns(10);
 
-        JButton openExplorerSourceImageFile = new JButton(openExplorerSourceImageFileAction);
+        OpenPathRestrictedButton openExplorerSourceImageFile = new OpenPathRestrictedButton(this, OpenPathButton.Open, currentPath);
         openExplorerSourceImageFile.setPreferredSize(new Dimension(25, 22));
-        openExplorerSourceImageFile.setIcon(UIManager.getIcon("FileView.directoryIcon"));
+        openExplorerSourceImageFile.addSelectionListener(sourceImageSelectionListener);
+        openExplorerSourceImageFile.addChoosableFileFilters(pngFilter);
+        openExplorerSourceImageFile.setAcceptAllFileFilterUsed(false);
         panel.add(openExplorerSourceImageFile, "5, 6");
 
         label = new JLabel("Descriptor file");
@@ -205,9 +182,10 @@ class NewAnimationForm extends Form {
         panel.add(descriptorFile, "4, 8, fill, default");
         descriptorFile.setColumns(10);
 
-        JButton openExplorerDescriptorFile = new JButton(openExplorerDescriptorFileAction);
+        OpenPathRestrictedButton openExplorerDescriptorFile = new OpenPathRestrictedButton(this, OpenPathButton.Save, currentPath);
         openExplorerDescriptorFile.setPreferredSize(new Dimension(25, 22));
-        openExplorerDescriptorFile.setIcon(UIManager.getIcon("FileView.directoryIcon"));
+        openExplorerDescriptorFile.addSelectionListener(descriptorSelectionListener);
+        openExplorerDescriptorFile.addChoosableFileFilters(datFilter);
         panel.add(openExplorerDescriptorFile, "5, 8");
 
         label = new JLabel("Number of frames");

@@ -906,7 +906,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				}
 
 				PathChooser chooser = new PathChooser(PathChooser.Mode.FILE, currentRessourcePath.getPath());
-				chooser.addFileFilters(new FileNameExtensionFilter("ZIP Archives", "zip"));
+				chooser.addChoosableFileFilters(new FileNameExtensionFilter("ZIP Archives", "zip"));
 				chooser.setAcceptAllFileFilterUsed(false);
 				Path dest = chooser.savePath(Window.this);
 

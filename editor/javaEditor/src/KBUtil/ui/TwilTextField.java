@@ -65,6 +65,10 @@ public class TwilTextField extends JTextField {
         }
     }
 
+    public boolean isUsingNormalBackground(){
+        return is_using_normal_backround;
+    }
+
     public Color getNormalBackground(){
         return normal_background_color;
     }
