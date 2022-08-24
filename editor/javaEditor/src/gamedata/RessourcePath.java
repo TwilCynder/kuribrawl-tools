@@ -1,3 +1,5 @@
+//TODO : vérifier la validité des noms de descriptor files
+
 package gamedata;
 
 import java.io.BufferedInputStream;
@@ -81,6 +83,14 @@ public class RessourcePath {
 
     private File getFile(String name) {
         return path.resolve(name).toFile();
+    }
+
+    public Path resolvePath(Path name){
+        return path.resolve(name);
+    }
+
+    public Path resolvePath(String name){
+        return path.resolve(name);
     }
 
     static private Path toPath(String name){

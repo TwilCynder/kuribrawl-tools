@@ -2,6 +2,7 @@ package UI;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import javax.swing.JPanel;
@@ -15,11 +16,13 @@ import gamedata.RessourcePath;
 public class ChangeDescriptorFilenameForm extends EditorForm {
     EntityAnimation anim;
     private TwilTextField tfFilename;
+    private RessourcePath currentRessourcePath;
+    private String oldDescriptorFilename;
 
     public ChangeDescriptorFilenameForm(Window frame, String title, EntityAnimation anim) {
         super(frame, title);
         this.anim = anim;
-
+        this.oldDescriptorFilename = anim.getDescriptorFilename();
         init();
     }
 
@@ -31,7 +34,7 @@ public class ChangeDescriptorFilenameForm extends EditorForm {
         tfFilename.setColumns(30);
         form.add(tfFilename);
 
-        RessourcePath currentRessourcePath = editor.getCurrentRessourcePath();
+        currentRessourcePath = editor.getCurrentRessourcePath();
         if (editor.getCurrentRessourcePath() == null) throw new IllegalStateException("A new animation form was opened with no current ressource path");
         Path currentPath = currentRessourcePath.getPath();
 
@@ -46,7 +49,12 @@ public class ChangeDescriptorFilenameForm extends EditorForm {
 
     @Override
     protected boolean confirm() {
-        return false;
+        if (oldDescriptorFilename != null){
+            Path oldPath = currentRessourcePath.resolvePath(oldDescriptorFilename);
+            //if (Files.exists(path, options))
+        }
+
+        return true;
     }
     
 }

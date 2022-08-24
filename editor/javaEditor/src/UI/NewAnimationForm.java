@@ -228,7 +228,7 @@ public class NewAnimationForm extends EditorForm {
             currentRessourcePath.addAnimation(champion, animName, nbFrames, sourceImageFilename, descriptorFilename);
             editor.updateAnimations();
             currentData.printAnimations();
-        } catch (RessourceException ex){
+        } catch (RessourceException ex){    
             JOptionPane.showMessageDialog(editor, "Error while creating the animation : \n" + ex.getLocalizedMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
 
