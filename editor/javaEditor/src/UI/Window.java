@@ -10,8 +10,10 @@ import java.awt.event.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -877,13 +879,13 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		//============= ACTIONS ==================
 
-		Action testAction = new AbstractAction(){
+		Action testAction = new AbstractAction("Test"){
 			public void actionPerformed(ActionEvent e){
 				System.out.println("Test !");
 			}
 		};
 
-		Action saveArchiveAction = new AbstractAction(){
+		Action saveArchiveAction = new AbstractAction("Save as archive"){
 			public void actionPerformed(ActionEvent e){
 				if (currentRessourcePath == null){
 					System.out.println("Can't save current ressource files as archive, as there is no open ressource folder");
@@ -927,7 +929,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			}
 		};
 
-		Action saveAction = new AbstractAction() {
+		Action saveAction = new AbstractAction("Save") {
 			public void actionPerformed(ActionEvent e){
 				if (modifsOccured()){
 					saveData();
@@ -935,7 +937,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			}
 		};
 
-		Action saveAsAction = new AbstractAction() {
+		Action saveAsAction = new AbstractAction("Save as") {
 			public void actionPerformed(ActionEvent e){
 				if (modifsOccured()){
 					saveDataAs();
@@ -943,7 +945,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			}
 		};
 
-		Action newAnimationAction = new AbstractAction() {
+		Action newAnimationAction = new AbstractAction("New Animation") {
 			public void actionPerformed(ActionEvent e){
 				if (currentData == null) return;
 				if (currentRessourcePath == null) {
@@ -952,6 +954,13 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				}
 
 				new NewAnimationForm(Window.this);
+			}
+		};
+
+		Action changeDescriptorAction = new AbstractAction("Change Animation Descriptor Filename") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				setCurrentAnimDescriptor();
 			}
 		};
 
@@ -975,7 +984,6 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		dummyMenuItem.addActionListener(saveAsAction);
 		dummyMenu.add(dummyMenuItem);
 
-
 		dummyMenuItem = new JMenuItem("Save as Archive");
 		dummyMenuItem.addActionListener(saveArchiveAction);
 		dummyMenu.add(dummyMenuItem);
@@ -985,17 +993,23 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		animations_menu = new JMenu("Animations");
 		menu_bar.add(animations_menu);
 
-		dummyMenu = new JMenu("Game Data");
+		gameDataMenu = new JMenu("Game Data");
+
+		baseGamedataMenuItems = new LinkedList<>();
 
 		dummyMenuItem = new JMenuItem("New animation");
 		dummyMenuItem.addActionListener(newAnimationAction);
-		dummyMenu.add(dummyMenuItem);
+		baseGamedataMenuItems.add(dummyMenuItem);
 		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
 
-		dummyMenuItem = new JMenuItem("Set descriptor file");
-		dummyMenu.add(dummyMenuItem);
+		animationGamedataMenuItems = new LinkedList<>();
 
-		menu_bar.add(dummyMenu);
+		dummyMenuItem = new JMenuItem("Set descriptor file");
+		dummyMenuItem.addActionListener(changeDescriptorAction);
+		animationGamedataMenuItems.add(dummyMenuItem);
+
+		addItemsToMenu(gameDataMenu, baseGamedataMenuItems);
+		menu_bar.add(gameDataMenu);
 
 		setJMenuBar(menu_bar);
 
@@ -1060,7 +1074,21 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		timer.start();
 	}
 
-	public void initAnimationsMenu(GameData gd){
+	private void addItemsToMenu(JMenu menu, Collection<JMenuItem> items) {
+		for (var item : items){
+			menu.add(item);
+		}
+	}
+
+	private void setGameDataMenuItems(Collection<JMenuItem> items){
+		gameDataMenu.removeAll();
+		addItemsToMenu(gameDataMenu, baseGamedataMenuItems);
+		if (items == null) return;
+		gameDataMenu.addSeparator();
+		addItemsToMenu(gameDataMenu, items);
+	}
+
+	private void initAnimationsMenu(GameData gd){
 		animations_menu.removeAll();
 
 		for (Champion c : gd){
@@ -1122,6 +1150,19 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			return true;
 		};
 	};
+	private Collection<JMenuItem> baseGamedataMenuItems;
+	private Collection<JMenuItem> animationGamedataMenuItems;
+	private JMenu gameDataMenu;
+
+	private void setAnimDescriptor(EntityAnimation anim){
+		new ChangeDescriptorFilenameForm(this, "Change the descriptor file name", anim);
+	}
+
+	private void setCurrentAnimDescriptor()throws WindowStateException{
+		EntityAnimationEditor ead = getEAEDitor();
+		EntityAnimation anim = ead.getAnimation();
+		setAnimDescriptor(anim);
+	}
 
 	/**
 	 * saves the current game data to a given ressource path
@@ -1181,6 +1222,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		resetDataModified();
 	}
 
+
+
 	public void setDisplayedObject(EntityAnimation anim){
 		Interactable current = displayCanvas.getInteractable();
 		EntityAnimationEditor editor;
@@ -1195,6 +1238,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		updateCurrentFrameField(editor);
 		updateCurrentZoomField(editor);
 		repaint();
+
+		setGameDataMenuItems(animationGamedataMenuItems);
 	}
 
 	public Interactable getCurrentEditor(){

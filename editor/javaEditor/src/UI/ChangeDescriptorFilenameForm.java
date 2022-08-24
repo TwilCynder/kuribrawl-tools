@@ -28,6 +28,7 @@ public class ChangeDescriptorFilenameForm extends EditorForm {
         JPanel form = new JPanel();
 
         tfFilename = new TwilTextField(anim.getDescriptorFilename());
+        tfFilename.setColumns(30);
         form.add(tfFilename);
 
         RessourcePath currentRessourcePath = editor.getCurrentRessourcePath();
@@ -35,12 +36,12 @@ public class ChangeDescriptorFilenameForm extends EditorForm {
         Path currentPath = currentRessourcePath.getPath();
 
         OpenPathRestrictedButton button = new OpenPathRestrictedButton(this, OpenPathButton.Save, currentPath);
-        button.setSize(new Dimension(22, 25));
+        button.setPreferredSize(new Dimension(25, 22));
         button.addSelectionListener(new TextFieldRelativePathSelectionListener(tfFilename, currentPath));
         button.addChoosableFileFilters(CommonFileFilters.datFilter);
         form.add(button);
 
-        return null;
+        return form;
     }
 
     @Override
