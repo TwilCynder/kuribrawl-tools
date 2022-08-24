@@ -14,27 +14,22 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
-import KBUtil.ui.Form;
 import KBUtil.ui.IntegerSpinner;
 import KBUtil.ui.Interactable;
 import KBUtil.ui.OpenPathButton;
 import KBUtil.ui.OpenPathRestrictedButton;
-import KBUtil.ui.OpenPathButton.SelectionListener;
 import gamedata.Champion;
 import gamedata.EntityAnimation;
 import gamedata.GameData;
 import gamedata.RessourcePath;
 import gamedata.exceptions.RessourceException;
 
-class NewAnimationForm extends Form {
+public class NewAnimationForm extends EditorForm {
     private class ChampionCellRenderer extends JLabel implements ListCellRenderer<Champion> {
 
         @Override
@@ -52,14 +47,10 @@ class NewAnimationForm extends Form {
     private JComboBox<Champion> championList;
     private IntegerSpinner nbFramesSpinner;
 
-    private SelectionListener sourceImageSelectionListener;
-    private SelectionListener descriptorSelectionListener;
-
     private RessourcePath currentRessourcePath;
     private GameData currentData;
     private Path currentPath;
-    private Window editor;
-
+ 
     public NewAnimationForm(Window editor) throws IllegalStateException {
         super(editor, "New animation");
         
@@ -70,31 +61,11 @@ class NewAnimationForm extends Form {
         currentData = editor.getCurrentData();
         if (editor.getCurrentRessourcePath() == null) throw new IllegalStateException("A new animation form was opened with no current ressource path");
 
-        this.editor = editor;
-
         init();
     }
 
-    private static final FileFilter datFilter = new FileNameExtensionFilter("Descriptor files", "dat");
-    private static final FileFilter pngFilter = new FileNameExtensionFilter("PNG Image files", "png");
-
     private void initActions(){
 
-        sourceImageSelectionListener = new SelectionListener() {
-            @Override
-            public void pathSelected(Path selected) {
-                Path relativePath = currentPath.relativize(selected);
-                sourceImageFile.setText(relativePath.toString());
-            }
-        };
-
-        descriptorSelectionListener = new SelectionListener() {
-            @Override
-            public void pathSelected(Path selected) {
-                Path relativePath = currentPath.relativize(selected);
-                descriptorFile.setText(relativePath.toString());
-            }
-        };
     }
 
     private void fillFields(){
@@ -170,8 +141,8 @@ class NewAnimationForm extends Form {
 
         OpenPathRestrictedButton openExplorerSourceImageFile = new OpenPathRestrictedButton(this, OpenPathButton.Open, currentPath);
         openExplorerSourceImageFile.setPreferredSize(new Dimension(25, 22));
-        openExplorerSourceImageFile.addSelectionListener(sourceImageSelectionListener);
-        openExplorerSourceImageFile.addChoosableFileFilters(pngFilter);
+        openExplorerSourceImageFile.addSelectionListener(new TextFieldRelativePathSelectionListener(sourceImageFile, currentPath));
+        openExplorerSourceImageFile.addChoosableFileFilters(CommonFileFilters.pngFilter);
         openExplorerSourceImageFile.setAcceptAllFileFilterUsed(false);
         panel.add(openExplorerSourceImageFile, "5, 6");
 
@@ -184,8 +155,8 @@ class NewAnimationForm extends Form {
 
         OpenPathRestrictedButton openExplorerDescriptorFile = new OpenPathRestrictedButton(this, OpenPathButton.Save, currentPath);
         openExplorerDescriptorFile.setPreferredSize(new Dimension(25, 22));
-        openExplorerDescriptorFile.addSelectionListener(descriptorSelectionListener);
-        openExplorerDescriptorFile.addChoosableFileFilters(datFilter);
+        openExplorerDescriptorFile.addSelectionListener(new TextFieldRelativePathSelectionListener(descriptorFile, currentPath));
+        openExplorerDescriptorFile.addChoosableFileFilters(CommonFileFilters.datFilter);
         panel.add(openExplorerDescriptorFile, "5, 8");
 
         label = new JLabel("Number of frames");

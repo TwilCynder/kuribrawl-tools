@@ -58,7 +58,6 @@ import KBUtil.ui.MapComboBox;
 import KBUtil.ui.MapComboBoxItem;
 import KBUtil.ui.PathChooser;
 import KBUtil.ui.RealNumberDocumentFilter;
-import KBUtil.ui.RestrictedRootPathChooser;
 import KBUtil.ui.TwilTextField;
 import UI.exceptions.WindowStateException;
 import gamedata.AngleMode;
@@ -848,8 +847,6 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				}
 			}
 		});
-
-		RestrictedRootPathChooser.showOpenDialog(this, PathChooser.Mode.FILE, null);
 
 	}
 

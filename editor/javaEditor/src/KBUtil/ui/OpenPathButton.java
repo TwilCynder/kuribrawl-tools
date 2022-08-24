@@ -30,7 +30,7 @@ public abstract class OpenPathButton extends JButton {
         }
     };
 
-    public static interface SelectionListener {
+    public static interface PathSelectionListener {
         public void pathSelected(Path selected);
     }
 
@@ -38,7 +38,7 @@ public abstract class OpenPathButton extends JButton {
         public void prepareChooser(PathChooser chooser);
     }
 
-    private List<SelectionListener> listeners = new LinkedList<>();
+    private List<PathSelectionListener> listeners = new LinkedList<>();
     private List<ChooserPreparator> preparators = new LinkedList<>();
     protected Component parent;
     private ChooserOpener opener;
@@ -86,7 +86,7 @@ public abstract class OpenPathButton extends JButton {
             listener.pathSelected(path);
         }
     }
-    public void addSelectionListener(SelectionListener listener){
+    public void addSelectionListener(PathSelectionListener listener){
         listeners.add(listener);
     }
 
