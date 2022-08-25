@@ -953,7 +953,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 					return;
 				}
 
-				new NewAnimationForm(Window.this);
+				new NewAnimationForm(Window.this).showForm();
 			}
 		};
 
@@ -1146,7 +1146,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 	private MissingInfoListener missingInfoListener = new MissingInfoListener() {
 		@Override public boolean missingEntityAnimationDescriptor(RessourcePath r, EntityAnimation anim, Champion c) {
-			anim.setDescriptorFilename("yeet.dat");
+			//TODO SAUCISSE
 			return true;
 		};
 	};
@@ -1155,7 +1155,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	private JMenu gameDataMenu;
 
 	private void setAnimDescriptor(EntityAnimation anim){
-		new ChangeDescriptorFilenameForm(this, "Change the descriptor file name", anim);
+		new ChangeDescriptorFilenameForm(this, "Change the descriptor file name", anim).showForm();
 	}
 
 	private void setCurrentAnimDescriptor()throws WindowStateException{

@@ -16,8 +16,15 @@ public abstract class Form extends JDialog {
     protected Component form;
     private JOptionPane optionPane;
 
+    private int result = -1;
+
     public Form(Window frame, String title){
         super(frame, title);
+    }
+
+    public Form(Window frame, String title, boolean modal){
+        this(frame, title);
+        setModal(modal);
     }
 
     protected void init(){
@@ -28,7 +35,6 @@ public abstract class Form extends JDialog {
         __initListener();
 
         pack();
-        setVisible(true);
         setLocationRelativeTo(getOwner());
     }
 
@@ -49,6 +55,7 @@ public abstract class Form extends JDialog {
 
                         Integer res = (Integer)evt.getNewValue();
                         if (res.intValue() != JOptionPane.OK_OPTION || confirm()){
+                            result = res;
                             setVisible(false); //close if ok was not selected OR if it was but confirm returns false
                         } else {
                             resetting = true;
@@ -59,6 +66,15 @@ public abstract class Form extends JDialog {
                 }
             }
         );
+    }
+
+    /**
+     * Makes the form visible. 
+     * @return the choosen result if the form is modal, or always -1 if it's not (just don't use the result value of a non-modal form)
+     */
+    public int showForm(){
+        setVisible(true);
+        return result;
     }
 
     protected abstract Component initForm();

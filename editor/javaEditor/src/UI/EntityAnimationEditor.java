@@ -216,6 +216,7 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         selected_cbox = null;
 
         d.update();
+        editorWindow.notifyDataModified();
         onSelectedCBoxChanged();
     }
 

@@ -9,4 +9,9 @@ public abstract class EditorForm extends Form {
         super(frame, title);
         editor = frame;
     }
+
+    public EditorForm(Window frame, String title, boolean modal){
+        super(frame, title, modal);
+        editor = frame;
+    }
 }

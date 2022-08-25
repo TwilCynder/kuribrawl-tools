@@ -25,7 +25,7 @@ public class ChangeDescriptorFilenameForm extends EditorForm {
     private String oldDescriptorFilename;
 
     public ChangeDescriptorFilenameForm(Window frame, String title, EntityAnimation anim) {
-        super(frame, title);
+        super(frame, title, true);
         this.anim = anim;
         this.oldDescriptorFilename = anim.getDescriptorFilename();
         init();
@@ -54,44 +54,49 @@ public class ChangeDescriptorFilenameForm extends EditorForm {
 
     @Override
     protected boolean confirm() {
+        //TODO utiliser le Remove Descriptor Filename
         try {
-            Path newPath = Paths.get(tfFilename.getText());
+            String newPathName = tfFilename.getText();
             int res;
-            if (oldDescriptorFilename != null){
-                Path oldPath = ressourcePath.resolvePath(oldDescriptorFilename);
-                if (ressourcePath.exists(oldPath)){
-                    res = JOptionPane.showOptionDialog(editor, 
-                    "The former descriptor file was an existing file, do you want to \nrename this file instead of just changing the descriptor pathname ?",
-                    "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
+
+            if (!newPathName.isEmpty()){
+                Path newPath = Paths.get(newPathName);
+                if (oldDescriptorFilename != null && !oldDescriptorFilename.equals(newPath.toString())){
+                    Path oldPath = ressourcePath.resolvePath(oldDescriptorFilename);
+                    if (ressourcePath.exists(oldPath)){
+                        res = JOptionPane.showOptionDialog(editor, 
+                        "The former descriptor file was an existing file, do you want to \nrename this file instead of just changing the descriptor pathname ?",
+                        "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
+        
+                        if (res == JOptionPane.YES_OPTION){
+                            if (ressourcePath.exists(newPath)){
+                                res = JOptionPane.showOptionDialog(editor, 
+                                newPath.toString() + " already exists. Overwrite it ?",
+                         "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
     
-                    if (res == JOptionPane.YES_OPTION){
-                        if (ressourcePath.exists(newPath)){
-                            res = JOptionPane.showOptionDialog(editor, 
-                            newPath.toString() + " already exists. Overwrite it ?",
-                     "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
-
-                            if (res == JOptionPane.NO_OPTION){
-                                return false;
+                                if (res == JOptionPane.NO_OPTION){
+                                    return false;
+                                }
                             }
+    
+                            System.out.println("Move " + ressourcePath.resolvePath(oldPath) + " to " + ressourcePath.resolvePath(newPath) );
+                            Files.move(ressourcePath.resolvePath(oldPath), ressourcePath.resolvePath(newPath), StandardCopyOption.REPLACE_EXISTING);
                         }
-
-                        System.out.println("Move " + ressourcePath.resolvePath(oldPath) + " to " + ressourcePath.resolvePath(newPath) );
-                        Files.move(ressourcePath.resolvePath(oldPath), ressourcePath.resolvePath(newPath), StandardCopyOption.REPLACE_EXISTING);
                     }
-                }
-            } else {
-                if (ressourcePath.exists(newPath)){
-                    res = JOptionPane.showOptionDialog(editor, 
-                    newPath.toString() + " already exists. When saving the Game Data, it will be overwritten. Proceed ?",
-             "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
-
-                    if (res == JOptionPane.NO_OPTION){
-                        return false;
+                } else {
+                    if (ressourcePath.exists(newPath)){
+                        res = JOptionPane.showOptionDialog(editor, 
+                        newPath.toString() + " already exists. When saving the Game Data, it will be overwritten. Proceed ?",
+                 "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
+    
+                        if (res == JOptionPane.NO_OPTION){
+                            return false;
+                        }
                     }
                 }
             }
 
-            anim.setDescriptorFilename(newPath.toString());
+            anim.setDescriptorFilename(newPathName);
 
         } catch (InvalidPathException ex) {
             JOptionPane.showMessageDialog(editor, "Given path is not a valid file path", "Inane error", JOptionPane.ERROR_MESSAGE);
