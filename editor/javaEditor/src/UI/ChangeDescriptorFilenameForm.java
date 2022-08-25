@@ -2,9 +2,14 @@ package UI;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import KBUtil.ui.OpenPathButton;
@@ -16,7 +21,7 @@ import gamedata.RessourcePath;
 public class ChangeDescriptorFilenameForm extends EditorForm {
     EntityAnimation anim;
     private TwilTextField tfFilename;
-    private RessourcePath currentRessourcePath;
+    private RessourcePath ressourcePath;
     private String oldDescriptorFilename;
 
     public ChangeDescriptorFilenameForm(Window frame, String title, EntityAnimation anim) {
@@ -34,9 +39,9 @@ public class ChangeDescriptorFilenameForm extends EditorForm {
         tfFilename.setColumns(30);
         form.add(tfFilename);
 
-        currentRessourcePath = editor.getCurrentRessourcePath();
+        ressourcePath = editor.getCurrentRessourcePath();
         if (editor.getCurrentRessourcePath() == null) throw new IllegalStateException("A new animation form was opened with no current ressource path");
-        Path currentPath = currentRessourcePath.getPath();
+        Path currentPath = ressourcePath.getPath();
 
         OpenPathRestrictedButton button = new OpenPathRestrictedButton(this, OpenPathButton.Save, currentPath);
         button.setPreferredSize(new Dimension(25, 22));
@@ -49,9 +54,50 @@ public class ChangeDescriptorFilenameForm extends EditorForm {
 
     @Override
     protected boolean confirm() {
-        if (oldDescriptorFilename != null){
-            Path oldPath = currentRessourcePath.resolvePath(oldDescriptorFilename);
-            //if (Files.exists(path, options))
+        try {
+            Path newPath = Paths.get(tfFilename.getText());
+            int res;
+            if (oldDescriptorFilename != null){
+                Path oldPath = ressourcePath.resolvePath(oldDescriptorFilename);
+                if (ressourcePath.exists(oldPath)){
+                    res = JOptionPane.showOptionDialog(editor, 
+                    "The former descriptor file was an existing file, do you want to \nrename this file instead of just changing the descriptor pathname ?",
+                    "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
+    
+                    if (res == JOptionPane.YES_OPTION){
+                        if (ressourcePath.exists(newPath)){
+                            res = JOptionPane.showOptionDialog(editor, 
+                            newPath.toString() + " already exists. Overwrite it ?",
+                     "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
+
+                            if (res == JOptionPane.NO_OPTION){
+                                return false;
+                            }
+                        }
+
+                        System.out.println("Move " + ressourcePath.resolvePath(oldPath) + " to " + ressourcePath.resolvePath(newPath) );
+                        Files.move(ressourcePath.resolvePath(oldPath), ressourcePath.resolvePath(newPath), StandardCopyOption.REPLACE_EXISTING);
+                    }
+                }
+            } else {
+                if (ressourcePath.exists(newPath)){
+                    res = JOptionPane.showOptionDialog(editor, 
+                    newPath.toString() + " already exists. When saving the Game Data, it will be overwritten. Proceed ?",
+             "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
+
+                    if (res == JOptionPane.NO_OPTION){
+                        return false;
+                    }
+                }
+            }
+
+            anim.setDescriptorFilename(newPath.toString());
+
+        } catch (InvalidPathException ex) {
+            JOptionPane.showMessageDialog(editor, "Given path is not a valid file path", "Inane error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        } catch (IOException ex){
+            JOptionPane.showMessageDialog(editor, "IO Error : could not rename the file. Aborting.", "Inane error", JOptionPane.ERROR_MESSAGE);
         }
 
         return true;

@@ -72,6 +72,22 @@ public class RessourcePath {
         }
     }
 
+    /**
+     * Returns whether the given string is a valid pathname.
+     * 
+     * Note that this method consistently returns false if Paths.get would throw an exception, and vice versa. 
+     * @param name
+     * @return
+     */
+    public static boolean isValidPathName(String name){
+        try {
+            Paths.get(name);
+        } catch (InvalidPathException ex){
+            return false;
+        }
+        return true;
+    }
+
     @SuppressWarnings("unused")
     private InputStream fileStream(String name) throws IOException, InvalidPathException{
         return Files.newInputStream(path.resolve(name), symlinks_behavior);
@@ -91,6 +107,10 @@ public class RessourcePath {
 
     public Path resolvePath(String name){
         return path.resolve(name);
+    }
+
+    public boolean exists(Path name){
+        return Files.exists(resolvePath(name), symlinks_behavior);
     }
 
     static private Path toPath(String name){
