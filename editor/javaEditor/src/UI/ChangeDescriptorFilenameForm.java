@@ -74,7 +74,7 @@ public class ChangeDescriptorFilenameForm extends EditorForm {
                                 newPath.toString() + " already exists. Overwrite it ?",
                          "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
     
-                                if (res == JOptionPane.NO_OPTION){
+                                if (res != JOptionPane.YES_OPTION){
                                     return false;
                                 }
                             }
@@ -89,7 +89,7 @@ public class ChangeDescriptorFilenameForm extends EditorForm {
                         newPath.toString() + " already exists. When saving the Game Data, it will be overwritten. Proceed ?",
                  "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
     
-                        if (res == JOptionPane.NO_OPTION){
+                        if (res != JOptionPane.YES_OPTION){
                             return false;
                         }
                     }

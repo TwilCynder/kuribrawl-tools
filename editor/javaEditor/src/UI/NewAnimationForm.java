@@ -212,7 +212,7 @@ public class NewAnimationForm extends EditorForm {
             "If you don't specify a descriptor file, you will have to do it later if the animation does \nnot follow the default elements configuration. Proceed ?",
             "Warning", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
 
-            if (res == JOptionPane.CANCEL_OPTION) return false;
+            if (res != JOptionPane.OK_OPTION) return false;
         }
         int nbFrames = nbFramesSpinner.getValueInt();
 

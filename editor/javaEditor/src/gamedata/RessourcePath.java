@@ -1,3 +1,4 @@
+//TODO : BACKUP PDT SAUVEGARDE
 //TODO : vérifier la validité des noms de descriptor files
 
 package gamedata;
@@ -576,7 +577,7 @@ public class RessourcePath {
 
         if (toWrite != null){   //if the info isn't missing in the first place
             return toWrite;     //just return it
-        } else if (mil != null && mil.missingChampionDescriptor(this, c)){  //if is is, do we have a MIL and did it's method supposedly succeed ?
+        } else if (mil != null && mil.missingChampionDescriptor(this, c)){  //if is is, do we have a MIL and did its method supposedly succeed ?
             toWrite = c.getDescriptorFilename(); //if so, we test the info again
             if (toWrite != null) return toWrite;
         }   //if the info is actually still missing OR the method indicated that it failed OR we didn't even have a MIL
@@ -592,12 +593,12 @@ public class RessourcePath {
 
         if (toWrite != null){   //if the info isn't missing in the first place
             return toWrite;     //just return it
-        } else if (mil != null && mil.missingEntityAnimationDescriptor(this, anim, c)){  //if is is, do we have a MIL and did it's method supposedly succeed ?
+        } else if (mil != null && mil.missingEntityAnimationDescriptor(this, anim, c)){  //if is is, do we have a MIL and did its method supposedly succeed ?
             toWrite = anim.getDescriptorFilename(); //if so, we test the info again
             if (toWrite != null) return toWrite;
         }   //if the info is actually still missing OR the method indicated that it failed OR we didn't even have a MIL
 
-        throw new TransparentGameDataException("Animation" + anim.getName() + "of champion " + anim.getName() + " does not have a descriptor file but needs one. Please set one."); //just raise an exception
+        throw new TransparentGameDataException("Animation" + anim.getName() + " of champion " + anim.getName() + " does not have a descriptor file but needs one. Please set one."); //just raise an exception
     }
 
     public void saveGameData(GameData gd, MissingInfoListener mil) throws GameDataException, TransparentGameDataException, IOException{

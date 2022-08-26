@@ -889,7 +889,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			public void actionPerformed(ActionEvent e){
 				if (currentRessourcePath == null){
 					System.out.println("Can't save current ressource files as archive, as there is no open ressource folder");
-					JOptionPane.showMessageDialog(Window.this, "Can't save current ressource files as archive, as there is no open ressource folder", "Error", JOptionPane.ERROR_MESSAGE);
+					errorPopup("Can't save current ressource files as archive, as there is no open ressource folder");
 					return;
 				}
 
@@ -949,7 +949,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			public void actionPerformed(ActionEvent e){
 				if (currentData == null) return;
 				if (currentRessourcePath == null) {
-					JOptionPane.showMessageDialog(Window.this, "Cannot create a new animation with a ressource path to get files from.", "Inane error", JOptionPane.ERROR_MESSAGE);
+					errorPopup("Cannot create a new animation without a ressource path to get files from.");
 					return;
 				}
 
@@ -1146,22 +1146,32 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 	private MissingInfoListener missingInfoListener = new MissingInfoListener() {
 		@Override public boolean missingEntityAnimationDescriptor(RessourcePath r, EntityAnimation anim, Champion c) {
-			//TODO SAUCISSE
-			return true;
+			int res = JOptionPane.showOptionDialog(Window.this, 
+            	"Animation " + anim.getName() + " of champion " + c.getDislayName() + """ 
+				 does not have a descriptor file \n
+				but needs one (contains elements that can't be saved without a descriptor file). \n
+				Do you want to set a descriptor file for this animation ? \n
+				(if you don't, the data save will be aborted)""",
+			"Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
+
+            if (res != JOptionPane.YES_OPTION) return false;
+
+			return setAnimDescriptor(anim);
 		};
 	};
+
 	private Collection<JMenuItem> baseGamedataMenuItems;
 	private Collection<JMenuItem> animationGamedataMenuItems;
 	private JMenu gameDataMenu;
 
-	private void setAnimDescriptor(EntityAnimation anim){
-		new ChangeDescriptorFilenameForm(this, "Change the descriptor file name", anim).showForm();
+	private boolean setAnimDescriptor(EntityAnimation anim){
+		return (new ChangeDescriptorFilenameForm(this, "Change the descriptor file name", anim).showForm()) == JOptionPane.OK_OPTION;
 	}
 
-	private void setCurrentAnimDescriptor()throws WindowStateException{
+	private boolean setCurrentAnimDescriptor()throws WindowStateException{
 		EntityAnimationEditor ead = getEAEDitor();
 		EntityAnimation anim = ead.getAnimation();
-		setAnimDescriptor(anim);
+		return setAnimDescriptor(anim);
 	}
 
 	/**
@@ -1175,8 +1185,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			errorPopup("Error : invalid game data.");
 			ex.printStackTrace();
 		} catch (TransparentGameDataException ex) {
-			errorPopup("Error : " + ex.getMessage());
 			ex.printStackTrace();
+			errorPopup("Error : " + ex.getMessage());
 		} catch (IOException ex){
 			errorPopup("Error : file system error while writing file " + ex.getMessage());
 			ex.printStackTrace();
