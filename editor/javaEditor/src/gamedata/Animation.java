@@ -81,6 +81,11 @@ public class Animation {
         source_filname = filename;
     }
 
+    public void setSourceImage(Image source, String filename){
+        setSourceFilename(filename);
+        this.source = source;
+    }
+    
     public void draw(Graphics g, int frameIndex, int x, int y, int w, int h) throws FrameOutOfBoundsException{
         if (frames.length < 1) throw new FrameOutOfBoundsException(this, frameIndex);
         if (frameIndex >= frames.length) throw new FrameOutOfBoundsException(this, frameIndex);

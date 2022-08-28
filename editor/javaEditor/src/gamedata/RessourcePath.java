@@ -184,6 +184,14 @@ public class RessourcePath {
         }
     }
 
+    public Image loadImage(String filename)throws IOException {
+        return ImageIO.read(resolvePath(filename).toFile());
+    }
+
+    public Image loadImage(Path name) throws IOException {
+        return ImageIO.read(resolvePath(name).toFile());
+    }
+
     /**
      * Adds a new animation to the given Champion based on basic information.
      * Handles loading the image.
@@ -197,7 +205,7 @@ public class RessourcePath {
      */
     public EntityAnimation addAnimation(Champion champion, String animName, int nbFrames, String source_filename, String descriptor_filename) throws RessourceException{
         try {
-            Image source = ImageIO.read(getFile(source_filename));
+            Image source = loadImage(source_filename);
             //System.out.println("RessourcePath.addAnimation" + source);
 
             return champion.addAnimation(animName, source, nbFrames, source_filename, descriptor_filename);

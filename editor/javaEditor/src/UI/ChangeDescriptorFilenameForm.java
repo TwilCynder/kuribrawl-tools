@@ -1,7 +1,5 @@
 package UI;
 
-import java.awt.Component;
-import java.awt.Dimension;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -13,84 +11,82 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import KBUtil.ui.OpenPathButton;
-import KBUtil.ui.OpenPathRestrictedButton;
-import KBUtil.ui.TwilTextField;
 import gamedata.EntityAnimation;
-import gamedata.RessourcePath;
 
-public class ChangeDescriptorFilenameForm extends EditorForm {
+public class ChangeDescriptorFilenameForm extends RelativePathInputForm {
     EntityAnimation anim;
-    private TwilTextField tfFilename;
-    private RessourcePath ressourcePath;
     private String oldDescriptorFilename;
 
-    public ChangeDescriptorFilenameForm(Window frame, String title, EntityAnimation anim) {
-        super(frame, title, true);
+    private static String title = "Change the descriptor file name";
+
+    public ChangeDescriptorFilenameForm(Window frame, EntityAnimation anim) {
+        super(frame, title);
         this.anim = anim;
         this.oldDescriptorFilename = anim.getDescriptorFilename();
         init();
     }
 
     @Override
-    protected Component initForm() {
-        JPanel form = new JPanel();
+    protected JPanel initForm() {
+        JPanel form = super.initForm(OpenPathButton.Save);
 
-        tfFilename = new TwilTextField(anim.getDescriptorFilename());
-        tfFilename.setColumns(30);
-        form.add(tfFilename);
-
-        ressourcePath = editor.getCurrentRessourcePath();
-        if (editor.getCurrentRessourcePath() == null) throw new IllegalStateException("A new animation form was opened with no current ressource path");
-        Path currentPath = ressourcePath.getPath();
-
-        OpenPathRestrictedButton button = new OpenPathRestrictedButton(this, OpenPathButton.Save, currentPath);
-        button.setPreferredSize(new Dimension(25, 22));
-        button.addSelectionListener(new TextFieldRelativePathSelectionListener(tfFilename, currentPath));
-        button.addChoosableFileFilters(CommonFileFilters.datFilter);
-        form.add(button);
+        tfFilename.setText(oldDescriptorFilename);
 
         return form;
     }
 
     @Override
     protected boolean confirm() {
-        //TODO utiliser le Remove Descriptor Filename
         try {
             String newPathName = tfFilename.getText();
             int res;
 
-            if (!newPathName.isEmpty()){
-                Path newPath = Paths.get(newPathName);
-                if (oldDescriptorFilename != null && !oldDescriptorFilename.equals(newPath.toString())){
-                    Path oldPath = ressourcePath.resolvePath(oldDescriptorFilename);
-                    if (ressourcePath.exists(oldPath)){
-                        res = JOptionPane.showOptionDialog(editor, 
-                        "The former descriptor file was an existing file, do you want to \nrename this file instead of just changing the descriptor pathname ?",
-                        "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
+            if (newPathName.isEmpty()){
+                if (anim.areFramesDefault().needDescriptor()){
+                    if (JOptionPane.showOptionDialog(this, 
+                    """
+                        Entering an empty descriptor filename means no descriptor. \n
+                        However, this animation can't be saved without a descriptor, so you will not be able to save unless the animation becomes default. Proceed ?
+                    """,
+                    "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null) != JOptionPane.YES_OPTION){
+                        return false;
+                    }
+                }
+
+                newPathName = null;
+            }
+
+            boolean fileMoved = false;
+
+            if (oldDescriptorFilename != null && !oldDescriptorFilename.isEmpty()){
+                Path oldPath = ressourcePath.resolvePath(oldDescriptorFilename);
+                if (ressourcePath.exists(oldPath)){
+                    if (newPathName == null){
+                        if (JOptionPane.showOptionDialog(this, 
+                            "The former descriptor file was an existing file, do you want to delete it ?",
+                            "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null) == JOptionPane.YES_OPTION){
+
+                            Files.delete(oldPath);
+                            fileMoved = true;
+                        }
+                    } else {
+                        Path newPath = (newPathName.isEmpty()) ? null :  Paths.get(newPathName);
         
-                        if (res == JOptionPane.YES_OPTION){
+                        if (JOptionPane.showOptionDialog(this, 
+                            "The former descriptor file was an existing file, do you want to \nrename this file instead of just changing the descriptor pathname ?",
+                            "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null) == JOptionPane.YES_OPTION){
                             if (ressourcePath.exists(newPath)){
-                                res = JOptionPane.showOptionDialog(editor, 
+                                res = JOptionPane.showOptionDialog(this, 
                                 newPath.toString() + " already exists. Overwrite it ?",
-                         "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
+                            "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
     
                                 if (res != JOptionPane.YES_OPTION){
                                     return false;
                                 }
                             }
-    
-                            System.out.println("Move " + ressourcePath.resolvePath(oldPath) + " to " + ressourcePath.resolvePath(newPath) );
+
                             Files.move(ressourcePath.resolvePath(oldPath), ressourcePath.resolvePath(newPath), StandardCopyOption.REPLACE_EXISTING);
-                        }
-                    }
-                } else {
-                    if (ressourcePath.exists(newPath)){
-                        res = JOptionPane.showOptionDialog(editor, 
-                        newPath.toString() + " already exists. When saving the Game Data, it will be overwritten. Proceed ?",
-                 "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
-    
-                        if (res != JOptionPane.YES_OPTION){
-                            return false;
+                            fileMoved = true;
                         }
                     }
                 }
@@ -98,11 +94,20 @@ public class ChangeDescriptorFilenameForm extends EditorForm {
 
             anim.setDescriptorFilename(newPathName);
 
+            if (fileMoved){
+                if (JOptionPane.showOptionDialog(this, """
+                A file has been moved or deleted. If you close the editor without saving, file information and your actual filesystem will be incoherent.
+                Do you want to ensure it doesn't happen by saving now ?
+                """, "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null) == JOptionPane.YES_OPTION){
+                    editor.saveData();
+                }
+            }
+
         } catch (InvalidPathException ex) {
             JOptionPane.showMessageDialog(editor, "Given path is not a valid file path", "Inane error", JOptionPane.ERROR_MESSAGE);
             return false;
         } catch (IOException ex){
-            JOptionPane.showMessageDialog(editor, "IO Error : could not rename the file. Aborting.", "Inane error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(editor, "IO Error : could not rename the file. Reason : " + ex.getLocalizedMessage(), "Inane error", JOptionPane.ERROR_MESSAGE);
         }
 
         return true;

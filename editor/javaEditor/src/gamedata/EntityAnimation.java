@@ -143,6 +143,18 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
         }
     }
 
+    public Defaultness areFramesDefault(){
+        //premier passage : on teste si toutes les frames sont default
+        Defaultness last_defaultness = getFrameDefaultness(0);
+        for (int i = 1; i < getNbFrames(); i++){
+            Defaultness d = getFrameDefaultness(i);
+
+            if (d != last_defaultness || d == Defaultness.NONDEFAULT) return Defaultness.NONDEFAULT;
+            last_defaultness = d;
+        }
+        return last_defaultness;
+    }
+
     private String generateFrameDescriptor(int index, Frame frame, EntityFrame entityFrame) throws GameDataException{
         String res = "";
         boolean indexWritten = false;
@@ -180,18 +192,6 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
             ex.printStackTrace();
         }
         return "";
-    }
-
-    public Defaultness areFramesDefault(){
-        //premier passage : on teste si toutes les frames sont default
-        Defaultness last_defaultness = getFrameDefaultness(0);
-        for (int i = 1; i < getNbFrames(); i++){
-            Defaultness d = getFrameDefaultness(i);
-
-            if (d != last_defaultness || d == Defaultness.NONDEFAULT) return Defaultness.NONDEFAULT;
-            last_defaultness = d;
-        }
-        return last_defaultness;
     }
 
     public String generateDescriptor() throws GameDataException{

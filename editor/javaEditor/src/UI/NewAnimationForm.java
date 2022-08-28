@@ -193,7 +193,7 @@ public class NewAnimationForm extends EditorForm {
             JOptionPane.showMessageDialog(editor, "Animation name cannot be empty", "Inane error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
-        //TODO : do better than just a on-confirm check for this
+        //TODO : do better than just a on-confirm check for this (same for filenames validity check)
         if (!animName.matches("\\w+")){
             JOptionPane.showMessageDialog(editor, "Animation name can only contain alphanumeric characters and underscores", "Inane error", JOptionPane.ERROR_MESSAGE);
             return false;

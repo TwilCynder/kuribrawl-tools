@@ -196,7 +196,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				int value = source.getValueInt();
 				EntityAnimationEditor editor = getEAEDitor();
 				stateChanged(editor, value);
-				displayCanvas.repaint();
+				updateVisualEditor();
 			} catch (WindowStateException ex){
 				//TODO handle this better (threw once at initialization, normal behavior, can't see the difference with a legit error)
 			}
@@ -217,6 +217,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		public abstract void focusLost(EntityAnimationEditor editor, T source) throws NumberFormatException;
 
 		public void focusGained(FocusEvent e){}
+
 		public void focusLost(FocusEvent e){
 			if (!componentClass.isInstance(e.getSource())) throw new IllegalStateException("Typed listener specific to " + componentClass.getName() + "used on different component : " + e.getSource());
 			T source = (T)e.getSource(); //do not worry
@@ -567,7 +568,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				try {
 					displayer = getEAEDitor();
 					displayer.incrFrame();
-					displayCanvas.repaint();
+					updateVisualEditor();
 					updateCurrentFrameField(displayer);
 				} catch (WindowStateException ex){
 				}
@@ -580,7 +581,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				try {
 					displayer = getEAEDitor();
 					displayer.decrFrame();
-					displayCanvas.repaint();
+					updateVisualEditor();
 					updateCurrentFrameField(displayer);
 				} catch (WindowStateException ex){
 				}
@@ -596,7 +597,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 					if (zoom > 1.0){
 						zoom -= 1.0;
 						displayer.setZoom(zoom);
-						displayCanvas.repaint();
+						updateVisualEditor();
 						updateCurrentZoomField(displayer);
 					}
 				} catch (WindowStateException ex){
@@ -613,7 +614,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 					if (zoom < 4.0){
 						zoom += 1.0;
 						displayer.setZoom(zoom);
-						displayCanvas.repaint();
+						updateVisualEditor();
 						updateCurrentZoomField(displayer);;
 					}
 				} catch (WindowStateException ex){
@@ -945,7 +946,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			}
 		};
 
-		Action newAnimationAction = new AbstractAction("New Animation") {
+		Action newAnimationAction = new AbstractAction("New animation") {
 			public void actionPerformed(ActionEvent e){
 				if (currentData == null) return;
 				if (currentRessourcePath == null) {
@@ -957,12 +958,27 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			}
 		};
 
-		Action changeDescriptorAction = new AbstractAction("Change Animation Descriptor Filename") {
+		Action changeDescriptorAction = new AbstractAction("Change animation descriptor filename") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setCurrentAnimDescriptor();
 			}
 		};
+
+		Action renameSourceImageAction = new AbstractAction("Rename animation source image") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				renameCurrentAnimSourceImage();
+			}
+		};
+
+		Action changeSourceImageAction = new AbstractAction("Change animation source image") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				changeCurrentAnimSourceImage();
+			}
+		};
+
 
 		//============= MENU ==================
 
@@ -970,23 +986,17 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		JMenu dummyMenu = new JMenu("File");
 
-		JMenuItem dummyMenuItem = new JMenuItem("Test");
-		dummyMenuItem.addActionListener(testAction);
+		JMenuItem dummyMenuItem = new JMenuItem(testAction);
 		dummyMenu.add(dummyMenuItem);
 		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.CTRL_DOWN_MASK));
 
-		dummyMenuItem = new JMenuItem("Save");
-		dummyMenuItem.addActionListener(saveAction);
+		dummyMenuItem = new JMenuItem(saveAction);
 		dummyMenu.add(dummyMenuItem);
 		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
 
-		dummyMenuItem = new JMenuItem("Save As");
-		dummyMenuItem.addActionListener(saveAsAction);
-		dummyMenu.add(dummyMenuItem);
+		dummyMenu.add(new JMenuItem(saveAsAction));
 
-		dummyMenuItem = new JMenuItem("Save as Archive");
-		dummyMenuItem.addActionListener(saveArchiveAction);
-		dummyMenu.add(dummyMenuItem);
+		dummyMenu.add(new JMenuItem(saveArchiveAction));
 
 		menu_bar.add(dummyMenu);
 
@@ -997,16 +1007,17 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		baseGamedataMenuItems = new LinkedList<>();
 
-		dummyMenuItem = new JMenuItem("New animation");
-		dummyMenuItem.addActionListener(newAnimationAction);
+		dummyMenuItem = new JMenuItem(newAnimationAction);
 		baseGamedataMenuItems.add(dummyMenuItem);
 		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
 
 		animationGamedataMenuItems = new LinkedList<>();
 
-		dummyMenuItem = new JMenuItem("Set descriptor file");
-		dummyMenuItem.addActionListener(changeDescriptorAction);
-		animationGamedataMenuItems.add(dummyMenuItem);
+		animationGamedataMenuItems.add(new JMenuItem(changeDescriptorAction));
+
+		animationGamedataMenuItems.add(new JMenuItem(renameSourceImageAction));
+
+		animationGamedataMenuItems.add(new JMenuItem(changeSourceImageAction));
 
 		addItemsToMenu(gameDataMenu, baseGamedataMenuItems);
 		menu_bar.add(gameDataMenu);
@@ -1148,9 +1159,9 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		@Override public boolean missingEntityAnimationDescriptor(RessourcePath r, EntityAnimation anim, Champion c) {
 			int res = JOptionPane.showOptionDialog(Window.this, 
             	"Animation " + anim.getName() + " of champion " + c.getDislayName() + """ 
-				 does not have a descriptor file \n
-				but needs one (contains elements that can't be saved without a descriptor file). \n
-				Do you want to set a descriptor file for this animation ? \n
+				 does not have a descriptor file 
+				but needs one (contains elements that can't be saved without a descriptor file). 
+				Do you want to set a descriptor file for this animation ? 
 				(if you don't, the data save will be aborted)""",
 			"Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
 
@@ -1165,20 +1176,41 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	private JMenu gameDataMenu;
 
 	private boolean setAnimDescriptor(EntityAnimation anim){
-		return (new ChangeDescriptorFilenameForm(this, "Change the descriptor file name", anim).showForm()) == JOptionPane.OK_OPTION;
+		return (new ChangeDescriptorFilenameForm(this, anim).showForm()) == JOptionPane.OK_OPTION;
 	}
 
-	private boolean setCurrentAnimDescriptor()throws WindowStateException{
+	private boolean setCurrentAnimDescriptor() throws WindowStateException{
 		EntityAnimationEditor ead = getEAEDitor();
 		EntityAnimation anim = ead.getAnimation();
 		return setAnimDescriptor(anim);
 	}
 
+	private boolean renameAnimSourceImage(EntityAnimation anim){
+		return (new RenameSourceImageForm(this, anim).showForm()) == JOptionPane.OK_OPTION;
+	}
+
+	private boolean renameCurrentAnimSourceImage() throws WindowStateException{
+		EntityAnimationEditor ead = getEAEDitor();
+		EntityAnimation anim = ead.getAnimation();
+		return renameAnimSourceImage(anim);
+	}
+
+	private boolean changeAnimSourceImage(EntityAnimation anim){
+		return (new ChangeSourceImageForm(this, anim).showForm()) == JOptionPane.OK_OPTION;
+	}
+
+	private boolean changeCurrentAnimSourceImage() throws WindowStateException{
+		EntityAnimationEditor ead = getEAEDitor();
+		EntityAnimation anim = ead.getAnimation();
+		return changeAnimSourceImage(anim);
+	}
+
+
 	/**
 	 * saves the current game data to a given ressource path
 	 * @param rPath a ressource path to save the data to.
 	 */
-	private void saveDataTo(RessourcePath rPath){
+	public void saveDataTo(RessourcePath rPath){
 		try {
 			rPath.saveGameData(currentData, missingInfoListener);
 		} catch (GameDataException ex){
@@ -1223,7 +1255,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	 * Saves the current gamedata to the current ressource path.
 	 * If there is none, asks the user for one by falling back to saveDataAs
 	 */
-	private void saveData(){
+	public void saveData(){
 		if (currentRessourcePath == null){
 			//TODO : utiliser le save-as
 			return;
@@ -1232,7 +1264,9 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		resetDataModified();
 	}
 
-
+	public void updateVisualEditor(){
+		displayCanvas.repaint();
+	}
 
 	public void setDisplayedObject(EntityAnimation anim){
 		Interactable current = displayCanvas.getInteractable();
