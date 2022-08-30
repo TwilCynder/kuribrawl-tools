@@ -198,7 +198,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				stateChanged(editor, value);
 				updateVisualEditor();
 			} catch (WindowStateException ex){
-				//TODO handle this better (threw once at initialization, normal behavior, can't see the difference with a legit error)
+				if (!initializing) throw ex;
 			}
 		}
 	}
@@ -940,9 +940,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		Action saveAsAction = new AbstractAction("Save as") {
 			public void actionPerformed(ActionEvent e){
-				if (modifsOccured()){
-					saveDataAs();
-				}
+				saveDataAs();
 			}
 		};
 
@@ -1233,6 +1231,11 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				Path selected = chooser.openPath(Window.this);
 				if (selected == null) return;
 
+				if (!Files.exists(selected)){
+					System.out.println("Specified deirectory doesn't exist. Creating it.");
+					selected.toFile().mkdirs();
+				}
+
 				if (selected.equals(currentRessourcePath.getPath())) {
 					saveData();
 					return;
@@ -1257,7 +1260,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	 */
 	public void saveData(){
 		if (currentRessourcePath == null){
-			//TODO : utiliser le save-as
+			saveDataAs();
 			return;
 		}
 		saveDataTo(currentRessourcePath);

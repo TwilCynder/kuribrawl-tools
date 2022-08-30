@@ -7,7 +7,7 @@
 #DFV_REV = 1
 #RFV_MAJ = 0
 #RFV_MIN = 3
-n#RFV_REV = 2
+#RFV_REV = 2
 
 Structure File
     path.s
@@ -778,7 +778,7 @@ If logging
     PrintN("FINISHED. File size : " + size)
     Input()
 EndIf
-; IDE Options = PureBasic 5.73 LTS (Windows - x64)
+; IDE Options = PureBasic 6.00 LTS (Windows - x64)
 ; ExecutableFormat = Console
 ; CursorPosition = 9
 ; Folding = ----

@@ -2,7 +2,6 @@ package UI;
 
 import java.awt.Component;
 import java.io.IOException;
-import java.nio.InvalidMarkException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
