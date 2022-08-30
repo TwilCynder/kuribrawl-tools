@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import java.awt.Image;
+import java.nio.file.InvalidPathException;
 
 class ChampionVals  {
     public double walk_speed;
@@ -93,7 +94,7 @@ public class Champion implements Iterable<EntityAnimation>{
         return getAnimations().iterator();
     }
 
-    public EntityAnimation addAnimation(String name, Image source, int nbFrames, String source_filename, String descriptor_filename){
+    public EntityAnimation addAnimation(String name, Image source, int nbFrames, String source_filename, String descriptor_filename) throws InvalidPathException {
         EntityAnimation anim = new EntityAnimation(name, source, nbFrames, source_filename, descriptor_filename);
         animations.put(name, anim);
         return anim;

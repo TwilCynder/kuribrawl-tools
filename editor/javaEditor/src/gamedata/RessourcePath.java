@@ -53,7 +53,7 @@ public class RessourcePath {
 
     @Deprecated
     public RessourcePath(String pathname) throws InvalidRessourcePathException{
-        this(stringToPath(pathname));
+        this(getRessourcePath(pathname));
     }
 
     /**
@@ -65,12 +65,24 @@ public class RessourcePath {
         return path;
     }
 
-    public static Path stringToPath(String pathname) throws InvalidRessourcePathException {
+    public static Path getRessourcePath(String pathname) throws InvalidRessourcePathException {
         try {
             return Paths.get(pathname);
         } catch (InvalidPathException e){
             throw new InvalidRessourcePathException("Invalid path", e);
         }
+    }
+
+    public static Path stringToPathOrNull(String pathname) throws InvalidPathException {
+        return (pathname == null) ? null : Paths.get(pathname);
+    }
+
+    public static Path getRessourcePathOrNull(String pathname) throws InvalidRessourcePathException{
+        return (pathname == null) ? null : getRessourcePath(pathname);
+    }
+
+    public static String pathToStringOrNull(Path path){
+        return (path == null) ? null : path.toString();
     }
 
     /**
@@ -211,6 +223,8 @@ public class RessourcePath {
             return champion.addAnimation(animName, source, nbFrames, source_filename, descriptor_filename);
         } catch (IOException e){
             throw new RessourceException("Couldn't read source image file " + source_filename, e);
+        } catch (InvalidPathException e){
+            throw new RessourceException("Descriptor path is invalid : " + descriptor_filename, e);
         }
     }
 
@@ -636,7 +650,7 @@ public class RessourcePath {
                         toWrite = getEntityAnimationDescriptorFilename(anim, c, mil);
                         writeString(listWriter, toWrite);
 
-                        try (BufferedWriter descriptorWriter = fileWriter(anim.getDescriptorFilename())){
+                        try (BufferedWriter descriptorWriter = fileWriter(anim.getDescriptorPath())){
                             writeString(descriptorWriter, anim.generateDescriptor());
                         }
                     } else {

@@ -1,4 +1,4 @@
-package KBUtil.ui;
+package KBUtil.ui.documentFilters;
 
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;

@@ -16,14 +16,14 @@ import gamedata.EntityAnimation;
 
 public class ChangeDescriptorFilenameForm extends RelativePathInputForm {
     EntityAnimation anim;
-    private String oldDescriptorFilename;
+    private Path oldDescriptorPath;
 
     private static String title = "Change the descriptor file name";
 
     public ChangeDescriptorFilenameForm(Window frame, EntityAnimation anim) {
         super(frame, title);
         this.anim = anim;
-        this.oldDescriptorFilename = anim.getDescriptorFilename();
+        this.oldDescriptorPath = anim.getDescriptorPath();
         init();
     }
 
@@ -31,7 +31,7 @@ public class ChangeDescriptorFilenameForm extends RelativePathInputForm {
     protected JPanel initForm() {
         JPanel form = super.initForm(OpenPathButton.Save);
 
-        tfFilename.setText(oldDescriptorFilename);
+        tfFilename.setText(oldDescriptorPath == null ? null : oldDescriptorPath.toString());
 
         return form;
     }
@@ -40,6 +40,7 @@ public class ChangeDescriptorFilenameForm extends RelativePathInputForm {
     protected boolean confirm() {
         try {
             String newPathName = tfFilename.getText();
+            Path newPath = (newPathName.isEmpty()) ? null :  Paths.get(newPathName);
             int res;
 
             if (newPathName.isEmpty()){
@@ -59,41 +60,37 @@ public class ChangeDescriptorFilenameForm extends RelativePathInputForm {
 
             boolean fileMoved = false;
 
-            if (oldDescriptorFilename != null && !oldDescriptorFilename.isEmpty()){
-                Path oldPath = ressourcePath.resolvePath(oldDescriptorFilename);
-                if (ressourcePath.exists(oldPath)){
-                    if (newPathName == null){
-                        if (JOptionPane.showOptionDialog(this, 
-                            "The former descriptor file was an existing file, do you want to delete it ?",
-                            "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null) == JOptionPane.YES_OPTION){
+            if (oldDescriptorPath != null && ressourcePath.exists(oldDescriptorPath)){
+                if (newPathName == null){
+                    if (JOptionPane.showOptionDialog(this, 
+                        "The former descriptor file was an existing file, do you want to delete it ?",
+                        "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null) == JOptionPane.YES_OPTION){
 
-                            Files.delete(oldPath);
-                            fileMoved = true;
-                        }
-                    } else {
-                        Path newPath = (newPathName.isEmpty()) ? null :  Paths.get(newPathName);
-        
-                        if (JOptionPane.showOptionDialog(this, 
-                            "The former descriptor file was an existing file, do you want to \nrename this file instead of just changing the descriptor pathname ?",
-                            "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null) == JOptionPane.YES_OPTION){
-                            if (ressourcePath.exists(newPath)){
-                                res = JOptionPane.showOptionDialog(this, 
-                                newPath.toString() + " already exists. Overwrite it ?",
-                            "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
+                        Files.delete(oldDescriptorPath);
+                        fileMoved = true;
+                    }
+                } else if (!oldDescriptorPath.equals(newPath)){
     
-                                if (res != JOptionPane.YES_OPTION){
-                                    return false;
-                                }
-                            }
+                    if (JOptionPane.showOptionDialog(this, 
+                        "The former descriptor file was an existing file, do you want to \nrename this file instead of just changing the descriptor pathname ?",
+                        "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null) == JOptionPane.YES_OPTION){
+                        if (ressourcePath.exists(newPath)){
+                            res = JOptionPane.showOptionDialog(this, 
+                            newPath.toString() + " already exists. Overwrite it ?",
+                        "Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, null, null);
 
-                            Files.move(ressourcePath.resolvePath(oldPath), ressourcePath.resolvePath(newPath), StandardCopyOption.REPLACE_EXISTING);
-                            fileMoved = true;
+                            if (res != JOptionPane.YES_OPTION){
+                                return false;
+                            }
                         }
+
+                        Files.move(ressourcePath.resolvePath(oldDescriptorPath), ressourcePath.resolvePath(newPath), StandardCopyOption.REPLACE_EXISTING);
+                        fileMoved = true;
                     }
                 }
             }
 
-            anim.setDescriptorFilename(newPathName);
+            anim.setDescriptorFilename(newPath);
 
             if (fileMoved){
                 if (JOptionPane.showOptionDialog(this, """
