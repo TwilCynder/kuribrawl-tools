@@ -1,6 +1,8 @@
 package UI;
 
 import javax.swing.JMenuItem;
+
+import UI.listeners.AnimationMenuItemListener;
 import gamedata.EntityAnimation;
 
 
