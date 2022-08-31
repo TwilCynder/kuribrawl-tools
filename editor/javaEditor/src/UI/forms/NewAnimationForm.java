@@ -11,7 +11,6 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
 import com.jgoodies.forms.layout.ColumnSpec;
@@ -23,6 +22,9 @@ import KBUtil.ui.IntegerSpinner;
 import KBUtil.ui.Interactable;
 import KBUtil.ui.OpenPathButton;
 import KBUtil.ui.OpenPathRestrictedButton;
+import KBUtil.ui.TwilTextField;
+import KBUtil.ui.documentFilters.AlphanumericDocumentFilter;
+import KBUtil.ui.documentFilters.PathDocumentFilter;
 import UI.CommonFileFilters;
 import UI.EntityAnimationEditor;
 import UI.Window;
@@ -45,9 +47,9 @@ public class NewAnimationForm extends EditorForm {
         }
     }
 
-    private JTextField animationName;
-    private JTextField sourceImageFile;
-    private JTextField descriptorFile;
+    private TwilTextField animationName;
+    private TwilTextField sourceImageFile;
+    private TwilTextField descriptorFile;
     private JComboBox<Champion> championList;
     private IntegerSpinner nbFramesSpinner;
 
@@ -68,10 +70,6 @@ public class NewAnimationForm extends EditorForm {
         init();
     }
 
-    private void initActions(){
-
-    }
-
     private void fillFields(){
         Interactable i = editor.getCurrentEditor();
         if (i != null){
@@ -88,7 +86,6 @@ public class NewAnimationForm extends EditorForm {
     }
 
     private void createLayout(JPanel panel){
-        initActions();
 
         getContentPane().add(panel, BorderLayout.CENTER);
         panel.setLayout(new FormLayout(new ColumnSpec[] {
@@ -132,16 +129,18 @@ public class NewAnimationForm extends EditorForm {
         label = new JLabel("/");
         panel.add(label, "3, 4, right, default");
 
-        animationName = new JTextField();
+        animationName = new TwilTextField();
         panel.add(animationName, "4, 4, fill, default");
         animationName.setColumns(40);
+        animationName.setDocumentFilter(AlphanumericDocumentFilter.staticInstance);
 
         label = new JLabel("Source Image ");
         panel.add(label, "2, 6, right, default");
 
-        sourceImageFile = new JTextField();
+        sourceImageFile = new TwilTextField();
         panel.add(sourceImageFile, "4, 6, fill, default");
         sourceImageFile.setColumns(10);
+        sourceImageFile.setDocumentFilter(PathDocumentFilter.staticInstance);
 
         OpenPathRestrictedButton openExplorerSourceImageFile = new OpenPathRestrictedButton(this, OpenPathButton.Open, currentPath);
         openExplorerSourceImageFile.setPreferredSize(new Dimension(25, 22));
@@ -153,9 +152,10 @@ public class NewAnimationForm extends EditorForm {
         label = new JLabel("Descriptor file");
         panel.add(label, "2, 8, right, default");
 
-        descriptorFile = new JTextField();
+        descriptorFile = new TwilTextField();
         panel.add(descriptorFile, "4, 8, fill, default");
         descriptorFile.setColumns(10);
+        descriptorFile.setDocumentFilter(PathDocumentFilter.staticInstance);
 
         OpenPathRestrictedButton openExplorerDescriptorFile = new OpenPathRestrictedButton(this, OpenPathButton.Save, currentPath);
         openExplorerDescriptorFile.setPreferredSize(new Dimension(25, 22));

@@ -8,6 +8,7 @@ import javax.swing.JPanel;
 import KBUtil.ui.OpenPathRestrictedButton;
 import KBUtil.ui.TwilTextField;
 import KBUtil.ui.OpenPathButton.ChooserOpener;
+import KBUtil.ui.documentFilters.PathDocumentFilter;
 import UI.CommonFileFilters;
 import UI.Window;
 import UI.listeners.TextFieldRelativePathSelectionListener;
@@ -26,6 +27,8 @@ public abstract class RelativePathInputForm extends EditorForm {
 
         tfFilename = new TwilTextField();
         tfFilename.setColumns(30);
+        System.out.println("RPIF");
+        tfFilename.setDocumentFilter(PathDocumentFilter.staticInstance);
         form.add(tfFilename);
 
         ressourcePath = editor.getCurrentRessourcePath();

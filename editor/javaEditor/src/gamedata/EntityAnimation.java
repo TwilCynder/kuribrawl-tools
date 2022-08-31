@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import KBUtil.Pair;
+import KBUtil.PathHelper;
 
 public class EntityAnimation extends Animation implements Iterable<Pair<Frame, EntityFrame>>{
     private EntityFrame[] entity_frames;
@@ -19,7 +20,7 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
 
     public EntityAnimation(String name, Image source, int nbFrames, String source_filename, String descriptor_filename) throws InvalidPathException{
         super (name, source, nbFrames, source_filename);
-        this.descriptor_filename = RessourcePath.stringToPathOrNull(descriptor_filename);
+        this.descriptor_filename = PathHelper.stringToPathOrNull(descriptor_filename);
         initEntityFrames(nbFrames);
     }
 

@@ -73,32 +73,8 @@ public class RessourcePath {
         }
     }
 
-    public static Path stringToPathOrNull(String pathname) throws InvalidPathException {
-        return (pathname == null) ? null : Paths.get(pathname);
-    }
-
     public static Path getRessourcePathOrNull(String pathname) throws InvalidRessourcePathException{
         return (pathname == null) ? null : getRessourcePath(pathname);
-    }
-
-    public static String pathToStringOrNull(Path path){
-        return (path == null) ? null : path.toString();
-    }
-
-    /**
-     * Returns whether the given string is a valid pathname.
-     * 
-     * Note that this method consistently returns false if Paths.get would throw an exception, and vice versa. 
-     * @param name
-     * @return
-     */
-    public static boolean isValidPathName(String name){
-        try {
-            Paths.get(name);
-        } catch (InvalidPathException ex){
-            return false;
-        }
-        return true;
     }
 
     @SuppressWarnings("unused")

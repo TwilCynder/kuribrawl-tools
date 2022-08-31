@@ -1,11 +1,6 @@
 package KBUtil.ui.documentFilters;
 
-public class IntegerDocumentFilter extends TwilDocumentFilter {
-    /**
-     * Hide default constructor : you don't need to instanciate this class, as the static instance if enough.
-     */
-    private IntegerDocumentFilter(){};
-    
+public class RealNumberDocumentFilter extends TwilDocumentFilter {
     /**
      * Returns whether a string can be considered numeric (empty strings are considered numeric)
      * @param str must not be null
@@ -14,12 +9,12 @@ public class IntegerDocumentFilter extends TwilDocumentFilter {
     protected boolean checkString(String str){
         if (str.isEmpty()) return true;
         try {
-            Integer.parseInt(str);
+            Double.parseDouble(str);
             return true;
         } catch (NumberFormatException ex) {
             return false;
         }
     }
 
-    public static IntegerDocumentFilter staticInstance = new IntegerDocumentFilter();
+    public static RealNumberDocumentFilter staticInstance = new RealNumberDocumentFilter();
 }
