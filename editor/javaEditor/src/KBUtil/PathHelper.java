@@ -1,6 +1,9 @@
 package KBUtil;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -49,5 +52,13 @@ public abstract class PathHelper {
             return false;
         }
         return true;
+    }
+
+    public static void createDirsForFile(Path path) throws IOException {
+        Files.createDirectories(path.getParent());
+    }
+    public static void move(Path source, Path target, CopyOption... options) throws IOException {
+        createDirsForFile(target);
+        Files.move(source, target, options);
     }
 }

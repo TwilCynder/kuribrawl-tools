@@ -10,6 +10,7 @@ import java.nio.file.StandardCopyOption;
 
 import javax.swing.JOptionPane;
 
+import KBUtil.PathHelper;
 import KBUtil.ui.OpenPathButton;
 import UI.Window;
 import gamedata.EntityAnimation;
@@ -49,7 +50,7 @@ public class RenameSourceImageForm extends SourceImageFilenameForm{
                 }
             }
 
-            Files.move(ressourcePath.resolvePath(oldPath), ressourcePath.resolvePath(newPath), StandardCopyOption.REPLACE_EXISTING);
+            PathHelper.move(ressourcePath.resolvePath(oldPath), ressourcePath.resolvePath(newPath), StandardCopyOption.REPLACE_EXISTING);
 
             anim.setSourceFilename(newPathName);
 

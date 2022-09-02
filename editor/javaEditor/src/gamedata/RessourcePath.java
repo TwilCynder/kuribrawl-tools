@@ -1,6 +1,4 @@
 //TODO : BACKUP PDT SAUVEGARDE
-//TODO : vérifier la validité des noms de descriptor files
-
 package gamedata;
 
 import java.io.BufferedInputStream;

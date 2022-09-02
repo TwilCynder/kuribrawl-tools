@@ -1231,31 +1231,31 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	 * Ask the user for a path and saves the current game data to it.
 	 */
 	private void saveDataAs(){
-		PathChooser chooser = new PathChooser(PathChooser.Mode.DIRECTORY, ".");
-				Path selected = chooser.openPath(Window.this);
-				if (selected == null) return;
+		try {
+			PathChooser chooser = new PathChooser(PathChooser.Mode.DIRECTORY, ".");
+			Path selected = chooser.openPath(Window.this);
+			if (selected == null) return;
 
-				if (!Files.exists(selected)){
-					System.out.println("Specified deirectory doesn't exist. Creating it.");
-					selected.toFile().mkdirs();
-				}
+			if (!Files.exists(selected)){
+				System.out.println("Specified deirectory doesn't exist. Creating it.");
+				Files.createDirectories(selected);
+			}
 
-				if (selected.equals(currentRessourcePath.getPath())) {
-					saveData();
-					return;
-				}
+			if (selected.equals(currentRessourcePath.getPath())) {
+				saveData();
+				return;
+			}
 
-				try {
-					RessourcePath ressourcePath = new RessourcePath(selected);
-					ressourcePath.copyUnmodifiedFiles(currentRessourcePath, currentData);
-					saveDataTo(ressourcePath);
-				} catch (InvalidRessourcePathException ex){
-					ex.printStackTrace();
-					errorPopup("Unable to open specified path : " + ex.getLocalizedMessage());
-				} catch (IOException ex){
-					ex.printStackTrace();
-					errorPopup("Unable to copy files : " + ex.getLocalizedMessage());
-				}
+			RessourcePath ressourcePath = new RessourcePath(selected);
+			ressourcePath.copyUnmodifiedFiles(currentRessourcePath, currentData);
+			saveDataTo(ressourcePath);
+		} catch (InvalidRessourcePathException ex){
+			ex.printStackTrace();
+			errorPopup("Unable to open specified path : " + ex.getLocalizedMessage());
+		} catch (IOException ex){
+			ex.printStackTrace();
+			errorPopup("Unable to copy files : " + ex.getLocalizedMessage());
+		}
 	}
 
 	/**
