@@ -7,21 +7,27 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 import KBUtil.ui.OpenPathButton;
 import UI.Window;
 import gamedata.EntityAnimation;
 
-public class ChangeSourceImageForm extends SourceImageFilenameForm {
+public class ChangeSourceImageForm extends RelativePathInputForm {
     private static String title = "Change source image";
+    EntityAnimation anim;
 
     public ChangeSourceImageForm(Window frame, EntityAnimation anim) {
-        super(frame, anim, title);
+        super(frame, title);
+        this.anim = anim;
+        init();
     }
 
     @Override
     protected Component initForm() {
-        return super.initForm(OpenPathButton.Open);
+        JPanel form = super.initForm(OpenPathButton.Open);
+        tfFilename.setText(anim.getSourceFilename());
+        return form;
     }
 
     @Override

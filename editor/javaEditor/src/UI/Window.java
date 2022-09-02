@@ -65,6 +65,7 @@ import UI.exceptions.WindowStateException;
 import UI.forms.ChangeDescriptorFilenameForm;
 import UI.forms.ChangeSourceImageForm;
 import UI.forms.NewAnimationForm;
+import UI.forms.RenameChampionDescriptorForm;
 import UI.forms.RenameSourceImageForm;
 import gamedata.AngleMode;
 import gamedata.Champion;
@@ -981,6 +982,12 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			}
 		};
 
+		Action renameChampionDescriptorAction = new AbstractAction("Rename champion descriptor") {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				renamecurrentChampionDescriptor();
+			}
+		};
 
 		//============= MENU ==================
 
@@ -1014,12 +1021,11 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
 
 		animationGamedataMenuItems = new LinkedList<>();
-
 		animationGamedataMenuItems.add(new JMenuItem(changeDescriptorAction));
-
 		animationGamedataMenuItems.add(new JMenuItem(renameSourceImageAction));
-
 		animationGamedataMenuItems.add(new JMenuItem(changeSourceImageAction));
+		animationGamedataMenuItems.add(null);
+		animationGamedataMenuItems.add(new JMenuItem(renameChampionDescriptorAction));
 
 		addItemsToMenu(gameDataMenu, baseGamedataMenuItems);
 		menu_bar.add(gameDataMenu);
@@ -1089,7 +1095,11 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 	private void addItemsToMenu(JMenu menu, Collection<JMenuItem> items) {
 		for (var item : items){
-			menu.add(item);
+			if (item == null){
+				menu.addSeparator();
+			} else {
+				menu.add(item);
+			}	
 		}
 	}
 
@@ -1192,8 +1202,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	}
 
 	private boolean renameCurrentAnimSourceImage() throws WindowStateException{
-		EntityAnimationEditor ead = getEAEDitor();
-		EntityAnimation anim = ead.getAnimation();
+		EntityAnimation anim = getCurrentEntityAnimation();
 		return renameAnimSourceImage(anim);
 	}
 
@@ -1202,11 +1211,19 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	}
 
 	private boolean changeCurrentAnimSourceImage() throws WindowStateException{
-		EntityAnimationEditor ead = getEAEDitor();
-		EntityAnimation anim = ead.getAnimation();
+		EntityAnimation anim = getCurrentEntityAnimation();
 		return changeAnimSourceImage(anim);
 	}
 
+	private boolean renameChampionDescriptor(Champion champion){
+		return (new RenameChampionDescriptorForm(this, champion).showForm()) == JOptionPane.OK_OPTION;
+	}
+
+	private boolean renamecurrentChampionDescriptor(){
+		EntityAnimation anim = getCurrentEntityAnimation();
+		Champion champion = currentData.getEntityAnimationOwner(anim);
+		return renameChampionDescriptor(champion);
+	}
 
 	/**
 	 * saves the current game data to a given ressource path
@@ -1310,6 +1327,17 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		} else {
 			throw new WindowStateException("User interacted with EntityAnimation-related control while displayed object was not an EntityAnimationEditor");
 		}
+	}
+
+	/**
+	 * Returns the Entity Animation being edited, or throws if there is none (currently not editing an Entity Animation).
+	 * Cannot return null.
+	 * @return EntityAnimation : the current animation. If there is none, throws before returning.
+	 * @throws WindowStateException 
+	 */
+	public EntityAnimation getCurrentEntityAnimation() throws WindowStateException {
+		EntityAnimationEditor ead = getEAEDitor();
+		return ead.getAnimation();
 	}
 
 	private void updateCurrentFrameField(EntityAnimationEditor displayer){

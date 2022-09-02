@@ -192,13 +192,13 @@ public class RessourcePath {
     public EntityAnimation addAnimation(Champion champion, String animName, int nbFrames, String source_filename, String descriptor_filename) throws RessourceException{
         try {
             Image source = loadImage(source_filename);
-            //System.out.println("RessourcePath.addAnimation" + source);
-
             return champion.addAnimation(animName, source, nbFrames, source_filename, descriptor_filename);
         } catch (IOException e){
             throw new RessourceException("Couldn't read source image file " + source_filename, e);
         } catch (InvalidPathException e){
             throw new RessourceException("Descriptor path is invalid : " + descriptor_filename, e);
+        } catch (NullPointerException e){
+            throw new RessourceException("Null filename", e);
         }
     }
 
@@ -615,7 +615,7 @@ public class RessourcePath {
                 writeString(listWriter, "C:" + c.getName()); listWriter.newLine();
 
                 for (EntityAnimation anim : c){
-                    writeString(listWriter, anim.source_filname); listWriter.newLine();
+                    writeString(listWriter, anim.getSourceFilename()); listWriter.newLine();
                     writeString(listWriter, "A:" + c.getName() + "/" + anim.getName() + " ");
 
                     Defaultness defaultness = anim.areFramesDefault();

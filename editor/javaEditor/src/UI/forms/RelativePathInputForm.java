@@ -22,6 +22,10 @@ public abstract class RelativePathInputForm extends EditorForm {
         super(frame, title, true);
     }
 
+    protected String getCurrentPathname(){
+        return tfFilename.getText();
+    }
+
     protected JPanel initForm(ChooserOpener opener){
         JPanel form = new JPanel();
 

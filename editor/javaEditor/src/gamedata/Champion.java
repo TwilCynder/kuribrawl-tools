@@ -5,8 +5,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
+import KBUtil.PathHelper;
+
 import java.awt.Image;
 import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 
 class ChampionVals  {
     public double walk_speed;
@@ -47,14 +50,14 @@ public class Champion implements Iterable<EntityAnimation>{
     private String name;
     private String displayName;
 
-    private String descriptor_filename;
+    private Path descriptor_file;
 
     private Map<String, EntityAnimation> animations = new TreeMap<>();
     private Map<String, Move> moves = new TreeMap<>();
 
-    public Champion(String name, String filename){
+    public Champion(String name, String filename) throws IllegalArgumentException {
         this(name);
-        this.descriptor_filename = filename;
+        setDescriptorFilename(filename); 
     }
 
     public Champion(String name){
@@ -108,11 +111,20 @@ public class Champion implements Iterable<EntityAnimation>{
     }
 
     public String getDescriptorFilename(){
-        return descriptor_filename;
+        return descriptor_file.toString();
     }
 
-    public void setDescriptorFilename(String filename){
-        descriptor_filename = filename;
+    public Path getDescriptorPath(){
+        return descriptor_file;
+    }
+
+    public void setDescriptorFilename(String filename) throws NullPointerException{
+        setDescriptorFilename(PathHelper.stringToPathOrNull(filename));
+    }
+
+    public void setDescriptorFilename(Path path) throws NullPointerException{
+        if (path == null) throw new NullPointerException("Descriptor path cannot be null");
+        descriptor_file = path;
     }
 
     @Override

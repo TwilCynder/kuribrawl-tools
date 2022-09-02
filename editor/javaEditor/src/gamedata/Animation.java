@@ -1,8 +1,10 @@
 package gamedata;
 
 import java.awt.Image;
+import java.nio.file.Path;
 import java.awt.Graphics;
 
+import KBUtil.PathHelper;
 import KBUtil.Size2D;
 import gamedata.exceptions.FrameOutOfBoundsException;
 
@@ -13,15 +15,15 @@ public class Animation {
     protected Image source;
     protected Size2D frame_size;
 
-    protected String source_filname;
+    protected Path source_filename;
 
-    public Animation(String name, Image source, int nbFrames, String filename){
+    public Animation(String name, Image source, int nbFrames, String filename) throws NullPointerException {
         this(nbFrames, name, source);
-        this.source_filname = filename;
+        setSourceFilename(filename);
     }
 
-    private Animation(int nbFrames, Image source){
-        this.source = source;
+    private Animation(int nbFrames, Image source) throws NullPointerException{
+        setSourceImage(source);
         makeFrames(nbFrames);
     }
 
@@ -74,16 +76,31 @@ public class Animation {
     }
 
     public String getSourceFilename(){
-        return source_filname;
+        return source_filename.toString();
     }
 
     public void setSourceFilename(String filename){
-        source_filname = filename;
+        source_filename = PathHelper.stringToPathOrNull(filename);
+    }
+
+    public void setSourceFilename(Path path){
+        if (path == null) throw new NullPointerException("Source image filename cannot be null");
+        source_filename = path;
+    }
+
+    private void setSourceImage(Image source) throws NullPointerException{
+        if (source == null) throw new NullPointerException("Source image cannot be null");
+        this.source = source;
     }
 
     public void setSourceImage(Image source, String filename){
         setSourceFilename(filename);
-        this.source = source;
+        setSourceImage(source);
+    }
+
+    public void setSourceImage(Image source, Path filename){
+        setSourceFilename(filename);
+        setSourceImage(source);
     }
     
     public void draw(Graphics g, int frameIndex, int x, int y, int w, int h) throws FrameOutOfBoundsException{
