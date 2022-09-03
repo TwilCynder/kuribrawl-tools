@@ -2,12 +2,15 @@
 ;  Change the $5x filemarkers to a more meaningful value (DONE)
 ;  Animation speed : float >double (DONE)
 
+
+
 #DFV_MAJ = 0
 #DFV_MIN = 3
-#DFV_REV = 1
+#DFV_REV = 2
+
 #RFV_MAJ = 0
 #RFV_MIN = 3
-#RFV_REV = 2
+#RFV_REV = 3
 
 Structure File
     path.s
@@ -26,6 +29,7 @@ Enumeration
     #FILETYPE_STAGE
     #FILETYPE_IMAGE
     #FILETYPE_FILE
+    #FILETYPE_BANIMATION
     #FILETYPES
 EndEnumeration
 
@@ -211,7 +215,18 @@ Procedure.s getDescriptorLine(file.l, *lineN.Long)
     ProcedureReturn line
 EndProcedure
 
-Procedure writeAnimationDescriptor(datafile.l, info.s)
+Procedure checkIsEntity(isEntity.b, info.s, lineN.l, elementType.s)
+    If (Not IsEntity)
+        error(errorLocationInfo("Illegal element in background animation : " + elementType + " (should only be present in entity animations)"))    
+    EndIf
+    
+EndProcedure
+
+Macro checkIsEntityM(elementType)
+    checkIsEntity(isEntity, info, lineN, elementType)
+EndMacro 
+
+Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
     Define value.l, line.s, value$, valueD.d, frameNumber.a, lastModifiedFrame.b = -1, i.b
 
     lineN.l = 1
@@ -344,6 +359,8 @@ Procedure writeAnimationDescriptor(datafile.l, info.s)
                         value$ = GMB_StringField(line, i, " ")
                     Wend
                 Case "c"
+                    checkIsEntityM("Hutbox") 
+                    
                     ;- - Hurtbox line -------------------------------------------------------------
 
                     If line = "c all"
@@ -419,6 +436,8 @@ Procedure writeAnimationDescriptor(datafile.l, info.s)
                     ;printLog("    Writing end marker")
 
                 Case "h"
+                    checkIsEntityM("Hitbox")    
+                    
                     ;- - Hitbox line -------------------------------------------------------------
 
                     value$ = GMB_StringField(line, 1, " ")
@@ -692,7 +711,7 @@ Procedure addFile(datafile.l, *inputFile.File)
         before.l = Loc(datafile)
         writeMemoryToFile(datafile)
         If type = #FILETYPE_ANIMATION
-            writeAnimationDescriptor(datafile, info)
+            writeAnimationDescriptor(datafile, info, 1)
         EndIf
     Else
         ;these files are kuribrawl data, that will be parsed
@@ -780,7 +799,7 @@ If logging
 EndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 9
+; CursorPosition = 12
 ; Folding = ----
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe
