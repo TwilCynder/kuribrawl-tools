@@ -7,20 +7,20 @@
   <section name="data">
     <explorer view="C:\ProgramData\PureBasic\Examples\" pattern="0"/>
     <log show="1"/>
-    <lastopen date="2022-08-31 02:02" user="twilc" host="TWIL-DESKTOP"/>
+    <lastopen date="2022-09-04 22:10" user="twilc" host="TWIL-DESKTOP"/>
   </section>
   <section name="files">
     <file name="dataFileMaker.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="f48a08da4c7c0e04fe96982ffb194f51"/>
+      <fingerprint md5="dfdc285cf968b074d0668b6e1540474e"/>
     </file>
     <file name="dataFileMarkerData.pbi">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="b879cd0a5675b7d94917fa907459e266"/>
+      <fingerprint md5="1083a29d185d1dec356d85a9d5e94b74"/>
     </file>
     <file name="dataFileMarkerDebugValues.pbi">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="fa2114aad25fbc66417bf9ebed9c2f14"/>
+      <fingerprint md5="66d047201522972eebc274522fff8f06"/>
     </file>
   </section>
   <section name="targets">

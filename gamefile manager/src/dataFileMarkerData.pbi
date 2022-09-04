@@ -30,6 +30,12 @@ championValues(28) = #TYPE_BYTE
 championValues(29) = #TYPE_BYTE
 championValues(30) = #TYPE_BYTE
 
-; IDE Options = PureBasic 5.72 (Windows - x64)
-; CursorPosition = 30
+stageValues(0) = #TYPE_LONG
+stageValues(1) = #TYPE_LONG
+stageValues(2) = #TYPE_LONG
+stageValues(3) = #TYPE_LONG
+stageValues(4) = #TYPE_LONG
+stageValues(5) = #TYPE_LONG
+; IDE Options = PureBasic 6.00 LTS (Windows - x64)
+; CursorPosition = 37
 ; EnableXP

@@ -74,14 +74,20 @@ EndEnumeration
 #FILEMARKER_MULTIMOVEEND = $30
 ;Stage
 #FILEMARKER_PLATFORMINFO = 1
+#FILEMARKER_PLATFORMANIMATION = $10
+#FILEMARKER_BACKGROUNDELEMENT = 2
 
 Enumeration
     #TYPE_BYTE
     #TYPE_DOUBLE
+    #TYPE_LONG 
 EndEnumeration
 
 #CHAMPION_VALUES_NB = 31
 Dim championValues.b(#CHAMPION_VALUES_NB)
+#STAGE_VALUES_NB = 6
+Dim stageValues.b(#STAGE_VALUES_NB)
+
 XIncludeFile "dataFileMarkerData.pbi"
 
 NewList files.File()
@@ -110,7 +116,7 @@ EndMacro
 
 Macro warning(text)
     If logging
-        printLogForce(Chr(27) + "WARNING : " + text)
+        PrintN(Chr(27) + "WARNING : " + text)
     EndIf
 EndMacro
 
@@ -125,6 +131,10 @@ Procedure error(text.s)
     EndIf
     End
 EndProcedure
+
+Macro GSAP(obj, struct, field)
+    @obj + OffsetOf(struct\field)
+EndMacro
 
 Procedure writeSignature(datafile.l)
     WriteLong(datafile, $54545454)
@@ -214,6 +224,10 @@ Procedure.s getDescriptorLine(file.l, *lineN.Long)
     Until Not line = ""
     ProcedureReturn line
 EndProcedure
+
+Macro hexLoc
+    Hex(Loc(datafile)))
+EndMacro
 
 Procedure checkIsEntity(isEntity.b, info.s, lineN.l, elementType.s)
     If (Not IsEntity)
@@ -570,13 +584,56 @@ Macro errorLocationInfo(text)
     sourceFileName + " (line " + lineN + ") : " + text
 EndMacro
 
+Procedure.b writeGameplayValues(datafile.l, sourceFile.l, Array valuesTypes(1), *debugNames.s, valuesNB.l, *lineN.Long) 
+    Define value$, valuesRead.b, line.s
+    
+    If Eof(sourceFile)
+        Goto values_loop_end
+    EndIf
+    
+    line = getDescriptorLine(sourceFile, *lineN)
+
+    While startsWithNumber(line)
+        For i = 1 To GMB_CountFields(line, " ")
+            If valuesRead >= valuesNB
+                warning("Too many values - Ignoring the last ones")
+                Goto values_loop_end
+            EndIf
+            value$ = GMB_StringField(line, i, " ")
+            Select championValues(valuesRead)
+                Case #TYPE_BYTE
+                    WriteByte(datafile, Val(value$))
+                Case #TYPE_DOUBLE
+                    WriteDouble(datafile, ValD(value$))
+                Case #TYPE_LONG 
+                    WriteLong(datafile, Val(value$))
+            EndSelect
+            printLog("  -" + PeekS(*debugNames + valuesRead) + " : " + value$ + " (" + *debugValues\championValueTypes[championValues(valuesRead + 1)] + ")")
+            valuesRead + 1
+ 
+        Next
+        If Eof(sourceFile)
+            Break
+        EndIf
+        line = getDescriptorLine(sourceFile, @lineN)
+    Wend
+    champion_values_loop_end:
+
+    If valuesRead < #CHAMPION_VALUES_NB
+        Debug valuesRead
+        error("Missing champion values")
+    EndIf
+    
+    values_loop_end:
+EndProcedure
+
 
 Procedure writeChampionFile(datafile.l, sourceFileName.s)
-    Define value.l, line.s, value$, valueD.d, frameNumber.a, lastModifiedFrame.b = -1, i.b
+    Define value.l, line.s, value$, valueD.d, i.b
     Shared championValues()
 
     printLog("---")
-    printLog("Writing Champion descriptor file at offset " + Hex(Loc(datafile)))
+    printLog("Writing Champion descriptor file at offset " + hexloc
 
     sourceFile.l = OpenFile(#PB_Any, sourceFileName)
     If Not sourceFile
@@ -584,10 +641,11 @@ Procedure writeChampionFile(datafile.l, sourceFileName.s)
     EndIf
 
     lineN.l = 1
-
+    
     line = getDescriptorLine(sourceFile, @lineN)
+    printLog("  Writing Display Name : " + line)  
     WriteString(datafile, line, #PB_UTF8)
-    WriteAsciiCharacter(datafile, $A)
+    WriteAsciiCharacter(datafile, $A) ;adding line end 
 
     valuesRead.b = 0
 
@@ -606,14 +664,16 @@ Procedure writeChampionFile(datafile.l, sourceFileName.s)
                 Goto champion_values_loop_end
             EndIf
             value$ = GMB_StringField(line, i, " ")
-            If (championValues(valuesRead) = #TYPE_BYTE)
-                WriteByte(datafile, Val(value$))
-            Else
-                WriteDouble(datafile, ValD(value$))
+            Select championValues(valuesRead)
+                Case #TYPE_BYTE
+                    WriteByte(datafile, Val(value$))
+                Case #TYPE_DOUBLE
+                    WriteDouble(datafile, ValD(value$))
+                Case #TYPE_LONG 
             EndIf
             printLog("  -" + *debugValues\championValues[valuesRead] + " : " + value$ + " (" + *debugValues\championValueTypes[championValues(valuesRead + 1)] + ")")
             valuesRead + 1
-
+ 
         Next
         If Eof(sourceFile)
             Break
@@ -658,6 +718,51 @@ Procedure writeChampionFile(datafile.l, sourceFileName.s)
 
     CloseFile(sourceFile)
 
+EndProcedure
+
+Procedure writeStageFile(datafile.l, sourceFileName.s)
+    printLog("---")
+    printLog("Writing Stage descriptor file at offset " + hexloc
+    
+    sourceFile.l = OpenFile(#PB_Any, sourceFileName)
+    If Not sourceFile
+        error("Could not open the source file (" + sourceFileName + ")")
+    EndIf
+
+    lineN.l = 1
+    
+    line = getDescriptorLine(sourceFile, @lineN)
+    printLog("  Writing Display Name : " + line)  
+    WriteString(datafile, line, #PB_UTF8)
+    WriteAsciiCharacter(datafile, $A) ;adding line end 
+    
+    While startsWithNumber(line)
+        For i = 1 To GMB_CountFields(line, " ")
+            If valuesRead >= #STAGE_VALUES_NB
+                warning("Too many champion values - Ignoring the last ones")
+                Goto stage_value_loop_end
+            EndIf
+            value$ = GMB_StringField(line, i, " ")
+            If (championValues(valuesRead) = #TYPE_BYTE)
+                WriteByte(datafile, Val(value$))
+            Else
+                WriteDouble(datafile, ValD(value$))
+            EndIf
+            printLog("  -" + *debugValues\championValues[valuesRead] + " : " + value$ + " (" + *debugValues\championValueTypes[championValues(valuesRead + 1)] + ")")
+            valuesRead + 1
+ 
+        Next
+        If Eof(sourceFile)
+            Break
+        EndIf
+        line = getDescriptorLine(sourceFile, @lineN)
+    Wend
+    stage_value_loop_end:
+    
+    
+    
+    
+    
 EndProcedure
 
 Procedure addFile(datafile.l, *inputFile.File)
@@ -710,17 +815,18 @@ Procedure addFile(datafile.l, *inputFile.File)
         printLog("File size : " + size)
         before.l = Loc(datafile)
         writeMemoryToFile(datafile)
-        If type = #FILETYPE_ANIMATION
+        
+    EndIf 
+    
+    Select type
+        Case #FILETYPE_CHAMPION
+            writeChampionFile(datafile, *inputFile\path)
+        Case #FILETYPE_ANIMATION
             writeAnimationDescriptor(datafile, info, 1)
-        EndIf
-    Else
-        ;these files are kuribrawl data, that will be parsed
-        Select type
-            Case #FILETYPE_CHAMPION
-                writeChampionFile(datafile, *inputFile\path)
-        EndSelect
+        Case #FILETYPE_BANIMATION
+            writeAnimationDescriptor(datafile, info, 0)
+    EndSelect        
 
-    EndIf
     WriteByte(datafile, #FILEMARKER_INTERFILE)
 EndProcedure
 
@@ -799,8 +905,9 @@ If logging
 EndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 12
-; Folding = ----
+; CursorPosition = 610
+; FirstLine = 226
+; Folding = ---+-
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe
 ; CommandLine = -v ..\test

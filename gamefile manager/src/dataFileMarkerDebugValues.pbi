@@ -5,9 +5,10 @@
     hurtboxTypes.s[3]
     hitboxTypes.s[3]
     championValues.s[#CHAMPION_VALUES_NB]
-    championValueTypes.s[2]
+    championValueTypes.s[3]
     stagePlatformValues.s[10]
     stageBackgroundValues.s[10]
+    stageValues.s[6]
 EndStructure
 
 Procedure.i initDebugValues()
@@ -28,6 +29,13 @@ Procedure.i initDebugValues()
     *vals\stageBackgroundValues[1] = "x"
     *vals\stageBackgroundValues[2] = "y"
     *vals\stageBackgroundValues[3] = "profondeur" 
+    
+    *vals\stageValues[0] = "width"
+    *vals\stageValues[1] = "height"
+    *vals\stageValues[2] = "camera bounds offset x"
+    *vals\stageValues[3] = "camera bounds offset y"
+    *vals\stageValues[4] = "camera bounds width"
+    *vals\stageValues[5] = "camera bounds height"
     
     *vals\hitboxValues[0] = "x"
     *vals\hitboxValues[1] = "y"
@@ -89,11 +97,13 @@ Procedure.i initDebugValues()
     
     *vals\championValueTypes[0] = "Byte"
     *vals\championValueTypes[1] = "Double"
+    *vals\championValueTypes[2] = "Long"
     
     ProcedureReturn *vals
 EndProcedure
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 30
+; CursorPosition = 37
+; FirstLine = 1
 ; Folding = -
 ; EnableXP
 ; CommandLine = ..\res
