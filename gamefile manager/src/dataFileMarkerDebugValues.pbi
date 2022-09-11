@@ -5,10 +5,10 @@
     hurtboxTypes.s[3]
     hitboxTypes.s[3]
     championValues.s[#CHAMPION_VALUES_NB]
-    championValueTypes.s[3]
+    championValueTypes.s[#TYPES]
     stagePlatformValues.s[10]
     stageBackgroundValues.s[10]
-    stageValues.s[6]
+    stageValues.s[#STAGE_VALUES_NB]
 EndStructure
 
 Procedure.i initDebugValues()
@@ -17,8 +17,10 @@ Procedure.i initDebugValues()
     *vals\fileTypeNames[0] = "Animation"
     *vals\fileTypeNames[1] = "Left Animation"
     *vals\fileTypeNames[2] = "Champion"
-    *vals\fileTypeNames[4] = "Stage"
-    *vals\fileTypeNames[3] = "Simple image"
+    *vals\fileTypeNames[3] = "Stage"
+    *vals\fileTypeNames[4] = "Simple image"
+    *vals\fileTypeNames[5] = "Simple file"
+    *vals\fileTypeNames[6] = "Background animation"
     
     *vals\stagePlatformValues[0] = "x"
     *vals\stagePlatformValues[1] = "y"
@@ -102,8 +104,7 @@ Procedure.i initDebugValues()
     ProcedureReturn *vals
 EndProcedure
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 37
-; FirstLine = 1
+; CursorPosition = 22
 ; Folding = -
 ; EnableXP
 ; CommandLine = ..\res

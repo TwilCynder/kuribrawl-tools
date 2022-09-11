@@ -50,6 +50,7 @@ EndEnumeration
 #MAX_VALUE_BYTE = 255
 #MAX_VALUE_SHORT = 65535
 #MAX_VALUE_USHORT = 32767
+#MAX_VALUE_LONG = 2147483647
 
 ;General
 #FILEMARKER_404 = $F0
@@ -80,8 +81,11 @@ EndEnumeration
 Enumeration
     #TYPE_BYTE
     #TYPE_DOUBLE
-    #TYPE_LONG 
+    #TYPE_SHORT
+    #TYPES
 EndEnumeration
+
+XIncludeFile "dataFileMakerMacros.pb"
 
 #CHAMPION_VALUES_NB = 31
 Dim championValues.b(#CHAMPION_VALUES_NB)
@@ -131,10 +135,6 @@ Procedure error(text.s)
     EndIf
     End
 EndProcedure
-
-Macro GSAP(obj, struct, field)
-    @obj + OffsetOf(struct\field)
-EndMacro
 
 Procedure writeSignature(datafile.l)
     WriteLong(datafile, $54545454)
@@ -226,7 +226,7 @@ Procedure.s getDescriptorLine(file.l, *lineN.Long)
 EndProcedure
 
 Macro hexLoc
-    Hex(Loc(datafile)))
+    Hex(Loc(datafile))
 EndMacro
 
 Procedure checkIsEntity(isEntity.b, info.s, lineN.l, elementType.s)
@@ -239,6 +239,7 @@ EndProcedure
 Macro checkIsEntityM(elementType)
     checkIsEntity(isEntity, info, lineN, elementType)
 EndMacro 
+
 
 Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
     Define value.l, line.s, value$, valueD.d, frameNumber.a, lastModifiedFrame.b = -1, i.b
@@ -324,7 +325,7 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
                                 EndIf
 
                                 WriteAsciiCharacter(datafile, #FILEMARKER_FRAMEDURATION)
-                                WriteUnicodeCharacter(datafile, value)
+                                writeUShort(datafile, value)
                                 printLog("    Frame duration : " + value)
                             Case "o"
                                 ;- - - Origin coordinates -----------------------------------------
@@ -333,14 +334,14 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
                                 If value$ = ""
                                     error(errorLocationInfo("Missing origin X coordinate"))
                                 EndIf
-                                WriteLong(datafile, Val(value$))
+                                writeShort(datafile, Val(value$))
                                 printLog("    Frame origin x : " + value$)
                                 i + 1
                                 value$ = GMB_StringField(line, i, " ")
                                 If value$ = ""
                                     error(errorLocationInfo("Missing origin Y coordinate"))
                                 EndIf
-                                WriteLong(datafile, Val(value$))
+                                writeShort(datafile, Val(value$))
                                 printlog("    Frame origin y : " + value$)
                             Case "m"
                                 ;- - - Frame movement ---------------------------------------------
@@ -584,31 +585,45 @@ Macro errorLocationInfo(text)
     sourceFileName + " (line " + lineN + ") : " + text
 EndMacro
 
-Procedure.b writeGameplayValues(datafile.l, sourceFile.l, Array valuesTypes(1), *debugNames.s, valuesNB.l, *lineN.Long) 
-    Define value$, valuesRead.b, line.s
+;assumes existence of lineN, datafile, sourceFile, line and value$
+Macro writeGameplayValues(valuesType, debugNames, valuesNB)
     
     If Eof(sourceFile)
-        Goto values_loop_end
+        Goto values_loop_end_#debugnames
     EndIf
     
-    line = getDescriptorLine(sourceFile, *lineN)
-
+    line = getDescriptorLine(sourceFile, @lineN)
+    
+    valuesRead.b = 0
+    
     While startsWithNumber(line)
         For i = 1 To GMB_CountFields(line, " ")
             If valuesRead >= valuesNB
                 warning("Too many values - Ignoring the last ones")
-                Goto values_loop_end
+                Goto values_loop_end_#debugnames:
             EndIf
             value$ = GMB_StringField(line, i, " ")
-            Select championValues(valuesRead)
-                Case #TYPE_BYTE
-                    WriteByte(datafile, Val(value$))
-                Case #TYPE_DOUBLE
-                    WriteDouble(datafile, ValD(value$))
-                Case #TYPE_LONG 
-                    WriteLong(datafile, Val(value$))
-            EndSelect
-            printLog("  -" + PeekS(*debugNames + valuesRead) + " : " + value$ + " (" + *debugValues\championValueTypes[championValues(valuesRead + 1)] + ")")
+            If value$ = "x"
+                Select valuesType(valuesRead)
+                    Case #TYPE_BYTE
+                        writeMaxValue(datafile, byte)
+                    Case #TYPE_DOUBLE
+                        writeMaxValue(datafile, double)
+                    Case #TYPE_SHORT 
+                        writeMaxValue(datafile, short)
+                EndSelect           
+            Else
+                Select valuesType(valuesRead)
+                    Case #TYPE_BYTE
+                        WriteByte(datafile, Val(value$))
+                    Case #TYPE_DOUBLE
+                        WriteDouble(datafile, ValD(value$))
+                    Case #TYPE_SHORT 
+                        writeShort(datafile, Val(value$))
+                EndSelect                
+            EndIf
+            
+            printLog("  - " + Str(valuesRead) + " : " + *debugValues\debugNames[valuesRead] + " : " + value$ + " (" + *debugValues\championValueTypes[valuesType(valuesRead)] + ")")
             valuesRead + 1
  
         Next
@@ -617,23 +632,22 @@ Procedure.b writeGameplayValues(datafile.l, sourceFile.l, Array valuesTypes(1), 
         EndIf
         line = getDescriptorLine(sourceFile, @lineN)
     Wend
-    champion_values_loop_end:
+    values_loop_end_#debugnames:
 
-    If valuesRead < #CHAMPION_VALUES_NB
+    If valuesRead < valuesNB
         Debug valuesRead
-        error("Missing champion values")
+        error("Missing values")
     EndIf
     
-    values_loop_end:
-EndProcedure
-
+    
+EndMacro
 
 Procedure writeChampionFile(datafile.l, sourceFileName.s)
     Define value.l, line.s, value$, valueD.d, i.b
     Shared championValues()
 
     printLog("---")
-    printLog("Writing Champion descriptor file at offset " + hexloc
+    printLog("Writing Champion descriptor file at offset " + hexLoc)
 
     sourceFile.l = OpenFile(#PB_Any, sourceFileName)
     If Not sourceFile
@@ -647,45 +661,9 @@ Procedure writeChampionFile(datafile.l, sourceFileName.s)
     WriteString(datafile, line, #PB_UTF8)
     WriteAsciiCharacter(datafile, $A) ;adding line end 
 
-    valuesRead.b = 0
-
     printLog("  Writing Champion values")
-
-    If Eof(sourceFile)
-        Goto champion_values_loop_end
-    EndIf
-
-    line = getDescriptorLine(sourceFile, @lineN)
-
-    While startsWithNumber(line)
-        For i = 1 To GMB_CountFields(line, " ")
-            If valuesRead >= #CHAMPION_VALUES_NB
-                warning("Too many champion values - Ignoring the last ones")
-                Goto champion_values_loop_end
-            EndIf
-            value$ = GMB_StringField(line, i, " ")
-            Select championValues(valuesRead)
-                Case #TYPE_BYTE
-                    WriteByte(datafile, Val(value$))
-                Case #TYPE_DOUBLE
-                    WriteDouble(datafile, ValD(value$))
-                Case #TYPE_LONG 
-            EndIf
-            printLog("  -" + *debugValues\championValues[valuesRead] + " : " + value$ + " (" + *debugValues\championValueTypes[championValues(valuesRead + 1)] + ")")
-            valuesRead + 1
- 
-        Next
-        If Eof(sourceFile)
-            Break
-        EndIf
-        line = getDescriptorLine(sourceFile, @lineN)
-    Wend
-    champion_values_loop_end:
-
-    If valuesRead < #CHAMPION_VALUES_NB
-        Debug valuesRead
-        error("Missing champion values")
-    EndIf
+    
+    writeGameplayValues(championValues, championValues, #CHAMPION_VALUES_NB)
 
     While Not line = ""
         Select Left(line, 1)
@@ -721,8 +699,11 @@ Procedure writeChampionFile(datafile.l, sourceFileName.s)
 EndProcedure
 
 Procedure writeStageFile(datafile.l, sourceFileName.s)
+    Shared stageValues()
+    Define value.l, line.s, value$, valueD.d, i.b
+    
     printLog("---")
-    printLog("Writing Stage descriptor file at offset " + hexloc
+    printLog("Writing Stage descriptor file at offset " + hexloc)
     
     sourceFile.l = OpenFile(#PB_Any, sourceFileName)
     If Not sourceFile
@@ -735,34 +716,55 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
     printLog("  Writing Display Name : " + line)  
     WriteString(datafile, line, #PB_UTF8)
     WriteAsciiCharacter(datafile, $A) ;adding line end 
+
+    printLog("  Writing Stage values")
     
-    While startsWithNumber(line)
-        For i = 1 To GMB_CountFields(line, " ")
-            If valuesRead >= #STAGE_VALUES_NB
-                warning("Too many champion values - Ignoring the last ones")
-                Goto stage_value_loop_end
-            EndIf
-            value$ = GMB_StringField(line, i, " ")
-            If (championValues(valuesRead) = #TYPE_BYTE)
-                WriteByte(datafile, Val(value$))
-            Else
-                WriteDouble(datafile, ValD(value$))
-            EndIf
-            printLog("  -" + *debugValues\championValues[valuesRead] + " : " + value$ + " (" + *debugValues\championValueTypes[championValues(valuesRead + 1)] + ")")
-            valuesRead + 1
- 
-        Next
-        If Eof(sourceFile)
-            Break
-        EndIf
+    writeGameplayValues(stageValues, stageValues, #STAGE_VALUES_NB)
+    
+    While Not line = ""
+        Select Left(line, 1)
+            Case "m"
+                value$ = GMB_StringField(line, 2, " ")
+                If value$ = ""
+                    error("Move names cannot be empty")
+                EndIf
+                WriteAsciiCharacter(datafile, #FILEMARKER_MOVEINFO)
+                writeAsciiString(datafile, value$)
+                printLog("- Writing move info : " + value$)
+    
+                ;- - - Reading all values
+                For i = 3 To GMB_CountFields(line, " ")
+                    value$ = GMB_StringField(line, i, " ")
+                    Select value$
+                        Case "l" ; landing lag
+                            i + 1
+                            value$ = GMB_StringField(line, i, " ")
+                            WriteAsciiCharacter(datafile, #FILEMARKER_LANDINGLAG)
+                            WriteAsciiCharacter(datafile, Val(value$))
+                            printLog("  - Landing lag : " + value$)
+                    EndSelect
+    
+                Next
+            Case "p"
+                WriteAsciiCharacter(datafile, #FILEMARKER_PLATFORMINFO)
+                printLog("  Writing platform info")
+
+                ;- - - Reading coordinates
+                For i = 2 To 6
+                    value$ = GMB_StringField(line, i, " ")
+                    If value$ = ""
+                        error(errorLocationInfo("missing value."))
+                    EndIf
+
+                    If verbose And Not startsWithNumber(value$)
+                        warning(errorLocationInfo("One of the values is not a number - using 0"))
+                    EndIf
+                    WriteWord(datafile, Val(value$))
+                    printLog("    " + *debugValues\hitboxValues[i - 2] + " : " + value$)
+                Next
+        EndSelect
         line = getDescriptorLine(sourceFile, @lineN)
     Wend
-    stage_value_loop_end:
-    
-    
-    
-    
-    
 EndProcedure
 
 Procedure addFile(datafile.l, *inputFile.File)
@@ -825,6 +827,8 @@ Procedure addFile(datafile.l, *inputFile.File)
             writeAnimationDescriptor(datafile, info, 1)
         Case #FILETYPE_BANIMATION
             writeAnimationDescriptor(datafile, info, 0)
+        Case #FILETYPE_STAGE
+            writeStageFile(datafile, *inputFile\path)
     EndSelect        
 
     WriteByte(datafile, #FILEMARKER_INTERFILE)
@@ -905,9 +909,9 @@ If logging
 EndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 610
-; FirstLine = 226
-; Folding = ---+-
+; CursorPosition = 87
+; FirstLine = 63
+; Folding = --f-
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe
 ; CommandLine = -v ..\test

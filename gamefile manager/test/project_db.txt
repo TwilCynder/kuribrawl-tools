@@ -4,3 +4,5 @@ acid_rainbows.dat
 C:acid
 oracle.png
 I:oracle
+testStage.dat
+S:test
