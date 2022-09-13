@@ -1,13 +1,4 @@
-﻿
-Macro writeShort(file, value)
-    WriteWord(file, value)
-EndMacro
-
-Macro writeUShort(file, value)
-    WriteUnicodeCharacter(file, value)    
-EndMacro
-    
-Macro writeMaxValue(file, type)
+﻿Macro writeMaxValue(file, type)
     write#type(file, #MAX_VALUE_#type)
 EndMacro
 
@@ -41,6 +32,5 @@ Macro GSAP(obj, struct, field)
 EndMacro
 
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 41
 ; Folding = --
 ; EnableXP

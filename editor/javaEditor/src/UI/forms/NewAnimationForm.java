@@ -197,7 +197,7 @@ public class NewAnimationForm extends EditorForm {
             JOptionPane.showMessageDialog(editor, "Animation name cannot be empty", "Inane error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
-        if (!animName.matches("\\w+")){
+        if (!GameData.isValidIdentifier(animName)){
             JOptionPane.showMessageDialog(editor, "Animation name can only contain alphanumeric characters and underscores", "Inane error", JOptionPane.ERROR_MESSAGE);
             return false;
         }

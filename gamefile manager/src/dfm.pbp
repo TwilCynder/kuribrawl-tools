@@ -7,12 +7,16 @@
   <section name="data">
     <explorer view="C:\ProgramData\PureBasic\Examples\" pattern="0"/>
     <log show="1"/>
-    <lastopen date="2022-09-12 01:22" user="twilc" host="TWIL-DESKTOP"/>
+    <lastopen date="2022-09-13 20:32" user="twilc" host="TWIL-DESKTOP"/>
   </section>
   <section name="files">
     <file name="dataFileMaker.pb">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="ad749047cdeda3221e57b5dedb599591"/>
+      <fingerprint md5="460201c58bbcc45eeda658edd90d8480"/>
+    </file>
+    <file name="dataFileMakerMacros.pbi">
+      <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
+      <fingerprint md5="a735cb08fc990ed00f7f969802b7d270"/>
     </file>
     <file name="dataFileMarkerData.pbi">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
@@ -21,10 +25,6 @@
     <file name="dataFileMarkerDebugValues.pbi">
       <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
       <fingerprint md5="b5a4c179c5f334cc84f2a96167b70f95"/>
-    </file>
-    <file name="dataFileMakerMacros.pb">
-      <config load="0" scan="1" panel="1" warn="1" lastopen="1" panelstate="+"/>
-      <fingerprint md5="c6808440551dbdce08d7c56007d29f26"/>
     </file>
   </section>
   <section name="targets">

@@ -120,4 +120,8 @@ public class GameData implements Iterable<Champion> {
             }
         }
     }
+
+    public static boolean isValidIdentifier(String s){
+        return s.matches("\\w+");
+    }
 }

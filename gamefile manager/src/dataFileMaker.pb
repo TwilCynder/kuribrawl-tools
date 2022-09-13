@@ -85,7 +85,7 @@ Enumeration
     #TYPES
 EndEnumeration
 
-XIncludeFile "dataFileMakerMacros.pb"
+XIncludeFile "dataFileMakerMacros.pbi"
 
 #CHAMPION_VALUES_NB = 31
 Dim championValues.b(#CHAMPION_VALUES_NB)
@@ -93,6 +93,9 @@ Dim championValues.b(#CHAMPION_VALUES_NB)
 Dim stageValues.b(#STAGE_VALUES_NB)
 
 XIncludeFile "dataFileMarkerData.pbi"
+
+Define identifierRegex = CreateRegularExpression(#PB_Any, "[a-zA-Z_0-9]")
+Define basicTagRegex = CreateRegularExpression(#PB_Any, "[a-zA-Z_0-9/]")
 
 NewList files.File()
 
@@ -134,6 +137,14 @@ Procedure error(text.s)
         Input()
     EndIf
     End
+EndProcedure
+
+Procedure writeShort(file, value)
+    WriteWord(file, value)
+EndProcedure
+
+Procedure writeUShort(file, value)
+    WriteUnicodeCharacter(file, value)
 EndProcedure
 
 Procedure writeSignature(datafile.l)
@@ -207,6 +218,11 @@ Procedure startsWithNumber(text.s)
     Else
         ProcedureReturn 1
     EndIf
+EndProcedure
+
+Procedure isValidIdentifier(id.s)
+    Shared identifierRegex
+    ProcedureReturn MatchRegularExpression(identifierRegex, id)
 EndProcedure
 
 Macro errorLocationInfo(text)
@@ -602,15 +618,16 @@ Macro writeGameplayValues(valuesType, debugNames, valuesNB)
                 warning("Too many values - Ignoring the last ones")
                 Goto values_loop_end_#debugnames:
             EndIf
-            value$ = GMB_StringField(line, i, " ")
+            value$ = GMB_StringField(line, i, " ") 
+            
             If value$ = "x"
                 Select valuesType(valuesRead)
                     Case #TYPE_BYTE
-                        writeMaxValue(datafile, byte)
+                        writeMaxValue(datafile, Byte)
                     Case #TYPE_DOUBLE
-                        writeMaxValue(datafile, double)
+                        WriteDouble(datafile, 0.0)
                     Case #TYPE_SHORT 
-                        writeMaxValue(datafile, short)
+                        writeMaxValue(datafile, Short)
                 EndSelect           
             Else
                 Select valuesType(valuesRead)
@@ -638,8 +655,6 @@ Macro writeGameplayValues(valuesType, debugNames, valuesNB)
         Debug valuesRead
         error("Missing values")
     EndIf
-    
-    
 EndMacro
 
 Procedure writeChampionFile(datafile.l, sourceFileName.s)
@@ -750,7 +765,7 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
                 printLog("  Writing platform info")
 
                 ;- - - Reading coordinates
-                For i = 2 To 6
+                For i = 2 To 4
                     value$ = GMB_StringField(line, i, " ")
                     If value$ = ""
                         error(errorLocationInfo("missing value."))
@@ -760,12 +775,28 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
                         warning(errorLocationInfo("One of the values is not a number - using 0"))
                     EndIf
                     WriteWord(datafile, Val(value$))
-                    printLog("    " + *debugValues\hitboxValues[i - 2] + " : " + value$)
+                    printLog("    " + *debugValues\stagePlatformValues[i - 2] + " : " + value$)
                 Next
+                
+                value$ = GMB_StringField(line, i, " ")
+                If value$ <> ""
+                    printLog("  - Animation name : " + value$)
+                    If Not isValidIdentifier(value$)
+                        error(errorLocationInfo("Invalid animation name : " + value$))
+                    EndIf
+                    writeAsciiString(datafile, value$)
+                EndIf 
+                    
         EndSelect
         line = getDescriptorLine(sourceFile, @lineN)
     Wend
 EndProcedure
+
+Procedure checkBasicTag(tag.s)
+    Shared basicTagRegex
+    ProcedureReturn MatchRegularExpression(basicTagRegex, tag)
+EndProcedure
+
 
 Procedure addFile(datafile.l, *inputFile.File)
     Define type.b
@@ -805,7 +836,11 @@ Procedure addFile(datafile.l, *inputFile.File)
     printLog("Type : " + *debugValues\fileTypeNames[type])
     writeAsciiString(datafile, tag)
     printLog("Tag : " + tag)
-
+    
+    If Not checkBasicTag(tag)
+        error("Invalid tag : " + tag)
+    EndIf 
+    
     If type = #FILETYPE_ANIMATION Or type = #FILETYPE_LEFTANIM Or type = #FILETYPE_IMAGE Or type = #FILETYPE_FILE
         ;these files are data that isn't going to be parsed (image, sound)
         size.l = readFileToMemory(*inputFile\path)
@@ -909,9 +944,9 @@ If logging
 EndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 87
-; FirstLine = 63
-; Folding = --f-
+; CursorPosition = 795
+; FirstLine = 416
+; Folding = ---8-
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe
 ; CommandLine = -v ..\test

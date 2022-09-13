@@ -213,6 +213,10 @@ public class RessourcePath {
             throw new RessourceException("Ill-formed animation file info : tag should contain 2 non-empty fields separated by \\ : (" + tag + ")");
         }
 
+        if (!GameData.isValidIdentifier(tagSplit[1])){
+            throw new RessourceException("Invalid animation name : " + tagSplit[1]);
+        }
+
         return addAnimation(gd.tryChampion(tagSplit[0]), tagSplit[1], nbFrames, source_filename, descriptor_filename);
     }
 
@@ -465,7 +469,7 @@ public class RessourcePath {
             } catch (NumberFormatException e){
                 throw new RessourceException("File info second field is neither a descriptor filename of a valid number", e);
             }
-
+            
             if (fields.length > 2){
                 anim.setSpeed(Double.parseDouble(fields[2]));
                 if (fields.length > 3){
