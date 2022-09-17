@@ -7,7 +7,7 @@
   <section name="data">
     <explorer view="C:\ProgramData\PureBasic\Examples\" pattern="0"/>
     <log show="1"/>
-    <lastopen date="2022-09-13 20:32" user="twilc" host="TWIL-DESKTOP"/>
+    <lastopen date="2022-09-15 17:15" user="etudiant" host="UT3-10700312"/>
   </section>
   <section name="files">
     <file name="dataFileMaker.pb">
