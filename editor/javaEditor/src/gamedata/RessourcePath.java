@@ -249,7 +249,7 @@ public class RessourcePath {
     /**
      * Object used to read lines from a descriptor file, using a BufferedReader
      */
-    private class DescriptorReader implements AutoCloseable {
+    private class DescriptorReader implements AutoCloseable  {
         private BufferedReader reader;
         private int linesRead;
 
@@ -513,46 +513,44 @@ public class RessourcePath {
     private static final Path listPath = Paths.get(listFilename);
 
     public GameData parseGameData() throws IOException, RessourceException, WhatTheHellException, InvalidRessourcePathException {
-        BufferedReader reader;
-        try {
-            reader = fileReader(listPath);
+        try (DescriptorReader reader = new DescriptorReader(fileReader(listPath))){
+            String file, info;
+            String[] split;
+            int line = 1;
+    
+            GameData gd = new GameData();
+    
+            while (reader.ready()){
+                file = reader.readLine();
+                info = reader.readLine();
+    
+                if (info == null) throw new RessourceException("filename without file info in files list file (" + listFilename + ")");
+    
+                split = info.split(":");
+    
+                if (split.length != 2) throw new RessourceException("File info line should contain exactly 1 : separator", listFilename, line + 1);
+                line += 2;
+    
+                switch (split[0]){
+                    case "L":
+                    case "I":
+                    case "X":
+                        gd.addOtherFile(file, info);
+                        break;
+                    case "A":
+                        parseAnimation(gd, file.trim(), split[1]);
+                        break;
+                    case "C":
+                        parseChampion(gd, file.trim(), split[1]);
+                        break;
+                }
+            }
+                    
+            return gd;
         } catch (NoSuchFileException e){
             throw new RessourceException("The specified directory is not a valid ressource path : does not contain a project_db.txt file.", e);
         }
 
-        String file, info;
-        String[] split;
-        int line = 1;
-
-        GameData gd = new GameData();
-
-        while (reader.ready()){
-            file = reader.readLine();
-            info = reader.readLine();
-
-            if (info == null) throw new RessourceException("filename without file info in files list file (" + listFilename + ")");
-
-            split = info.split(":");
-
-            if (split.length != 2) throw new RessourceException("File info line should contain exactly 1 : separator", listFilename, line + 1);
-            line += 2;
-
-            switch (split[0]){
-                case "L":
-                case "I":
-                case "X":
-                    gd.addOtherFile(file, info);
-                    break;
-                case "A":
-                    parseAnimation(gd, file.trim(), split[1]);
-                    break;
-                case "C":
-                    parseChampion(gd, file.trim(), split[1]);
-                    break;
-            }
-        }
-
-        return gd;
     }
 
     private static void writeString(BufferedWriter writer, String str) throws IOException{

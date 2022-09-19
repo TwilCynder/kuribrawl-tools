@@ -157,6 +157,18 @@ Procedure writeVersion(datafile.l, maj.a, min.a, rev.a)
     WriteAsciiCharacter(datafile, rev)
 EndProcedure
 
+Procedure.s getDescriptorLine(file.l, *lineN.Long)
+    Define line.s
+    Repeat
+        If Eof(file)
+            ProcedureReturn ""
+        EndIf
+        line = StringField(ReadString(file), 1, "#")
+        *lineN\l + 1
+    Until Not line = ""
+    ProcedureReturn line
+EndProcedure
+
 Procedure readFileList()
     Shared files()
 
@@ -165,11 +177,13 @@ Procedure readFileList()
         error("Could Not find project DB.")
         End
     EndIf
-
+    
+    lineN.l = 0 
+    
     While Not Eof(file)
         AddElement(files())
-        files()\path = ReadString(file)
-        files()\content = ReadString(file)
+        files()\path = getDescriptorLine(file, @lineN)
+        files()\content = getDescriptorLine(file, @lineN)
     Wend
     CloseFile(file)
 EndProcedure
@@ -228,18 +242,6 @@ EndProcedure
 Macro errorLocationInfo(text)
     info + " (line " + lineN + ") : " + text
 EndMacro
-
-Procedure.s getDescriptorLine(file.l, *lineN.Long)
-    Define line.s
-    Repeat
-        If Eof(file)
-            ProcedureReturn ""
-        EndIf
-        line = StringField(ReadString(file), 1, "#")
-        *lineN\l + 1
-    Until Not line = ""
-    ProcedureReturn line
-EndProcedure
 
 Macro hexLoc
     Hex(Loc(datafile))
@@ -944,8 +946,8 @@ If logging
 EndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 795
-; FirstLine = 416
+; CursorPosition = 169
+; FirstLine = 147
 ; Folding = ---8-
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe
