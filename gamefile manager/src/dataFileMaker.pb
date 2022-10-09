@@ -177,9 +177,9 @@ Procedure readFileList()
         error("Could Not find project DB.")
         End
     EndIf
-    
-    lineN.l = 0 
-    
+
+    lineN.l = 0
+
     While Not Eof(file)
         AddElement(files())
         files()\path = getDescriptorLine(file, @lineN)
@@ -249,14 +249,14 @@ EndMacro
 
 Procedure checkIsEntity(isEntity.b, info.s, lineN.l, elementType.s)
     If (Not IsEntity)
-        error(errorLocationInfo("Illegal element in background animation : " + elementType + " (should only be present in entity animations)"))    
+        error(errorLocationInfo("Illegal element in background animation : " + elementType + " (should only be present in entity animations)"))
     EndIf
-    
+
 EndProcedure
 
 Macro checkIsEntityM(elementType)
     checkIsEntity(isEntity, info, lineN, elementType)
-EndMacro 
+EndMacro
 
 
 Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
@@ -392,8 +392,8 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
                         value$ = GMB_StringField(line, i, " ")
                     Wend
                 Case "c"
-                    checkIsEntityM("Hutbox") 
-                    
+                    checkIsEntityM("Hutbox")
+
                     ;- - Hurtbox line -------------------------------------------------------------
 
                     If line = "c all"
@@ -469,8 +469,8 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
                     ;printLog("    Writing end marker")
 
                 Case "h"
-                    checkIsEntityM("Hitbox")    
-                    
+                    checkIsEntityM("Hitbox")
+
                     ;- - Hitbox line -------------------------------------------------------------
 
                     value$ = GMB_StringField(line, 1, " ")
@@ -605,46 +605,46 @@ EndMacro
 
 ;assumes existence of lineN, datafile, sourceFile, line and value$
 Macro writeGameplayValues(valuesType, debugNames, valuesNB)
-    
+
     If Eof(sourceFile)
         Goto values_loop_end_#debugnames
     EndIf
-    
+
     line = getDescriptorLine(sourceFile, @lineN)
-    
+
     valuesRead.b = 0
-    
+
     While startsWithNumber(line)
         For i = 1 To GMB_CountFields(line, " ")
             If valuesRead >= valuesNB
                 warning("Too many values - Ignoring the last ones")
                 Goto values_loop_end_#debugnames:
             EndIf
-            value$ = GMB_StringField(line, i, " ") 
-            
+            value$ = GMB_StringField(line, i, " ")
+
             If value$ = "x"
                 Select valuesType(valuesRead)
                     Case #TYPE_BYTE
                         writeMaxValue(datafile, Byte)
                     Case #TYPE_DOUBLE
                         WriteDouble(datafile, 0.0)
-                    Case #TYPE_SHORT 
+                    Case #TYPE_SHORT
                         writeMaxValue(datafile, Short)
-                EndSelect           
+                EndSelect
             Else
                 Select valuesType(valuesRead)
                     Case #TYPE_BYTE
                         WriteByte(datafile, Val(value$))
                     Case #TYPE_DOUBLE
                         WriteDouble(datafile, ValD(value$))
-                    Case #TYPE_SHORT 
+                    Case #TYPE_SHORT
                         writeShort(datafile, Val(value$))
-                EndSelect                
+                EndSelect
             EndIf
-            
+
             printLog("  - " + Str(valuesRead) + " : " + *debugValues\debugNames[valuesRead] + " : " + value$ + " (" + *debugValues\championValueTypes[valuesType(valuesRead)] + ")")
             valuesRead + 1
- 
+
         Next
         If Eof(sourceFile)
             Break
@@ -672,14 +672,14 @@ Procedure writeChampionFile(datafile.l, sourceFileName.s)
     EndIf
 
     lineN.l = 1
-    
+
     line = getDescriptorLine(sourceFile, @lineN)
-    printLog("  Writing Display Name : " + line)  
+    printLog("  Writing Display Name : " + line)
     WriteString(datafile, line, #PB_UTF8)
-    WriteAsciiCharacter(datafile, $A) ;adding line end 
+    WriteAsciiCharacter(datafile, $A) ;adding line end
 
     printLog("  Writing Champion values")
-    
+
     writeGameplayValues(championValues, championValues, #CHAMPION_VALUES_NB)
 
     While Not line = ""
@@ -718,26 +718,26 @@ EndProcedure
 Procedure writeStageFile(datafile.l, sourceFileName.s)
     Shared stageValues()
     Define value.l, line.s, value$, valueD.d, i.b
-    
+
     printLog("---")
     printLog("Writing Stage descriptor file at offset " + hexloc)
-    
+
     sourceFile.l = OpenFile(#PB_Any, sourceFileName)
     If Not sourceFile
         error("Could not open the source file (" + sourceFileName + ")")
     EndIf
 
     lineN.l = 1
-    
+
     line = getDescriptorLine(sourceFile, @lineN)
-    printLog("  Writing Display Name : " + line)  
+    printLog("  Writing Display Name : " + line)
     WriteString(datafile, line, #PB_UTF8)
-    WriteAsciiCharacter(datafile, $A) ;adding line end 
+    WriteAsciiCharacter(datafile, $A) ;adding line end
 
     printLog("  Writing Stage values")
-    
+
     writeGameplayValues(stageValues, stageValues, #STAGE_VALUES_NB)
-    
+
     While Not line = ""
         Select Left(line, 1)
             Case "m"
@@ -748,7 +748,7 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
                 WriteAsciiCharacter(datafile, #FILEMARKER_MOVEINFO)
                 writeAsciiString(datafile, value$)
                 printLog("- Writing move info : " + value$)
-    
+
                 ;- - - Reading all values
                 For i = 3 To GMB_CountFields(line, " ")
                     value$ = GMB_StringField(line, i, " ")
@@ -760,7 +760,7 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
                             WriteAsciiCharacter(datafile, Val(value$))
                             printLog("  - Landing lag : " + value$)
                     EndSelect
-    
+
                 Next
             Case "p"
                 WriteAsciiCharacter(datafile, #FILEMARKER_PLATFORMINFO)
@@ -779,7 +779,7 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
                     WriteWord(datafile, Val(value$))
                     printLog("    " + *debugValues\stagePlatformValues[i - 2] + " : " + value$)
                 Next
-                
+
                 value$ = GMB_StringField(line, i, " ")
                 If value$ <> ""
                     printLog("  - Animation name : " + value$)
@@ -787,8 +787,8 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
                         error(errorLocationInfo("Invalid animation name : " + value$))
                     EndIf
                     writeAsciiString(datafile, value$)
-                EndIf 
-                    
+                EndIf
+
         EndSelect
         line = getDescriptorLine(sourceFile, @lineN)
     Wend
@@ -838,11 +838,11 @@ Procedure addFile(datafile.l, *inputFile.File)
     printLog("Type : " + *debugValues\fileTypeNames[type])
     writeAsciiString(datafile, tag)
     printLog("Tag : " + tag)
-    
+
     If Not checkBasicTag(tag)
         error("Invalid tag : " + tag)
-    EndIf 
-    
+    EndIf
+
     If type = #FILETYPE_ANIMATION Or type = #FILETYPE_LEFTANIM Or type = #FILETYPE_IMAGE Or type = #FILETYPE_FILE
         ;these files are data that isn't going to be parsed (image, sound)
         size.l = readFileToMemory(*inputFile\path)
@@ -854,9 +854,9 @@ Procedure addFile(datafile.l, *inputFile.File)
         printLog("File size : " + size)
         before.l = Loc(datafile)
         writeMemoryToFile(datafile)
-        
-    EndIf 
-    
+
+    EndIf
+
     Select type
         Case #FILETYPE_CHAMPION
             writeChampionFile(datafile, *inputFile\path)
@@ -866,7 +866,7 @@ Procedure addFile(datafile.l, *inputFile.File)
             writeAnimationDescriptor(datafile, info, 0)
         Case #FILETYPE_STAGE
             writeStageFile(datafile, *inputFile\path)
-    EndSelect        
+    EndSelect
 
     WriteByte(datafile, #FILEMARKER_INTERFILE)
 EndProcedure
@@ -921,7 +921,7 @@ If Not CreateFile(0, buildpath)
     End
 EndIf
 
-If logging 
+If logging
     PrintN("Building Kuribrawl Data File at" + buildpath + " from ressources at " + source + ".")
     PrintN("Data File Format version : " + #DFV_MAJ + "." + #DFV_MIN + "." + #DFV_REV)
     PrintN("Ressource Files Format version : " + #RFV_MAJ + "." + #RFV_MIN + "." + #RFV_REV)
