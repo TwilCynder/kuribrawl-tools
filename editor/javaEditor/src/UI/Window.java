@@ -223,6 +223,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		public void focusGained(FocusEvent e){}
 
+		@SuppressWarnings("unchecked")
 		public void focusLost(FocusEvent e){
 			if (!componentClass.isInstance(e.getSource())) throw new IllegalStateException("Typed listener specific to " + componentClass.getName() + "used on different component : " + e.getSource());
 			T source = (T)e.getSource(); //do not worry
