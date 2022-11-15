@@ -762,7 +762,7 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
                     EndSelect
 
                 Next
-            Case "p"
+            Case "p" ;platform
                 WriteAsciiCharacter(datafile, #FILEMARKER_PLATFORMINFO)
                 printLog("  Writing platform info")
 
@@ -946,8 +946,8 @@ If logging
 EndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 169
-; FirstLine = 147
+; CursorPosition = 764
+; FirstLine = 414
 ; Folding = ---8-
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe
