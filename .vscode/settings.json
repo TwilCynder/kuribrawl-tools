@@ -1,7 +1,17 @@
 {
+    "java.project.sourcePaths": [
+        "tools\\editor\\javaEditor\\src"
+    ],
     "java.project.referencedLibraries": [
         "lib/**/*.jar",
-        "editor/javaEditor/src/jgoodies-common-1.8.1.jar",
-        "editor/javaEditor/src/jgoodies-forms-1.8.0.jar"
-    ]
+        "tools/editor/javaEditor/src/jgoodies-common-1.8.1.jar",
+        "tools/editor/javaEditor/src/jgoodies-forms-1.8.0.jar"
+    ],
+    "java.completion.filteredTypes": [
+        "com.sun.*",
+        "sun.*",
+        "jdk.*",
+        "org.graalvm.*",
+        "io.micrometer.shaded.*"
+    ],
 }
