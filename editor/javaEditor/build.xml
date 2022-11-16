@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name = "kuribrawl-editor" default="compile" basedir=".">
+    <property name = "exec_file" value="kuribrawl-editor-test.jar"/>
+</project>
