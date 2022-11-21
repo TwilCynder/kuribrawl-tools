@@ -4,8 +4,8 @@
     ],
     "java.project.referencedLibraries": [
         "lib/**/*.jar",
-        "tools/editor/javaEditor/src/jgoodies-common-1.8.1.jar",
-        "tools/editor/javaEditor/src/jgoodies-forms-1.8.0.jar"
+        "tools/editor/javaEditor/lib/jgoodies-common-1.8.1.jar",
+        "tools/editor/javaEditor/lib/jgoodies-forms-1.8.0.jar"
     ],
     "java.completion.filteredTypes": [
         "com.sun.*",

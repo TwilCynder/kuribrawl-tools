@@ -1,5 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project name = "kuribrawl-editor" default="compile" basedir=".">
-    <property name = "exec_file" value="kuribrawl-editor-test.jar"/>
+    <property name = "exec.file"    value="${ant.project.name}-test.jar"/>
+    <property name="exec-d.file"    value="${ant.project.name}-d.jar"/>
+    <property name = "zip.file"     value="${ant.project.name}.zip"/>
+    <property name="main-class"     value="testPackage.Test"/>
+
+    <property name="src.dir"        value="src"/>
+    <property name="lib.dir"        value="lib"/>
+    <property name="classes.dir"    value="classes"/>
+
+    <!-- Essayer avec le tag classpath directement (et des fileset à l'intéreiur)-->
+    <path id="compile.classpath">
+        <fileset dir="./${lib.dir}" includes="**/*.jar"/>
+    </path>
+
+    <pathconvert property="manifest.classpath" pathsep=" ">
+        <path refid="compile.classpath"/>
+        <mapper>
+          <chainedmapper>
+             <flattenmapper/>
+             <globmapper from="*.jar" to="${lib.dir}/*.jar"/>
+          </chainedmapper>
+        </mapper>
+      </pathconvert>
+
+    <target name="clean">
+        <echo>Clearing classes directory</echo>
+        <delete>
+            <fileset dir="${classes.dir}" includes="**/*"/>
+        </delete>
+        <delete file = "${exec.file}"/>   
+    </target>
+
+    <target name="clear" depends="clean"></target>
+
+    <target name="compile">
+        <mkdir dir="${classes.dir}"/>
+        <javac srcdir="${src.dir}" destdir="${classes.dir}" classpathref="compile.classpath"/>
+    </target>
+
+    <target name="build-dependant" depends = "compile">
+        <jar destfile="${exec-d.file}" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${main-class}"/>
+                <attribute name="Class-Path" value="${manifest.classpath}"/>
+            </manifest>
+        </jar>
+        <echo message = "Manifest Classpath : ${manifest.classpath}"/>
+    </target>
+
+    <target name="dist-zip" depends="build-dependant">
+        <zip destfile="${zip.file}">
+            <fileset dir="." includes="${lib.dir}/**/*.jar"/>
+            <fileset dir="." includes="${exec-d.file}"/>
+        </zip>
+    </target>
+
+    <target name="run" depends="compile">
+        <java fork="true" classname="${main-class}">
+            <classpath>
+                <path refid="libs"/>
+                <path location="${classes.dir}"/>
+            </classpath>
+        </java>
+    </target>
 </project>
