@@ -8,6 +8,7 @@
 
     <property name="src.dir"        value="src"/>
     <property name="lib.dir"        value="lib"/>
+    <property name="lib.classes.dir"    value="lib_ext"/>
     <property name="classes.dir"    value="classes"/>
 
     <!-- Essayer avec le tag classpath directement (et des fileset à l'intéreiur)-->
@@ -30,7 +31,7 @@
         <delete>
             <fileset dir="${classes.dir}" includes="**/*"/>
         </delete>
-        <delete file = "${exec.file}"/>   
+        <delete file = "${exec.file}"/>
     </target>
 
     <target name="clear" depends="clean"></target>
@@ -55,6 +56,20 @@
             <fileset dir="." includes="${lib.dir}/**/*.jar"/>
             <fileset dir="." includes="${exec-d.file}"/>
         </zip>
+    </target>
+
+    <target name = "build" depends = "compile">
+        <jar destfile = "temp.jar"  excludes = "*.SF,*.RSA">
+            <fileset dir="./${classes.dir}" includes="**/*"/>
+            <zipgroupfileset dir="${lib.dir}" includes="**/*.jar"/>
+        </jar>
+        <jar destfile = "${exec.file}">
+            <manifest>
+                <attribute name="Main-Class" value="${main-class}"/>
+            </manifest>
+            <zipfileset src="temp.jar" excludes="META-INF/*.SF,META-INF/*.RSA,META-INF/*.DSA"/>
+        </jar>
+        <delete file = "temp.jar"/>
     </target>
 
     <target name="run" depends="compile">
