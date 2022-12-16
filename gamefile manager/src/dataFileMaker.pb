@@ -740,28 +740,6 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
 
     While Not line = ""
         Select Left(line, 1)
-            Case "m"
-                value$ = GMB_StringField(line, 2, " ")
-                If value$ = ""
-                    error("Move names cannot be empty")
-                EndIf
-                WriteAsciiCharacter(datafile, #FILEMARKER_MOVEINFO)
-                writeAsciiString(datafile, value$)
-                printLog("- Writing move info : " + value$)
-
-                ;- - - Reading all values
-                For i = 3 To GMB_CountFields(line, " ")
-                    value$ = GMB_StringField(line, i, " ")
-                    Select value$
-                        Case "l" ; landing lag
-                            i + 1
-                            value$ = GMB_StringField(line, i, " ")
-                            WriteAsciiCharacter(datafile, #FILEMARKER_LANDINGLAG)
-                            WriteAsciiCharacter(datafile, Val(value$))
-                            printLog("  - Landing lag : " + value$)
-                    EndSelect
-
-                Next
             Case "p" ;platform
                 WriteAsciiCharacter(datafile, #FILEMARKER_PLATFORMINFO)
                 printLog("  Writing platform info")
