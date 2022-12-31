@@ -48,8 +48,9 @@ Enumeration
 EndEnumeration
 
 #MAX_VALUE_BYTE = 255
-#MAX_VALUE_SHORT = 65535
-#MAX_VALUE_USHORT = 32767
+#MAX_VALUE_UCHAR = 127
+#MAX_VALUE_USHORT = 65535
+#MAX_VALUE_SHORT = 32767
 #MAX_VALUE_LONG = 2147483647
 
 ;General
@@ -123,7 +124,7 @@ EndMacro
 
 Macro warning(text)
     If logging
-        PrintN(Chr(27) + "WARNING : " + text)
+        PrintN("WARNING : " + text)
     EndIf
 EndMacro
 
@@ -145,6 +146,21 @@ EndProcedure
 
 Procedure writeUShort(file, value)
     WriteUnicodeCharacter(file, value)
+EndProcedure
+
+Procedure ValDefault(text$, def)
+    If text$ = "x" 
+        ProcedureReturn def
+    EndIf
+    ProcedureReturn Val(text$)
+EndProcedure
+
+Procedure ValDefaultShort(text$)
+    ProcedureReturn ValDefault(text$, #MAX_VALUE_SHORT)
+EndProcedure
+
+Procedure WriteShortT(file, val$)
+    WriteWord(file, ValDefaultShort(text$))
 EndProcedure
 
 Procedure writeSignature(datafile.l)
@@ -234,6 +250,10 @@ Procedure startsWithNumber(text.s)
     EndIf
 EndProcedure
 
+Procedure startsWithNumberOrX(text.s)
+    ProcedureReturn Bool(text = "x"  Or startsWithNumber(text))
+EndProcedure
+    
 Procedure isValidIdentifier(id.s)
     Shared identifierRegex
     ProcedureReturn MatchRegularExpression(identifierRegex, id)
@@ -403,7 +423,7 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
                             WriteAsciiCharacter(datafile, #FILEMARKER_FRAMEINFO)
                             WriteAsciiCharacter(datafile, i)
                             WriteAsciiCharacter(datafile, #FILEMARKER_HURTBOXINFO)
-                            WriteUnicodeCharacter(datafile, #MAX_VALUE_USHORT)
+                            WriteUnicodeCharacter(datafile, #MAX_VALUE_SHORT)
                         Next
                         Continue
                     EndIf
@@ -433,7 +453,7 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
 
                     value$ = GMB_StringField(line, 2, " ")
                     If value$ = "whole"
-                        WriteWord(datafile, #MAX_VALUE_USHORT)
+                        WriteWord(datafile, #MAX_VALUE_SHORT)
                         printLog("    This hurtbox will cover all the frame and use the default type.")
                         Continue
                     EndIf
@@ -592,7 +612,7 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
                 WriteAsciiCharacter(datafile, #FILEMARKER_FRAMEINFO)
                 WriteAsciiCharacter(datafile, i)
                 WriteAsciiCharacter(datafile, #FILEMARKER_HURTBOXINFO)
-                WriteWord(datafile, #MAX_VALUE_USHORT)
+                WriteWord(datafile, #MAX_VALUE_SHORT)
             Next
         EndIf
     EndIf
@@ -740,28 +760,6 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
 
     While Not line = ""
         Select Left(line, 1)
-            Case "m"
-                value$ = GMB_StringField(line, 2, " ")
-                If value$ = ""
-                    error("Move names cannot be empty")
-                EndIf
-                WriteAsciiCharacter(datafile, #FILEMARKER_MOVEINFO)
-                writeAsciiString(datafile, value$)
-                printLog("- Writing move info : " + value$)
-
-                ;- - - Reading all values
-                For i = 3 To GMB_CountFields(line, " ")
-                    value$ = GMB_StringField(line, i, " ")
-                    Select value$
-                        Case "l" ; landing lag
-                            i + 1
-                            value$ = GMB_StringField(line, i, " ")
-                            WriteAsciiCharacter(datafile, #FILEMARKER_LANDINGLAG)
-                            WriteAsciiCharacter(datafile, Val(value$))
-                            printLog("  - Landing lag : " + value$)
-                    EndSelect
-
-                Next
             Case "p" ;platform
                 WriteAsciiCharacter(datafile, #FILEMARKER_PLATFORMINFO)
                 printLog("  Writing platform info")
@@ -773,11 +771,12 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
                         error(errorLocationInfo("missing value."))
                     EndIf
 
-                    If verbose And Not startsWithNumber(value$)
+                    If verbose And Not startsWithNumberOrX(value$)
                         warning(errorLocationInfo("One of the values is not a number - using 0"))
                     EndIf
-                    WriteWord(datafile, Val(value$))
-                    printLog("    " + *debugValues\stagePlatformValues[i - 2] + " : " + value$)
+                    value = ValDefaultShort(value$)
+                    writeShort(datafile, value)
+                    printLog("    " + *debugValues\stagePlatformValues[i - 2] + " : " + value)
                 Next
 
                 value$ = GMB_StringField(line, i, " ")
@@ -946,9 +945,9 @@ If logging
 EndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 764
-; FirstLine = 414
-; Folding = ---8-
+; CursorPosition = 614
+; FirstLine = 573
+; Folding = ------
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe
 ; CommandLine = -v ..\test
