@@ -787,7 +787,47 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
                     EndIf
                     writeAsciiString(datafile, value$)
                 EndIf
-
+                
+            Case "b" ;platform
+                WriteAsciiCharacter(datafile, #FILEMARKER_BACKGROUNDELEMENT)
+                printLog("  Writing background element info")
+                
+                value$ = GMB_StringField(line, 2, " ")
+                If value$ = ""
+                    error(errorLocationInfo("Background element without animation name"))
+                EndIf 
+                writeAsciiString(datafile, value$)
+                printLog("  - " + *debugValues\stageBackgroundValues[0] + " : " + value$)
+                
+                If GMB_CountFields(line, " ") < 3
+                    printLog("    static background : writing MAX_SHORT")
+                    writeShort(datafile, #MAX_VALUE_SHORT)
+                Else
+                    ;- - - Reading coordinates
+                    For i = 3 To 4
+                        value$ = GMB_StringField(line, i, " ")
+                        If value$ = ""
+                            error(errorLocationInfo("missing value."))
+                        EndIf
+                        If verbose And Not startsWithNumber(value$)
+                            warning(errorLocationInfo("One of the values is not a number - using 0"))
+                        EndIf
+                        WriteWord(datafile, Val(value$))
+                        printLog("  - " + *debugValues\championValues[i - 1] + " : " + value$)
+                    Next
+                    
+                    value$ = GMB_StringField(line, i, " ")
+                    If value$ = ""
+                        printLog("  - Profondeur : 0 (défaut)")
+                        writeShort(datafile, #MAX_VALUE_SHORT)
+                    Else
+                        printLog("  - Profondeur : " + value$)
+                        writeShort(datafile, Val(value$))
+                    EndIf
+                EndIf
+               
+                
+                
         EndSelect
         line = getDescriptorLine(sourceFile, @lineN)
     Wend
@@ -945,8 +985,8 @@ If logging
 EndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 614
-; FirstLine = 573
+; CursorPosition = 796
+; FirstLine = 786
 ; Folding = ------
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe
