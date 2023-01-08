@@ -781,6 +781,7 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
 
                 value$ = GMB_StringField(line, i, " ")
                 If value$ <> ""
+                    writeAsciiString(datafile, #FILEMARKER_PLATFORMANIMATION)
                     printLog("  - Animation name : " + value$)
                     If Not isValidIdentifier(value$)
                         error(errorLocationInfo("Invalid animation name : " + value$))
@@ -795,7 +796,10 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
                 value$ = GMB_StringField(line, 2, " ")
                 If value$ = ""
                     error(errorLocationInfo("Background element without animation name"))
+                elseIf Not isValidIdentifier(value$)
+                        error(errorLocationInfo("Invalid animation name : " + value$))
                 EndIf 
+
                 writeAsciiString(datafile, value$)
                 printLog("  - " + *debugValues\stageBackgroundValues[0] + " : " + value$)
                 
@@ -813,7 +817,7 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
                             warning(errorLocationInfo("One of the values is not a number - using 0"))
                         EndIf
                         WriteWord(datafile, Val(value$))
-                        printLog("  - " + *debugValues\championValues[i - 1] + " : " + value$)
+                        printLog("  - " + *debugValues\stageBackgroundValues[i - 1] + " : " + value$)
                     Next
                     
                     value$ = GMB_StringField(line, i, " ")
