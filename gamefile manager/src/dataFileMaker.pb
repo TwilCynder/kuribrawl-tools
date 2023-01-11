@@ -34,6 +34,11 @@ Enumeration
 EndEnumeration
 
 Enumeration
+    #ANIMATION_POOL_CHAMPION
+    #ANIMATION_POOL_STAGE
+EndEnumeration
+
+Enumeration
     #HURTBOXTYPE_NORMAL
     #HURTBOXTYPE_PROTECTED
     #HURTBOXTYPE_INVINCIBLE
@@ -149,7 +154,7 @@ Procedure writeUShort(file, value)
 EndProcedure
 
 Procedure ValDefault(text$, def)
-    If text$ = "x" 
+    If text$ = "x"
         ProcedureReturn def
     EndIf
     ProcedureReturn Val(text$)
@@ -251,9 +256,9 @@ Procedure startsWithNumber(text.s)
 EndProcedure
 
 Procedure startsWithNumberOrX(text.s)
-    ProcedureReturn Bool(text = "x"  Or startsWithNumber(text))
+    ProcedureReturn Bool(text = "x" Or startsWithNumber(text))
 EndProcedure
-    
+
 Procedure isValidIdentifier(id.s)
     Shared identifierRegex
     ProcedureReturn MatchRegularExpression(identifierRegex, id)
@@ -788,21 +793,21 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
                     EndIf
                     writeAsciiString(datafile, value$)
                 EndIf
-                
+
             Case "b" ;platform
                 WriteAsciiCharacter(datafile, #FILEMARKER_BACKGROUNDELEMENT)
                 printLog("  Writing background element info")
-                
+
                 value$ = GMB_StringField(line, 2, " ")
                 If value$ = ""
                     error(errorLocationInfo("Background element without animation name"))
                 elseIf Not isValidIdentifier(value$)
-                        error(errorLocationInfo("Invalid animation name : " + value$))
-                EndIf 
+                    error(errorLocationInfo("Invalid animation name : " + value$))
+                EndIf
 
                 writeAsciiString(datafile, value$)
                 printLog("  - " + *debugValues\stageBackgroundValues[0] + " : " + value$)
-                
+
                 If GMB_CountFields(line, " ") < 3
                     printLog("    static background : writing MAX_SHORT")
                     writeShort(datafile, #MAX_VALUE_SHORT)
@@ -819,7 +824,7 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
                         WriteWord(datafile, Val(value$))
                         printLog("  - " + *debugValues\stageBackgroundValues[i - 1] + " : " + value$)
                     Next
-                    
+
                     value$ = GMB_StringField(line, i, " ")
                     If value$ = "" or value$ = "x"
                         printLog("  - Profondeur : 0 (défaut)")
@@ -829,9 +834,9 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
                         writeShort(datafile, Val(value$))
                     EndIf
                 EndIf
-               
-                
-                
+
+
+
         EndSelect
         line = getDescriptorLine(sourceFile, @lineN)
     Wend
@@ -879,6 +884,9 @@ Procedure addFile(datafile.l, *inputFile.File)
 
     writeFileType(datafile, type)
     printLog("Type : " + *debugValues\fileTypeNames[type])
+
+    ;TODO : transform animations tags or something
+
     writeAsciiString(datafile, tag)
     printLog("Tag : " + tag)
 
