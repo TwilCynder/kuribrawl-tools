@@ -2,7 +2,7 @@
 ;  Change the $5x filemarkers to a more meaningful value (DONE)
 ;  Animation speed : float >double (DONE)
 
-
+IncludeFile "regexlib.pb"
 
 #DFV_MAJ = 0
 #DFV_MIN = 3
@@ -33,7 +33,7 @@ Enumeration
     #FILETYPES
 EndEnumeration
 
-Enumeration
+Enumeration AnimationTagPrefix $0B
     #ANIMATION_POOL_CHAMPION
     #ANIMATION_POOL_STAGE
 EndEnumeration
@@ -101,7 +101,7 @@ Dim stageValues.b(#STAGE_VALUES_NB)
 XIncludeFile "dataFileMarkerData.pbi"
 
 Define identifierRegex = CreateRegularExpression(#PB_Any, "[a-zA-Z_0-9]")
-Define basicTagRegex = CreateRegularExpression(#PB_Any, "[a-zA-Z_0-9/]")
+Define basicTagRegex = CreateRegularExpression(#PB_Any, "[a-zA-Z_0-9/]+")
 
 NewList files.File()
 
@@ -786,7 +786,7 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
 
                 value$ = GMB_StringField(line, i, " ")
                 If value$ <> ""
-                    writeAsciiString(datafile, #FILEMARKER_PLATFORMANIMATION)
+                    WriteAsciiCharacter(datafile, #FILEMARKER_PLATFORMANIMATION)
                     printLog("  - Animation name : " + value$)
                     If Not isValidIdentifier(value$)
                         error(errorLocationInfo("Invalid animation name : " + value$))
@@ -844,9 +844,25 @@ EndProcedure
 
 Procedure checkBasicTag(tag.s)
     Shared basicTagRegex
-    ProcedureReturn MatchRegularExpression(basicTagRegex, tag)
+    ProcedureReturn CheckString(basicTagRegex, tag)
 EndProcedure
 
+Procedure.s parseAnimationTag(datafile.l, tag.s)
+    If GMB_CountFields(tag, "/") < 3
+        Select Left(tag, 1)
+            Case "$"
+                PrintN("STAGE !!!")
+                ;WriteAsciiCharacter(datafile, #ANIMATION_POOL_STAGE)
+                ProcedureReturn Right(tag, len(tag) - 1)
+        EndSelect
+
+        WriteAsciiCharacter(datafile, #ANIMATION_POOL_STAGE)
+    endif 
+
+    prefix.s = GMB_StringField(tag, 1, "/")
+
+
+EndProcedure
 
 Procedure addFile(datafile.l, *inputFile.File)
     Define type.b
@@ -885,11 +901,16 @@ Procedure addFile(datafile.l, *inputFile.File)
     writeFileType(datafile, type)
     printLog("Type : " + *debugValues\fileTypeNames[type])
 
-    ;TODO : transform animations tags or something
 
-    writeAsciiString(datafile, tag)
     printLog("Tag : " + tag)
+    If type = #FILETYPE_ANIMATION
+        parseAnimationTag(datafile, tag)
+        printLog("Modified tag : " + tag)
+    Endif
+    writeAsciiString(datafile, tag)
 
+    PrintN(tag)
+    PrintN(str(checkBasicTag(tag)))
     If Not checkBasicTag(tag)
         error("Invalid tag : " + tag)
     EndIf
@@ -993,7 +1014,6 @@ CloseFile(0)
 If logging
     PrintN("===============================")
     PrintN("FINISHED. File size : " + size)
-    Input()
 EndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
 ; ExecutableFormat = Console
