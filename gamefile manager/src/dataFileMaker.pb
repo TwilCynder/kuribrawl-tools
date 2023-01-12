@@ -801,7 +801,7 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
                 value$ = GMB_StringField(line, 2, " ")
                 If value$ = ""
                     error(errorLocationInfo("Background element without animation name"))
-                elseIf Not isValidIdentifier(value$)
+                ElseIf Not isValidIdentifier(value$)
                     error(errorLocationInfo("Invalid animation name : " + value$))
                 EndIf
 
@@ -826,7 +826,7 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
                     Next
 
                     value$ = GMB_StringField(line, i, " ")
-                    If value$ = "" or value$ = "x"
+                    If value$ = "" Or value$ = "x"
                         printLog("  - Profondeur : 0 (défaut)")
                         writeShort(datafile, 0)
                     Else
@@ -844,7 +844,7 @@ EndProcedure
 
 Procedure checkBasicTag(tag.s)
     Shared basicTagRegex
-    ProcedureReturn CheckString(basicTagRegex, tag)
+    ProcedureReturn checkString(basicTagRegex, tag)
 EndProcedure
 
 Procedure.s parseAnimationTag(datafile.l, tag.s)
@@ -853,11 +853,12 @@ Procedure.s parseAnimationTag(datafile.l, tag.s)
             Case "$"
                 PrintN("STAGE !!!")
                 ;WriteAsciiCharacter(datafile, #ANIMATION_POOL_STAGE)
-                ProcedureReturn Right(tag, len(tag) - 1)
+                Debug Right(tag, Len(tag) - 1)
+                ProcedureReturn Right(tag, Len(tag) - 1)
         EndSelect
 
         WriteAsciiCharacter(datafile, #ANIMATION_POOL_STAGE)
-    endif 
+    EndIf 
 
     prefix.s = GMB_StringField(tag, 1, "/")
 
@@ -904,13 +905,11 @@ Procedure addFile(datafile.l, *inputFile.File)
 
     printLog("Tag : " + tag)
     If type = #FILETYPE_ANIMATION
-        parseAnimationTag(datafile, tag)
+        tag = parseAnimationTag(datafile, tag)
         printLog("Modified tag : " + tag)
-    Endif
+    EndIf
     writeAsciiString(datafile, tag)
 
-    PrintN(tag)
-    PrintN(str(checkBasicTag(tag)))
     If Not checkBasicTag(tag)
         error("Invalid tag : " + tag)
     EndIf
@@ -972,8 +971,11 @@ If Right(source, 1) <> "/" And Len(source) > 0
 EndIf
 
 If buildpath = ""
-    buildpath = source + "data.twl"
+    buildpath = "data.twl"
+Else
+    buildpath = GetCurrentDirectory() + "\" + buildpath
 EndIf
+
 
 SetCurrentDirectory(source)
 
@@ -1017,9 +1019,9 @@ If logging
 EndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 796
-; FirstLine = 786
+; CursorPosition = 911
+; FirstLine = 898
 ; Folding = ------
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe
-; CommandLine = -v ..\test
+; CommandLine = -v ..\..\..\res
