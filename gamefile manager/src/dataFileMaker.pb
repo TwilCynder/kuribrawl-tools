@@ -851,18 +851,28 @@ Procedure.s parseAnimationTag(datafile.l, tag.s)
     If GMB_CountFields(tag, "/") < 3
         Select Left(tag, 1)
             Case "$"
-                PrintN("STAGE !!!")
-                ;WriteAsciiCharacter(datafile, #ANIMATION_POOL_STAGE)
-                Debug Right(tag, Len(tag) - 1)
+                WriteAsciiCharacter(datafile, #ANIMATION_POOL_STAGE)
                 ProcedureReturn Right(tag, Len(tag) - 1)
+            Default
+                WriteAsciiCharacter(datafile, #ANIMATION_POOL_CHAMPION)
+                ProcedureReturn tag
         EndSelect
 
-        WriteAsciiCharacter(datafile, #ANIMATION_POOL_STAGE)
     EndIf 
 
-    prefix.s = GMB_StringField(tag, 1, "/")
-
-
+    prefix.s = GMB_StringField(tag, 1, "/")    
+    
+    Select prefix
+        Case "Stage", "S"
+            Debug "STage!!!"
+            WriteAsciiCharacter(datafile, #ANIMATION_POOL_STAGE)
+        Case "Champion", "C", "Champ"
+            WriteAsciiCharacter(datafile, #ANIMATION_POOL_CHAMPION) 
+        Default
+            error("Invalid animation tag prefix : " + prefix + " ("+ tag + ")")
+    EndSelect
+    
+    ProcedureReturn GMB_SepRight(tag, "/", 2)
 EndProcedure
 
 Procedure addFile(datafile.l, *inputFile.File)
@@ -889,7 +899,7 @@ Procedure addFile(datafile.l, *inputFile.File)
             error(*inputFile\content + " : unknown file type")
     EndSelect
 
-    Debug *inputFile\content
+    ;Debug *inputFile\content
 
     Define tag.s, info.s
     tag = GMB_StringField(*inputFile\content, 2, ":")
@@ -1003,7 +1013,6 @@ EndIf
 
 writeSignature(0)
 writeVersion(0, #DFV_MAJ, #DFV_MIN, #DFV_REV)
-
 readFileList()
 
 ForEach files()
@@ -1014,13 +1023,14 @@ size.l = Loc(0)
 CloseFile(0)
 
 If logging
+    ;Input()
     PrintN("===============================")
     PrintN("FINISHED. File size : " + size)
 EndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 911
-; FirstLine = 898
+; CursorPosition = 871
+; FirstLine = 852
 ; Folding = ------
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe
