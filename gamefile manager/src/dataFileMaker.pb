@@ -858,20 +858,20 @@ Procedure.s parseAnimationTag(datafile.l, tag.s)
                 ProcedureReturn tag
         EndSelect
 
-    EndIf 
+    EndIf
 
-    prefix.s = GMB_StringField(tag, 1, "/")    
-    
+    prefix.s = GMB_StringField(tag, 1, "/")
+
     Select prefix
         Case "Stage", "S"
             Debug "STage!!!"
             WriteAsciiCharacter(datafile, #ANIMATION_POOL_STAGE)
         Case "Champion", "C", "Champ"
-            WriteAsciiCharacter(datafile, #ANIMATION_POOL_CHAMPION) 
+            WriteAsciiCharacter(datafile, #ANIMATION_POOL_CHAMPION)
         Default
-            error("Invalid animation tag prefix : " + prefix + " ("+ tag + ")")
+            error("Invalid animation tag prefix : " + prefix + " (" + tag + ")")
     EndSelect
-    
+
     ProcedureReturn GMB_SepRight(tag, "/", 2)
 EndProcedure
 
