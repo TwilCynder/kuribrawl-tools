@@ -1,2 +1,2 @@
 Main-Class: testPackage.Test
-Class-Path: jgoodies-common-1.8.1.jar jgoodies-forms-1.8.0.jar
+Class-Path: ./lib/jgoodies-common-1.8.1.jar ./lib/jgoodies-forms-1.8.0.jar
