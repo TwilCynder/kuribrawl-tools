@@ -191,7 +191,6 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         d.update();
     }
 
-
     /**
      * Move origin to a certain anim pos and then updates whatever needs ot be updated following this change
      * @param displayer the Displayer to update
