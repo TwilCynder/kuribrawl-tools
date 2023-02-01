@@ -216,7 +216,7 @@ public class RessourcePath {
         if (!GameData.isValidIdentifier(tagSplit[1])){
             throw new RessourceException("Invalid animation name : " + tagSplit[1]);
         }
-
+        
         return addAnimation(gd.tryChampion(tagSplit[0]), tagSplit[1], nbFrames, source_filename, descriptor_filename);
     }
 

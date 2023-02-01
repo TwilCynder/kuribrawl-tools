@@ -9,6 +9,7 @@ import java.util.TreeMap;
 
 public class GameData implements Iterable<Champion> {
     private Map<String, Champion> champions = new TreeMap<>();
+    private Map<String, Stage> stages = new TreeMap<>();
     private Map<String, String> otherFiles = new TreeMap<>();
     RessourcePath originPath;
 
@@ -37,12 +38,39 @@ public class GameData implements Iterable<Champion> {
         return c;
     }
 
-    public void addOtherFile(String filename, String info){
-        otherFiles.put(filename, info);
-    }
-
     public Collection<Champion> getChampions(){
         return champions.values();
+    }
+
+    
+    public Stage addStage(String name){
+        Stage c = new Stage(name);
+        stages.put(name, c);
+        return c;
+    }
+
+    public Stage addStage(String name, String filename){
+        Stage c = new Stage(name, filename);
+        stages.put(name, c);
+        return c;
+    }
+
+    public Stage getStage(String name){
+        return stages.get(name);
+    }
+
+    public Stage tryStage(String name){
+        Stage c = stages.get(name);
+        if (c == null) c = addStage(name);
+        return c;
+    }
+
+    public Collection<Stage> getChampgetStages(){
+        return stages.values();
+    }
+
+    public void addOtherFile(String filename, String info){
+        otherFiles.put(filename, info);
     }
 
     public Collection<Map.Entry<String, String>> getOtherFiles(){
