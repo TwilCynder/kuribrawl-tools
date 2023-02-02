@@ -387,6 +387,7 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
                                 writeShort(datafile, Val(value$))
                                 printlog("    Frame origin y : " + value$)
                             Case "m"
+                                checkIsEntityM("Frame movement")
                                 ;- - - Frame movement ---------------------------------------------
                                 WriteAsciiCharacter(datafile, #FILEMARKER_FRAMEMOVEMENT)
                                 value$ = Mid(value$, 2)
