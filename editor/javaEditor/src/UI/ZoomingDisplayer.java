@@ -2,7 +2,7 @@ package UI;
 
 import java.awt.Graphics;
 
-import KBUtil.ui.Displayable;
+import KBUtil.ui.display.Displayable;
 
 public abstract class ZoomingDisplayer implements Displayable{
     protected double currentZoom = 1;

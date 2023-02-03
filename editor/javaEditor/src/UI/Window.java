@@ -50,15 +50,15 @@ import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
 import KBUtil.functional.DoubleToString;
-import KBUtil.ui.Canvas;
 import KBUtil.ui.CardPanel;
-import KBUtil.ui.Displayable;
 import KBUtil.ui.IntegerSpinner;
-import KBUtil.ui.Interactable;
 import KBUtil.ui.MapComboBox;
 import KBUtil.ui.MapComboBoxItem;
 import KBUtil.ui.PathChooser;
 import KBUtil.ui.TwilTextField;
+import KBUtil.ui.display.Canvas;
+import KBUtil.ui.display.Displayable;
+import KBUtil.ui.display.Interactable;
 import KBUtil.ui.documentFilters.IntegerDocumentFilter;
 import KBUtil.ui.documentFilters.RealNumberDocumentFilter;
 import UI.exceptions.WindowStateException;
