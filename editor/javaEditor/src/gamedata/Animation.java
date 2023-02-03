@@ -13,16 +13,22 @@ public class Animation {
     protected String name;
     protected double speed;
     protected Image source;
+    protected Path descriptor_filename;
     protected Size2D frame_size;
 
     protected Path source_filename;
+
+    public Animation(String name, Image source, int nbFrames, String filename, String descriptor_filename) throws NullPointerException {
+        this(name, source, nbFrames, filename);
+        setDescriptorFilename(descriptor_filename);
+    }
 
     public Animation(String name, Image source, int nbFrames, String filename) throws NullPointerException {
         this(nbFrames, name, source);
         setSourceFilename(filename);
     }
 
-    private Animation(int nbFrames, Image source) throws NullPointerException{
+    protected Animation(int nbFrames, Image source) throws NullPointerException{
         setSourceImage(source);
         makeFrames(nbFrames);
     }
@@ -103,6 +109,22 @@ public class Animation {
         setSourceImage(source);
     }
     
+    public Path getDescriptorPath(){
+        return descriptor_filename;
+    }
+
+    public String getDescriptorFilename(){
+        return descriptor_filename == null ? null : descriptor_filename.toString();
+    }
+
+    public void setDescriptorFilename(String filename){
+        descriptor_filename = PathHelper.stringToPathOrNull(filename);
+    }
+
+    public void setDescriptorFilename(Path path){
+        descriptor_filename = path;
+    }
+
     public void draw(Graphics g, int frameIndex, int x, int y, int w, int h) throws FrameOutOfBoundsException{
         if (frames.length < 1) throw new FrameOutOfBoundsException(this, frameIndex);
         if (frameIndex >= frames.length) throw new FrameOutOfBoundsException(this, frameIndex);

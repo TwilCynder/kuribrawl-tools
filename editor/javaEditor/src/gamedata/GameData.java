@@ -38,6 +38,16 @@ public class GameData implements Iterable<Champion> {
         return c;
     }
 
+    public Champion tryChampion(String name, String descriptor_filename){
+        Champion c = champions.get(name);
+        if (c == null)  {
+            c = addChampion(name, descriptor_filename);
+        } else {
+            c.setDescriptorFilename(descriptor_filename);
+        }
+        return c;
+    }
+
     public Collection<Champion> getChampions(){
         return champions.values();
     }
