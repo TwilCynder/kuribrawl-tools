@@ -29,8 +29,8 @@ import javax.swing.event.PopupMenuListener;
 import KBUtil.Rectangle;
 import KBUtil.StringHelper;
 import KBUtil.ui.ClipboardManager;
-import KBUtil.ui.Displayer;
-import KBUtil.ui.Interactable;
+import KBUtil.ui.display.Displayer;
+import KBUtil.ui.display.Interactable;
 
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
