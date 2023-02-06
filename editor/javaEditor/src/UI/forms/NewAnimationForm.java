@@ -22,7 +22,7 @@ import KBUtil.ui.IntegerSpinner;
 import KBUtil.ui.OpenPathButton;
 import KBUtil.ui.OpenPathRestrictedButton;
 import KBUtil.ui.TwilTextField;
-import KBUtil.ui.display.Interactable;
+import KBUtil.ui.display.InteractableDisplayable;
 import KBUtil.ui.documentFilters.AlphanumericDocumentFilter;
 import KBUtil.ui.documentFilters.PathDocumentFilter;
 import UI.CommonFileFilters;
@@ -71,7 +71,7 @@ public class NewAnimationForm extends EditorForm {
     }
 
     private void fillFields(){
-        Interactable i = editor.getCurrentEditor();
+        InteractableDisplayable i = editor.getCurrentEditor();
         if (i != null){
             if (i instanceof EntityAnimationEditor){
                 EntityAnimationEditor editor = (EntityAnimationEditor)i;

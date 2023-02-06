@@ -30,14 +30,14 @@ import KBUtil.Rectangle;
 import KBUtil.StringHelper;
 import KBUtil.ui.ClipboardManager;
 import KBUtil.ui.display.Displayer;
-import KBUtil.ui.display.Interactable;
+import KBUtil.ui.display.InteractableDisplayable;
 
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
 import java.awt.event.ActionEvent;
 
-public class EntityAnimationEditor extends EntityAnimationDisplayer implements Interactable, ClipboardOwner {
+public class EntityAnimationEditor extends EntityAnimationDisplayer implements InteractableDisplayable, ClipboardOwner {
     private EntityAnimationEditorWindow editorWindow;
     private Point drag_start_pos;
     private Rectangle selection;

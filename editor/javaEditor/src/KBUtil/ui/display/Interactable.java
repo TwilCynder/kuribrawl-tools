@@ -3,10 +3,8 @@ package KBUtil.ui.display;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 
-//TODO passer au système setDisplayer
-
-public interface Interactable extends Displayable{
-
+public interface Interactable {
+    
     /**
      * Called by a Displayer owning this Interactable when the user left-clicked on it
      * @param pos position relative to the up-left corner of the canvas
