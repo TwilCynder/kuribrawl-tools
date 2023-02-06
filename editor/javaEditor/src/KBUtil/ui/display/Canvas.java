@@ -17,7 +17,7 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.event.FocusAdapter;
 
 public class Canvas extends JPanel implements Displayer{
-    private Interactable current_object;
+    private InteractableDisplayable current_object;
 
     public Canvas(){
         super();
@@ -92,7 +92,7 @@ public class Canvas extends JPanel implements Displayer{
      * Creates a new canvas already loaded with an interactable object
      * @param obj
      */
-    public Canvas(Interactable obj){
+    public Canvas(InteractableDisplayable obj){
         this();
         current_object = obj;
     }
@@ -116,7 +116,7 @@ public class Canvas extends JPanel implements Displayer{
      * Sets the current object.
      * @param obj
      */
-    public void setInteractable(Interactable obj){
+    public void setInteractable(InteractableDisplayable obj){
         current_object = obj;
     }
 
@@ -124,7 +124,7 @@ public class Canvas extends JPanel implements Displayer{
      * Returns the current object (as an interactable, and not displayable as the method name could imply)
      * @return the current Interactable object
      */
-    public Interactable getInteractable(){
+    public InteractableDisplayable getInteractable(){
         return current_object;
     }
 

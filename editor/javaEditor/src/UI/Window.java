@@ -58,7 +58,7 @@ import KBUtil.ui.PathChooser;
 import KBUtil.ui.TwilTextField;
 import KBUtil.ui.display.Canvas;
 import KBUtil.ui.display.Displayable;
-import KBUtil.ui.display.Interactable;
+import KBUtil.ui.display.InteractableDisplayable;
 import KBUtil.ui.documentFilters.IntegerDocumentFilter;
 import KBUtil.ui.documentFilters.RealNumberDocumentFilter;
 import UI.exceptions.WindowStateException;
@@ -1294,7 +1294,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	}
 
 	public void setDisplayedObject(EntityAnimation anim){
-		Interactable current = displayCanvas.getInteractable();
+		InteractableDisplayable current = displayCanvas.getInteractable();
 		EntityAnimationEditor editor;
 		if (current instanceof EntityAnimationEditor){
 			editor = (EntityAnimationEditor)current;
@@ -1311,7 +1311,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		setGameDataMenuItems(animationGamedataMenuItems);
 	}
 
-	public Interactable getCurrentEditor(){
+	public InteractableDisplayable getCurrentEditor(){
 		return displayCanvas.getInteractable();
 	}
 
