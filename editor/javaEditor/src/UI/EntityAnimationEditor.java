@@ -121,6 +121,8 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     private PopupCollisionboxMenu popup_collisionbox_menu = new PopupCollisionboxMenu();
 
     private class SelectionPopupMenu extends InternalMenu {
+
+        
         public void initItems() {
             JMenuItem item = new JMenuItem("Create hurtbox");
             item.addActionListener(new ActionListener(){
@@ -399,19 +401,15 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     }
 
     private void moveOrigin(Point animpoint) throws IllegalStateException{
-        try {
-            //Point animpoint = getAnimPosition(display_point);
-            //Size2D frame_size = current_anim.getFrameSize();
-            //if (animpoint.x >= 0 && animpoint.x < frame_size.w && animpoint.y >= 0 && animpoint.y < frame_size.h){
-                EntityAnimation.moveOrigin(
-                    current_anim.getFrame(currentFrameIndex),
-                    current_anim.getEntityFrame(currentFrameIndex),
-                    animpoint
-                );           
-            //}
-        } catch (FrameOutOfBoundsException e){
-            throw new IllegalStateException(e);
-        }   
+        //Point animpoint = getAnimPosition(display_point);
+         //Size2D frame_size = current_anim.getFrameSize();
+         //if (animpoint.x >= 0 && animpoint.x < frame_size.w && animpoint.y >= 0 && animpoint.y < frame_size.h){
+        EntityAnimation.moveOrigin(
+            getCurrentFrame(),
+            getCurrentEntityFrame(),
+            animpoint
+        );           
+         //}   
     }
 
     public void moveOriginX(int x) throws IllegalStateException {
