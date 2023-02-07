@@ -40,8 +40,6 @@ public class EntityAnimationDisplayer extends AnimationDisplayer {
         return current_anim != null && super.isValid();
     }
 
-    
-
     private static final Color hitbox_color = new Color(255, 0, 0, 255);
     private static final Color hurtbox_color = new Color(0, 255, 0, 255);
     private static final Color selected_color = new Color(255, 0, 255);
@@ -56,6 +54,8 @@ public class EntityAnimationDisplayer extends AnimationDisplayer {
     }
 
     public void draw(Graphics g, int x, int y, int w, int h, double zoom) throws IllegalStateException{
+        super.draw(g, x, y, w, h, zoom);
+        
         Point origin = getCurrentDisplayOrigin();
         g.setColor(hurtbox_color);
 
@@ -153,12 +153,12 @@ public class EntityAnimationDisplayer extends AnimationDisplayer {
 
     public void setAnimation(EntityAnimation anim){
         current_anim = anim;
-        Animation anim_ = anim;
-        setAnimation(anim_);
+        super.setAnimation(anim);
     }
 
     @Override
     public void setAnimation(Animation anim) throws IllegalArgumentException{
+        System.out.println("Set animation : " + anim.getClass());
         throw new IllegalArgumentException("Attempt to set the current animation of an Entity Animation Displayer as an  Animation");
     }
 }
