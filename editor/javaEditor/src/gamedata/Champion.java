@@ -45,7 +45,7 @@ class ChampionVals  {
     int air_jumps;
 }
 
-public class Champion implements Iterable<EntityAnimation>{
+public class Champion implements AnimationPool<EntityAnimation>{
     public ChampionVals vals;
     private String name;
     private String displayName;
@@ -111,7 +111,7 @@ public class Champion implements Iterable<EntityAnimation>{
     }
 
     public String getDescriptorFilename(){
-        return descriptor_file.toString();
+        return PathHelper.pathToStringOrNull(descriptor_file);
     }
 
     public Path getDescriptorPath(){
