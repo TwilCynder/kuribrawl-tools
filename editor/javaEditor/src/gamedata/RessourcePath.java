@@ -189,10 +189,10 @@ public class RessourcePath {
      * @return the created EntityAnimation (which was already added to the champion)
      * @throws RessourceException if the image couldn't be opened
      */
-    public EntityAnimation addAnimation(Champion champion, String animName, int nbFrames, String source_filename, String descriptor_filename) throws RessourceException{
+    public <A extends Animation> A addAnimation(AnimationPool<A> domain, String animName, int nbFrames, String source_filename, String descriptor_filename) throws RessourceException{
         try {
             Image source = loadImage(source_filename);
-            return champion.addAnimation(animName, source, nbFrames, source_filename, descriptor_filename);
+            return domain.addAnimation(animName, source, nbFrames, source_filename, descriptor_filename);
         } catch (IOException e){
             throw new RessourceException("Couldn't read source image file " + source_filename, e);
         } catch (InvalidPathException e){
@@ -209,8 +209,18 @@ public class RessourcePath {
     private EntityAnimation addAnimation(GameData gd, String tag, int nbFrames, String source_filename, String descriptor_filename) throws RessourceException{
         String[] tagSplit = StringHelper.split(tag, "/");
 
-        if (tagSplit.length != 2 && tagSplit[0] != ""){
-            throw new RessourceException("Ill-formed animation file info : tag should contain 2 non-empty fields separated by \\ : (" + tag + ")");
+        if (tagSplit.length < 2 ) {
+            throw new RessourceException("Ill-formed animation file info : tag should contain at least 2 non-empty fields separated by \\ : (" + tag + ")");
+        }
+
+        if (tagSplit.length < 3) {
+            if (!GameData.isValidIdentifier(tagSplit[0])) throw new RessourceException("Invalid domain name : " + tagSplit[0]);
+            if (!GameData.isValidIdentifier(tagSplit[1])) throw new RessourceException("Invalid animation name : " + tagSplit[1]);
+        
+            if (tagSplit[0].startsWith("$"))
+                return addAnimation(gd.tryChampion(tagSplit[0]), tagSplit[1], nbFrames, source_filename, descriptor_filename);
+            return addAnimation(gd.tryChampion(tagSplit[0]), tagSplit[1], nbFrames, source_filename, descriptor_filename);
+
         }
 
         if (!GameData.isValidIdentifier(tagSplit[1])){
@@ -235,7 +245,7 @@ public class RessourcePath {
             index = -1;
             frame = null;
             entity_frame = null;
-        }
+        };
 
         public boolean valid(){
             return index > -1;
@@ -504,7 +514,7 @@ public class RessourcePath {
     }
 
     public void parseChampion(GameData gd, String file, String info) throws RessourceException, WhatTheHellException{
-        Champion c = gd.tryChampion(info);
+        Champion c = gd.tryChampion(info, file);
         c.setDescriptorFilename(file);
         parseChampionDescriptor(c, file);
     }

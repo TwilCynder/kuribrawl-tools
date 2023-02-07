@@ -6,21 +6,17 @@ import gamedata.exceptions.GameDataException;
 import java.awt.Image;
 import java.awt.Point;
 import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
 
 import KBUtil.Pair;
-import KBUtil.PathHelper;
 
 public class EntityAnimation extends Animation implements Iterable<Pair<Frame, EntityFrame>>{
     private EntityFrame[] entity_frames;
-    protected Path descriptor_filename;
 
     public EntityAnimation(String name, Image source, int nbFrames, String source_filename, String descriptor_filename) throws InvalidPathException{
-        super (name, source, nbFrames, source_filename);
-        this.descriptor_filename = PathHelper.stringToPathOrNull(descriptor_filename);
+        super (name, source, nbFrames, source_filename, descriptor_filename);
+
         initEntityFrames(nbFrames);
     }
 
@@ -75,22 +71,6 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
 
     public FrameIterator iterator(){ 
         return new FrameIterator();
-    }
-
-    public Path getDescriptorPath(){
-        return descriptor_filename;
-    }
-
-    public String getDescriptorFilename(){
-        return descriptor_filename == null ? null : descriptor_filename.toString();
-    }
-
-    public void setDescriptorFilename(String filename){
-        descriptor_filename = Paths.get(filename);
-    }
-
-    public void setDescriptorFilename(Path path){
-        descriptor_filename = path;
     }
 
     public List<Hitbox> getHitboxes(int i){
