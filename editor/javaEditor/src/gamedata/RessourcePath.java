@@ -32,6 +32,7 @@ import gamedata.exceptions.InvalidRessourcePathException;
 import gamedata.exceptions.RessourceException;
 import gamedata.exceptions.TransparentGameDataException;
 import gamedata.exceptions.WhatTheHellException;
+import gamedata.parsers.DescriptorReader;
 
 public class RessourcePath {
     private Path path;
@@ -130,44 +131,8 @@ public class RessourcePath {
         return Files.newBufferedWriter(fullpath);
     }
 
-    private static int parseInt(String str, String msgIfFail, String filename, int line) throws RessourceException{
-        try {
-            return Integer.parseInt(str);
-        } catch (NumberFormatException e){
-            throw new RessourceException(msgIfFail, filename, line, e);
-        }
-    }
-
-    private static double parseDouble(String str, String msgIfFail, String filename, int line) throws RessourceException{
-        try {
-            return Double.parseDouble(str);
-        } catch (NumberFormatException e){
-            throw new RessourceException(msgIfFail, filename, line, e);
-        }
-    }
-
     private static void fullFrameHurtbox(Frame frame, EntityFrame entity_frame){
-        entity_frame.addHurtbox(new Hurtbox(frame));
-    }
-
-    private static void parseFrameMovementAxis(EntityFrame.FrameMovementAxis axis, String info) throws RessourceException{
-        String[] fields;
-        axis.enabled = true;
-        fields = info.split(":");
-        if (fields.length < 2) throw new RessourceException("Frame movement info should be of form \"m[<x mode>:<x value>]:[<y mode:y value>]\"");
-
-        if (fields[0].contains("s")){
-            axis.set_speed = true;
-        }
-        if (fields[0].contains("w")){
-            axis.whole_frame = true;
-        }
-
-        try {
-            axis.value = Double.parseDouble(fields[1]);
-        } catch (NumberFormatException e) {
-            throw new RessourceException("Movement value could not be parsed", e);
-        }
+        entity_frame.fullFrameHurtbox(frame);
     }
 
     public Image loadImage(String filename)throws IOException {
@@ -206,22 +171,25 @@ public class RessourcePath {
      * Adds a new animation to the specified GameData based on basic information from the text files.
      * Handles the interpretation of these informations (loading the given image file, parsing the tag, etc)
      */
-    private EntityAnimation addAnimation(GameData gd, String tag, int nbFrames, String source_filename, String descriptor_filename) throws RessourceException{
+    private Animation addAnimation(GameData gd, String tag, int nbFrames, String source_filename, String descriptor_filename) throws RessourceException{
         String[] tagSplit = StringHelper.split(tag, "/");
 
-        if (tagSplit.length < 2 ) {
-            throw new RessourceException("Ill-formed animation file info : tag should contain at least 2 non-empty fields separated by \\ : (" + tag + ")");
+        if (tagSplit.length < 2 ) { 
+            //only one field : invalid
+            throw new RessourceException("Ill-formed animation file info : tag should contain at least 2 non-empty fields separated by / : (" + tag + ")");
         }
 
         if (tagSplit.length < 3) {
+            //only two fields : assume champio
             if (!GameData.isValidIdentifier(tagSplit[0])) throw new RessourceException("Invalid domain name : " + tagSplit[0]);
             if (!GameData.isValidIdentifier(tagSplit[1])) throw new RessourceException("Invalid animation name : " + tagSplit[1]);
         
             if (tagSplit[0].startsWith("$"))
-                return addAnimation(gd.tryChampion(tagSplit[0]), tagSplit[1], nbFrames, source_filename, descriptor_filename);
+                return addAnimation(gd.tryStage(tagSplit[0]), tagSplit[1], nbFrames, source_filename, descriptor_filename);
             return addAnimation(gd.tryChampion(tagSplit[0]), tagSplit[1], nbFrames, source_filename, descriptor_filename);
-
         }
+
+        //3 fields : parse 
 
         if (!GameData.isValidIdentifier(tagSplit[1])){
             throw new RessourceException("Invalid animation name : " + tagSplit[1]);
@@ -230,234 +198,11 @@ public class RessourcePath {
         return addAnimation(gd.tryChampion(tagSplit[0]), tagSplit[1], nbFrames, source_filename, descriptor_filename);
     }
 
-    private class CurrentFrame {
-        public final int index;
-        public final Frame frame;
-        public final EntityFrame entity_frame;
+    private <A extends Animation> void parseAnimationDescriptor(A anim, String descriptor_filename){
+        try (BufferedReader reader = fileReader(descriptor_filename)){
+            
+        } catch (IOException ex){
 
-        public CurrentFrame(EntityAnimation anim, int i) throws FrameOutOfBoundsException{
-            index = i;
-            frame = anim.getFrame(i);
-            entity_frame = anim.getEntityFrame(i);
-        }
-
-        public CurrentFrame(){
-            index = -1;
-            frame = null;
-            entity_frame = null;
-        };
-
-        public boolean valid(){
-            return index > -1;
-        }
-
-        public String toString(){
-            return "" + index;
-        }
-    }
-
-    /**
-     * Object used to read lines from a descriptor file, using a BufferedReader
-     */
-    private class DescriptorReader implements AutoCloseable  {
-        private BufferedReader reader;
-        private int linesRead;
-
-        public DescriptorReader(BufferedReader reader){
-            this.reader = reader;
-        }
-
-        /**
-         * Returns the first valid descriptor line.
-         * A descriptor line is a line where all text that follows a '#' has been removed.
-         * A valid descriptor line is a non-empty descriptor line.
-         * @param reader the reader used to obtain lines.
-         * @return A line or null if end of file was reached
-         */
-        private String readLine() throws IOException{
-            linesRead = 0;
-            while (reader.ready()) {
-                linesRead++;
-                String line = reader.readLine();
-                line = line.split("#")[0]; //garanti non nul
-                if (line.length() > 0) return line; //si on a une descriptor line non vide on return, sinon on passe à la suivante
-            }
-            Integer i = 0;
-            i = i + 1;
-            return null; //if we reached this point, we didn't find anything before eof, so returning null
-        }
-
-        public boolean ready() throws IOException {
-            return reader.ready();
-        }
-
-        public int getLinesRead() {
-            return linesRead;
-        }
-
-        @Override
-        public void close() throws IOException {
-            reader.close();
-        }
-    }
-
-
-    private EntityAnimation parseAnimationDescriptor(GameData gd, String tag, String source_filename, String descriptor_filename) throws RessourceException, WhatTheHellException{
-        String line;
-        String[] fields;
-        int valInt;
-
-        if (descriptor_filename == null) throw new RessourceException("null descriptor filename");
-
-        try (DescriptorReader reader = new DescriptorReader(fileReader(descriptor_filename))){
-
-            line = reader.readLine();
-            if (line == null){
-                throw new RessourceException("Descriptor doesn't contain shit", descriptor_filename, 1);
-            }
-
-            EntityAnimation anim = addAnimation(gd, tag,
-                parseInt(line, "Descriptor's first line is not a number", descriptor_filename, 1),
-                source_filename, descriptor_filename);
-
-            CurrentFrame current_frame = new CurrentFrame();
-
-            int line_index = 1;
-
-            while (reader.ready()){
-                line_index += reader.getLinesRead();
-                line = reader.readLine();
-                //System.out.println(line);
-                switch(line.substring(0, 1)){
-                    case "s":
-                    line = line.substring(1);
-                    anim.setSpeed(parseDouble(line, "Speed info is not a valid number", descriptor_filename, line_index));
-                    break;
-
-                    case "f":
-                    fields = StringHelper.split(line.substring(1), " ");
-                    if (fields.length < 1){
-                        throw new RessourceException("Frame info line doesn't even contain a frame index", descriptor_filename, line_index);
-                    }
-
-                    valInt = parseInt(fields[0], "Frame index is not a valid integer", descriptor_filename, line_index);
-
-                    try {
-                        current_frame = new CurrentFrame(anim, valInt);
-                    } catch (FrameOutOfBoundsException e){
-                        throw new RessourceException("Frame index out of bounds", descriptor_filename, line_index, e);
-                    }
-
-                    for (int i = 1; i < fields.length; i ++){
-                        switch(fields[i].substring(0, 1)){
-                            case "d":
-                            valInt = parseInt(fields[i].substring(1), "Frame duration is not a valid integer", descriptor_filename, line_index);
-                            if (valInt < 1) throw new RessourceException("Duration should be strictly positive", descriptor_filename, line_index);
-                            //System.out.println("duration : " + valInt);
-                            current_frame.frame.setDuration(valInt);
-                            break;
-                            case "o":
-                            valInt = parseInt(fields[i].substring(1), "Frame origin indicator not followed by a valid integer", descriptor_filename, line_index);
-                            i++;
-                            if (i >= fields.length) throw new RessourceException("Frame origin info should of form o<x> <y> but line stops after the first field", descriptor_filename, line_index);
-                            {
-                                int valInt2 =  parseInt(fields[i], "Frame origin 2nd field is not a valid integer", descriptor_filename, line_index);
-                                current_frame.frame.setOrigin(new Point(valInt, valInt2));
-                            }
-                            break;
-                            case "m":
-                            {
-                                String[] subFields = fields[i].substring(1).split(",");
-
-                                Vec2<EntityFrame.FrameMovementAxis> movement = current_frame.entity_frame.getMovement();
-
-                                try {
-                                    if (subFields[0] != ""){ //x movement
-                                        parseFrameMovementAxis(movement.x, subFields[0]);
-                                        if (subFields.length > 1){
-                                            parseFrameMovementAxis(movement.y, subFields[0]);
-                                        }
-                                    }
-                                } catch (RessourceException e){
-                                    throw new RessourceException(e.getMessage(), descriptor_filename, line_index, e.getCause());
-                                }
-
-                            }
-                            break;
-                        }
-                    }
-                    break;
-                    case "c":
-                    fields = StringHelper.split(line, " ");
-                    if (fields.length > 1 && fields[1].equals("all")){
-                        for (int i = 0; i < anim.getNbFrames(); i++){
-                            Frame frame; EntityFrame entity_frame;
-                            try {
-                                frame = anim.getFrame(i);
-                                entity_frame = anim.getEntityFrame(i);
-                            } catch (FrameOutOfBoundsException e){
-                                throw new WhatTheHellException("Supposedly safe array iteration went out of bounds", e);
-                            }
-
-                            fullFrameHurtbox(frame, entity_frame);
-                        }
-                    } else {
-
-                        if (fields.length < 2){
-                            throw new RessourceException("Hurtbox info line does not contain any information", descriptor_filename, line_index);
-                        }
-
-                        if (fields[0].length() > 1){ //we have a "c<frame number>" at the beginning
-                            valInt = parseInt(fields[0].substring(1), "Frame index is not a valid integer", descriptor_filename, line_index);
-
-                            try {
-                                current_frame = new CurrentFrame(anim, valInt);
-                            } catch (FrameOutOfBoundsException e){
-                                throw new RessourceException("Frame index out of bounds", descriptor_filename, line_index, e);
-                            }
-                        }
-
-                        if (!current_frame.valid()){
-                            throw new RessourceException("Hurtbox info with no frame index found before any frame info", descriptor_filename, line_index);
-                        }
-
-                        try {
-                            current_frame.entity_frame.addHurtbox(Hurtbox.parseDescriptorFields(fields, 1, current_frame.frame));
-                        } catch (RessourceException ex){
-                            throw new RessourceException(ex.getMessage(), descriptor_filename, line_index, ex.getCause());
-                        }
-
-                    }
-
-                    break;
-                    case "h":
-                    fields = StringHelper.split(line, " ");
-
-                    if (fields[0].length() > 1){ //we have a "c<frame number>" at the beginning
-                        valInt = parseInt(fields[0].substring(1), "Frame index is not a valid integer", descriptor_filename, line_index);
-
-                        try {
-                            current_frame = new CurrentFrame(anim, valInt);
-                        } catch (FrameOutOfBoundsException e){
-                            throw new RessourceException("Frame index out of bounds", descriptor_filename, line_index, e);
-                        }
-                    }
-
-                    try {
-                        Hitbox h = Hitbox.parseDescriptorFields(fields);
-                        if (h != null) current_frame.entity_frame.addHitbox(h);
-                    } catch (RessourceException ex){
-                        throw new RessourceException(ex.getMessage(), descriptor_filename, line_index, ex.getCause());
-                    }
-
-                    break;
-                }
-            }
-
-            return anim;
-
-        } catch (IOException e){
-            throw new RessourceException("Couldn't descriptor file " + descriptor_filename, e);
         }
     }
 
