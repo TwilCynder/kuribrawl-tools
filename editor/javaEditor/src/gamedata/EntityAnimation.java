@@ -2,6 +2,7 @@ package gamedata;
 
 import gamedata.exceptions.FrameOutOfBoundsException;
 import gamedata.exceptions.GameDataException;
+import gamedata.parsers.AnimationParser;
 
 import java.awt.Image;
 import java.awt.Point;
@@ -237,4 +238,15 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
         frame.setOriginY(new_y);
         shiftElements(entity_frame, diff);
     }
+
+    @Override
+    public AnimationType getType(){
+        return AnimationType.ENTITY;
+    }
+
+    @Override
+    public AnimationParser.EntityAnimationParsingState getParsingState(){
+        return new AnimationParser.EntityAnimationParsingState(this);
+    }
+
 }

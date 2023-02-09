@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import KBUtil.PathHelper;
 import KBUtil.Size2D;
 import gamedata.exceptions.FrameOutOfBoundsException;
+import gamedata.parsers.AnimationParser;
 
 public class Animation {
     protected Frame[] frames;
@@ -33,7 +34,12 @@ public class Animation {
         makeFrames(nbFrames);
     }
 
-    private void makeFrames(int nbFrames){
+    public void makeFrames(int nbFrames){
+        if (nbFrames == 0) {
+            this.frames = null;
+            return;
+        }
+
         this.frames = new Frame[nbFrames];
         int w = source.getWidth(null);
         int h = source.getHeight(null);
@@ -134,4 +140,11 @@ public class Animation {
         g.drawImage(source, x, y, x + w, y + h, sx, 0, sx + frame_size.w, frame_size.h, null);
     }
 
+    public AnimationType getType(){
+        return AnimationType.ANIMATION;
+    }
+
+    public AnimationParser.AnimationParsingState getParsingState(){
+        return new AnimationParser.AnimationParsingState(this);
+    }
 }
