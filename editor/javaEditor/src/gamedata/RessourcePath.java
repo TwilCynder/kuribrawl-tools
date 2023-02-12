@@ -152,7 +152,7 @@ public class RessourcePath {
      * @return the created EntityAnimation (which was already added to the champion)
      * @throws RessourceException if the image couldn't be opened
      */
-    private <A extends Animation> A addAnimation(AnimationPool<A> domain, String animName, int nbFrames, String source_filename, String descriptor_filename) throws RessourceException{
+    public <A extends Animation> A addAnimation(AnimationPool<A> domain, String animName, int nbFrames, String source_filename, String descriptor_filename) throws RessourceException{
         try {
             Image source = loadImage(source_filename);
             return domain.addAnimation(animName, source, nbFrames, source_filename, descriptor_filename);
