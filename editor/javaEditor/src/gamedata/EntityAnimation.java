@@ -1,5 +1,6 @@
 package gamedata;
 
+import gamedata.EntityFrame.FrameMovementAxis;
 import gamedata.exceptions.FrameOutOfBoundsException;
 import gamedata.exceptions.GameDataException;
 import gamedata.parsers.AnimationParser;
@@ -11,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import KBUtil.Pair;
+import KBUtil.Vec2;
 
 public class EntityAnimation extends Animation implements Iterable<Pair<Frame, EntityFrame>>{
     private EntityFrame[] entity_frames;
@@ -86,28 +88,9 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
         return frame.hurtboxes;
     }
 
-    public enum Defaultness {
-        NONDEFAULT,
-        DEFAULT,
+    public enum EntityAnimationDefaultness implements Defaultness {
         DEFAULT_CBOX;
-
-        public boolean needDescriptor(){
-            return this == NONDEFAULT;
-        }
-    }
-
-    private boolean isSpeedDefault(){
-        return speed == 0 || speed == 1;
-    }
-
-    /**
-     * Returns whether a frame is default, meaning that it has a default origin (at (w/2, h)) and a default duration (0 or 1)  
-     * @param frame the frame to test
-     * @return boolean
-     */
-    private boolean isFrameDefault(Frame frame){
-        return frame.hasDefaultOrigin() && frame.hasDefaultDuration();
-    }
+    } 
 
     private Defaultness getFrameDefaultness(Frame frame, EntityFrame entityFrame){
         /*System.out.println("origin : " + frame.hasDefaultOrigin() + "; duration : " + 
@@ -115,13 +98,13 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
         "; hurtboxes : " + frameHasDefaultHurtboxes(frame, entityFrame));*/
         if (isFrameDefault(frame) && entityFrame.hitboxes.isEmpty()){
             if (entityFrame.hurtboxes.isEmpty()) {
-                return Defaultness.DEFAULT;
+                return AnimationDefaultness.DEFAULT;
             } else if (frameHasDefaultHurtboxes(frame, entityFrame)){
-                return Defaultness.DEFAULT_CBOX;
+                return EntityAnimationDefaultness.DEFAULT_CBOX;
             }
-            return Defaultness.NONDEFAULT;
+            return AnimationDefaultness.NONDEFAULT;
         } 
-        return Defaultness.NONDEFAULT;
+        return AnimationDefaultness.NONDEFAULT;
     }
 
     private boolean frameHasDefaultHurtboxes(Frame frame, EntityFrame entityFrame){
@@ -136,31 +119,57 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
         }
     }
 
-    public Defaultness areFramesDefault(){
+    public Defaultness getFramesDefaultness(){
         //premier passage : on teste si toutes les frames sont default
         Defaultness last_defaultness = getFrameDefaultness(0);
         for (int i = 1; i < getNbFrames(); i++){
             Defaultness d = getFrameDefaultness(i);
-
-            if (d != last_defaultness || d == Defaultness.NONDEFAULT) return Defaultness.NONDEFAULT;
+            
+            if (d != last_defaultness || d == AnimationDefaultness.NONDEFAULT) return AnimationDefaultness.NONDEFAULT;
             last_defaultness = d;
         }
         return last_defaultness;
+    }
+
+    protected static String generateFrameMovementAxisDescriptor(FrameMovementAxis axis){
+        String res = "";
+        if (axis.enabled){
+            if (axis.set_speed) res += "s";
+            if (axis.whole_frame) res += "w";
+            res+= ":" + axis.value;
+        }
+        return res;
+    }
+
+    protected String generateFrameInfoDescriptorLine(int index, Frame frame, EntityFrame eframe) throws GameDataException {
+        String res = generateFrameDescriptor(index, frame);
+        if (eframe.hasMovement()){
+            res+= " " + "m";
+            Vec2<FrameMovementAxis> movement = eframe.getMovement();
+            res += 
+                generateFrameMovementAxisDescriptor(movement.x) +
+                generateFrameMovementAxisDescriptor(movement.y);
+        }
+        return res;
+    }
+
+    protected boolean needFrameInfoLineInDescriptor(Frame frame, EntityFrame eframe){
+        return !super.isFrameDefault(frame) || eframe.hasMovement();
+    }
+
+    @Override
+    public boolean needDescriptor() {
+        return getFramesDefaultness().needDescriptor();
     }
 
     private String generateFrameDescriptor(int index, Frame frame, EntityFrame entityFrame) throws GameDataException{
         String res = "";
         boolean indexWritten = false;
         if (!isFrameDefault(frame)){
-            res = "f" + index + " ";
-            indexWritten = true;
-            if (!frame.hasDefaultOrigin()){
-                Point origin = frame.getOrigin();
-                res += "o" + origin.x + " " + origin.y + " ";
-            }
-            int duration = frame.getDuration();
-            if (duration != 0 && duration != 1){
-                res += "d" + duration + " ";
+
+            if (needFrameInfoLineInDescriptor(frame, entityFrame)){
+                res += generateFrameInfoDescriptorLine(index, frame, entityFrame);
+                indexWritten = true;
             }
             res += System.lineSeparator();
         }
@@ -178,30 +187,9 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
         return res; 
     }
 
-    private String generateFrameDescriptor(int index) throws GameDataException{
-        try {
-            return generateFrameDescriptor(index, getFrame(index), getEntityFrame(index));
-        } catch (FrameOutOfBoundsException ex){
-            ex.printStackTrace();
-        }
-        return "";
-    }
-
-    public String generateDescriptor() throws GameDataException{
-        String res = "" + frames.length + System.lineSeparator();
-        
-        if (!isSpeedDefault()){
-            res += speed + System.lineSeparator();
-        }
-
-        Defaultness d = areFramesDefault();
-        System.out.println("Frame final defaultness : " + d);
-
-        for (int i = 0; i < getNbFrames(); i++){
-            res += generateFrameDescriptor(i);
-        }
-
-        return res;
+    @Override
+    protected String generateFrameDescriptor(int index) throws FrameOutOfBoundsException, GameDataException {
+        return generateFrameDescriptor(index, getFrame(index), getEntityFrame(index));
     }
 
     public static void shiftElements(EntityFrame eFrame, Point diff){

@@ -45,7 +45,7 @@ class ChampionVals  {
     int air_jumps;
 }
 
-public class Champion implements AnimationPool<EntityAnimation>{
+public class Champion implements NamedAnimationPool<EntityAnimation>{
     public ChampionVals vals;
     private String name;
     private String displayName;
@@ -73,7 +73,7 @@ public class Champion implements AnimationPool<EntityAnimation>{
         displayName = name;
     }
 
-    public String getDislayName(){
+    public String getDisplayName(){
         return displayName;
     }
 
@@ -132,5 +132,9 @@ public class Champion implements AnimationPool<EntityAnimation>{
         return "Champion [displayName=" + displayName + ", name=" + name + "]";
     }
 
+    @Override
+    public String getEntityDesignation() {
+        return "Champion " + getDisplayName();
+    }
 
 }

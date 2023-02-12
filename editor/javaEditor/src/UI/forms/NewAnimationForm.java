@@ -41,7 +41,7 @@ public class NewAnimationForm extends EditorForm {
         @Override
         public Component getListCellRendererComponent(JList<? extends Champion> list, Champion value, int index,
                 boolean isSelected, boolean cellHasFocus) {
-            setText("  " + value.getDislayName());
+            setText("  " + value.getDisplayName());
             setHorizontalAlignment(SwingConstants.LEADING);
             return this;
         }
