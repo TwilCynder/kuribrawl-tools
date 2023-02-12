@@ -1,12 +1,16 @@
 package gamedata;
 
 import java.awt.Image;
+import java.awt.Point;
 import java.nio.file.Path;
 import java.awt.Graphics;
 
 import KBUtil.PathHelper;
 import KBUtil.Size2D;
 import gamedata.exceptions.FrameOutOfBoundsException;
+import gamedata.exceptions.GameDataException;
+import gamedata.exceptions.WhatTheHellException;
+import gamedata.parsers.AnimationParser;
 
 public class Animation {
     protected Frame[] frames;
@@ -33,7 +37,12 @@ public class Animation {
         makeFrames(nbFrames);
     }
 
-    private void makeFrames(int nbFrames){
+    public void makeFrames(int nbFrames){
+        if (nbFrames == 0) {
+            this.frames = null;
+            return;
+        }
+
         this.frames = new Frame[nbFrames];
         int w = source.getWidth(null);
         int h = source.getHeight(null);
@@ -134,4 +143,103 @@ public class Animation {
         g.drawImage(source, x, y, x + w, y + h, sx, 0, sx + frame_size.w, frame_size.h, null);
     }
 
+    public AnimationType getType(){
+        return AnimationType.ANIMATION;
+    }
+
+    public AnimationParser.AnimationParsingState getParsingState(){
+        return new AnimationParser.AnimationParsingState(this);
+    }
+
+    public interface Defaultness {
+        public default boolean needDescriptor(){
+            return this == AnimationDefaultness.NONDEFAULT;
+        }
+    }
+
+    public enum AnimationDefaultness implements Defaultness {
+        NONDEFAULT,
+        DEFAULT;
+
+    }
+
+    protected boolean isSpeedDefault(){
+        return speed == 0 || speed == 1;
+    }
+
+    /**
+     * Returns whether a frame is default, meaning that it has a default origin (at (w/2, h)) and a default duration (0 or 1)  
+     * @param frame the frame to test
+     * @return boolean
+     */
+    protected boolean isFrameDefault(Frame frame){
+        return frame.hasDefaultOrigin() && frame.hasDefaultDuration();
+    }
+
+    protected String generateFrameInfoDescriptorLine(int index, Frame frame) throws GameDataException {
+        String res = "";  
+        res = "f" + index + " ";
+        
+        if (!frame.hasDefaultOrigin()){
+            Point origin = frame.getOrigin();
+            res += "o" + origin.x + " " + origin.y + " ";
+        }
+        int duration = frame.getDuration();
+        if (duration != 0 && duration != 1){
+            res += "d" + duration + " ";
+        }  
+
+        return res;
+    }
+
+    public String generateDescriptorHead() {
+        String res = "" + frames.length + System.lineSeparator();
+        if (!isSpeedDefault()){
+            res += speed + System.lineSeparator();
+        }
+        return res;
+    }
+
+    protected String generateFrameDescriptor(int index, Frame frame) throws GameDataException{
+        String res = "";
+        //boolean indexWritten = false;
+        if (!isFrameDefault(frame)){
+            //indexWritten = true;
+            res += generateFrameInfoDescriptorLine(index, frame);
+            res += System.lineSeparator();
+        }
+
+        return res; 
+    }
+
+    protected String generateFrameDescriptor(int index) throws FrameOutOfBoundsException, GameDataException{
+        return generateFrameDescriptor(index, getFrame(index));
+    }
+
+    public String generateDescriptor() throws GameDataException, WhatTheHellException{
+        String res = generateDescriptorHead();
+
+        try {
+            for (int i = 0; i < getNbFrames(); i++){
+                res += generateFrameDescriptor(i);
+            } 
+        } catch (FrameOutOfBoundsException e){
+            throw new WhatTheHellException("Supposedly safe array iteration went out of bounds", e); 
+        }
+  
+        return res;
+    }
+
+    protected boolean areFramesDefault(){
+        boolean res = false;
+        for (Frame f : frames){
+            res |= isFrameDefault(f);
+        }
+        return res;
+    }
+
+    public boolean needDescriptor(){
+        return !areFramesDefault();
+    }
+    
 }

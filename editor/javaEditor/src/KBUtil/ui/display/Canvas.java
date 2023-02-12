@@ -2,6 +2,7 @@ package KBUtil.ui.display;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Dimension;
 
 import javax.swing.JComponent;
@@ -131,10 +132,10 @@ public class Canvas extends JPanel implements Displayer{
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        //Graphics2D g2d = (Graphics2D)g;
+        Graphics2D g2d = (Graphics2D)g;
         Dimension dim = getSize();
-        //g2d.setColor(new Color((dim.width / 4) % 256, (dim.height / 4) % 256, ((dim.width + dim.height) / 4) % 256));
-        //g2d.fillRect(dim.width/4, dim.height/4, dim.width/2, dim.height/2);
+        g2d.setColor(new Color((dim.width / 4) % 256, (dim.height / 4) % 256, ((dim.width + dim.height) / 4) % 256));
+        g2d.fillRect(dim.width/4, dim.height/4, dim.width/2, dim.height/2);
         if (current_object != null){
             current_object.draw(g, 0, 0, dim.width, dim.height);
         }

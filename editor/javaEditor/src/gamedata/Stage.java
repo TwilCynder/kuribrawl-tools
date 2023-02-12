@@ -13,7 +13,7 @@ import java.util.TreeMap;
 
 import KBUtil.PathHelper;
 
-public class Stage implements AnimationPool<Animation> {
+public class Stage implements NamedAnimationPool<Animation> {
     public static class Platform {
         Point position;
         int w;
@@ -38,6 +38,7 @@ public class Stage implements AnimationPool<Animation> {
         
     }
     
+    private String name;
     private String display_name;
     private Path descriptor_file;
     private List<BackgroundElement> background_elements = new LinkedList<>();
@@ -45,12 +46,16 @@ public class Stage implements AnimationPool<Animation> {
     private Map<String, Animation> animations = new TreeMap<>();
     
     public Stage(String name) {
-        this.display_name = name;
+        this.name = name;
     }
 
     public Stage(String name, String filename) {
         this(name);
-        setDisplayName(filename);
+        setDescriptorFilename(filename);
+    }
+
+    public String getName(){
+        return name;
     }
 
     public void setDisplayName(String name){
@@ -62,7 +67,7 @@ public class Stage implements AnimationPool<Animation> {
     }
 
     public String getDescriptorFilename(){
-        return descriptor_file.toString();
+        return PathHelper.pathToStringOrNull(descriptor_file);
     }
 
     public Path getDescriptorPath(){
@@ -110,4 +115,8 @@ public class Stage implements AnimationPool<Animation> {
         platforms.add(new Platform(new Point(x, y), w, anim));
     }
 
+    @Override
+    public String getEntityDesignation() {
+        return "Stage " + getDisplayName();
+    }
 }

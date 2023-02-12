@@ -52,5 +52,13 @@ public class EntityFrame {
     public Vec2<FrameMovementAxis> getMovement(){
         return movement;
     }
+
+    public boolean hasMovement(){
+        return movement.x.enabled || movement.y.enabled;
+    } 
+
+    public void fullFrameHurtbox(Frame frame){
+        addHurtbox(new Hurtbox(frame));
+    }
 }
 
