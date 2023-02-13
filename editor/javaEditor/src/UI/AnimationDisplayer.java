@@ -28,7 +28,7 @@ public class AnimationDisplayer extends ZoomingDisplayer{
         this (anim, 0);
     }
 
-    private void updateCurrentFrame() throws IllegalStateException {
+    protected void updateCurrentFrame() throws IllegalStateException {
         try {
             currentFrame = current_animation.getFrame(currentFrameIndex);
             //currentEntityFrame = current_anim.getEntityFrame(currentFrameIndex);
@@ -49,13 +49,13 @@ public class AnimationDisplayer extends ZoomingDisplayer{
 
     public void incrFrame(){
         if (currentFrameIndex < current_animation.getNbFrames() -1)
-        currentFrameIndex++;
+            currentFrameIndex++;
         updateCurrentFrame();
     }
 
     public void decrFrame(){
         if (currentFrameIndex > 0)
-        currentFrameIndex--;
+            currentFrameIndex--;
         updateCurrentFrame();
     }
 

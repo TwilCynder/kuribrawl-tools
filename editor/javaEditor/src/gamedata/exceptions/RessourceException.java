@@ -16,6 +16,10 @@ public class RessourceException extends Exception{
         super(message, cause);
     }
 
+    public RessourceException(Throwable cause){
+        super(cause);
+    }
+
     public RessourceException(String message, String file, int line, Throwable cause){
         super("In file " + file + " at line " + line + " : " + message, cause);
     }

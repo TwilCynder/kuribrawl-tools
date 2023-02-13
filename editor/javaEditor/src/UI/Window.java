@@ -68,6 +68,8 @@ import UI.forms.NewAnimationForm;
 import UI.forms.RenameChampionDescriptorForm;
 import UI.forms.RenameSourceImageForm;
 import gamedata.AngleMode;
+import gamedata.Animation;
+import gamedata.AnimationPool;
 import gamedata.Champion;
 import gamedata.CollisionBox;
 import gamedata.DamageHitbox;
@@ -78,6 +80,7 @@ import gamedata.GameData;
 import gamedata.Hitbox;
 import gamedata.Hurtbox;
 import gamedata.HurtboxType;
+import gamedata.NamedAnimationPool;
 import gamedata.RessourcePath;
 import gamedata.WindHitbox;
 import gamedata.RessourcePath.MissingInfoListener;
@@ -1116,7 +1119,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		animations_menu.removeAll();
 
 		for (Champion c : gd){
-			JMenu champion_submenu = new JMenu(c.getDislayName());
+			JMenu champion_submenu = new JMenu(c.getDisplayName());
             for (EntityAnimation anim : c){
 				champion_submenu.add(new AnimationMenuItem(anim, this));
             }
@@ -1169,9 +1172,9 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	} 
 
 	private MissingInfoListener missingInfoListener = new MissingInfoListener() {
-		@Override public boolean missingEntityAnimationDescriptor(RessourcePath r, EntityAnimation anim, Champion c) {
+		@Override public boolean missingAnimationDescriptor(RessourcePath r, Animation anim, NamedAnimationPool<?> c) {
 			int res = JOptionPane.showOptionDialog(Window.this, 
-            	"Animation " + anim.getName() + " of champion " + c.getDislayName() + """ 
+            	"Animation " + anim.getName() + " of champion " + c.getDisplayName() + """ 
 				 does not have a descriptor file 
 				but needs one (contains elements that can't be saved without a descriptor file). 
 				Do you want to set a descriptor file for this animation ? 
@@ -1188,7 +1191,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	private Collection<JMenuItem> animationGamedataMenuItems;
 	private JMenu gameDataMenu;
 
-	private boolean setAnimDescriptor(EntityAnimation anim){
+	private boolean setAnimDescriptor(Animation anim){
 		return (new ChangeDescriptorFilenameForm(this, anim).showForm()) == JOptionPane.OK_OPTION;
 	}
 

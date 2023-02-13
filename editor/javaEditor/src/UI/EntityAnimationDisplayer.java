@@ -25,7 +25,7 @@ public class EntityAnimationDisplayer extends AnimationDisplayer {
     public EntityAnimationDisplayer(EntityAnimation anim, int frame_){
         super(anim, frame_);
         this.current_anim = anim;
-        updateCurrentFrame();
+        updateCurrentEntityFrame();
     }
 
     public EntityAnimationDisplayer(EntityAnimation anim){
@@ -61,6 +61,9 @@ public class EntityAnimationDisplayer extends AnimationDisplayer {
 
         if (currentEntityFrame == null) throw new IllegalStateException("No current entity frame (null)");
 
+        System.out.println("Drawing " + current_anim.getName() + " " + currentFrameIndex);
+        System.out.println(currentEntityFrame.hurtboxes.size());
+
         for (Hurtbox hb : currentEntityFrame.hurtboxes){
             if (hb == selected_cbox){
                 g.setColor(selected_color);
@@ -71,11 +74,12 @@ public class EntityAnimationDisplayer extends AnimationDisplayer {
             }
         }
         g.setColor(hitbox_color);
+        System.out.println(currentEntityFrame.hitboxes.size());
         for (Hitbox hb : currentEntityFrame.hitboxes){
             if (hb == selected_cbox){
                 g.setColor(selected_color);
                 g.drawRect(origin.x + (int)(hb.x * zoom), origin.y - (int)(hb.y * zoom), (int)(hb.w * zoom), (int)(hb.h * zoom));
-                g.setColor(hitbox_color);
+                g.setColor(hitbox_color); 
             } else {
                 g.drawRect(origin.x + (int)(hb.x * zoom), origin.y - (int)(hb.y * zoom), (int)(hb.w * zoom), (int)(hb.h * zoom));
             }            
@@ -137,9 +141,8 @@ public class EntityAnimationDisplayer extends AnimationDisplayer {
         return (WindHitbox)selected_cbox;
     }
 
-    private void updateCurrentFrame() throws IllegalStateException {
+    protected void updateCurrentEntityFrame() throws IllegalStateException {
         try {
-            currentFrame = current_anim.getFrame(currentFrameIndex);
             currentEntityFrame = current_anim.getEntityFrame(currentFrameIndex);
         } catch (FrameOutOfBoundsException ex){
             throw new IllegalStateException("Current frame of EADisplayer was out of bounds", ex);
@@ -160,5 +163,23 @@ public class EntityAnimationDisplayer extends AnimationDisplayer {
     public void setAnimation(Animation anim) throws IllegalArgumentException{
         System.out.println("Set animation : " + anim.getClass());
         throw new IllegalArgumentException("Attempt to set the current animation of an Entity Animation Displayer as an  Animation");
+    }
+
+    @Override
+    protected void setFrameIndex(int index){
+        super.setFrameIndex(index);
+        updateCurrentEntityFrame();
+    } 
+
+    @Override 
+    public void incrFrame(){
+        super.incrFrame();
+        updateCurrentEntityFrame();
+    }
+
+    @Override 
+    public void decrFrame(){
+        super.decrFrame();
+        updateCurrentEntityFrame();
     }
 }

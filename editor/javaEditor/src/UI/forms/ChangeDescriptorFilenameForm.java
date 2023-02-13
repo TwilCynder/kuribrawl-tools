@@ -13,15 +13,15 @@ import javax.swing.JPanel;
 import KBUtil.PathHelper;
 import KBUtil.ui.OpenPathButton;
 import UI.Window;
-import gamedata.EntityAnimation;
+import gamedata.Animation;
 
 public class ChangeDescriptorFilenameForm extends RelativePathInputForm {
-    EntityAnimation anim;
+    Animation anim;
     private Path oldDescriptorPath;
 
     private static String title = "Change the descriptor file name";
 
-    public ChangeDescriptorFilenameForm(Window frame, EntityAnimation anim) {
+    public ChangeDescriptorFilenameForm(Window frame, Animation anim) {
         super(frame, title);
         this.anim = anim;
         this.oldDescriptorPath = anim.getDescriptorPath();
@@ -45,7 +45,7 @@ public class ChangeDescriptorFilenameForm extends RelativePathInputForm {
             int res;
 
             if (newPathName.isEmpty()){
-                if (anim.areFramesDefault().needDescriptor()){
+                if (anim.needDescriptor()){
                     if (JOptionPane.showOptionDialog(this, 
                     """
                         Entering an empty descriptor filename means no descriptor. \n

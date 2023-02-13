@@ -5,6 +5,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -20,18 +21,15 @@ import java.util.zip.ZipOutputStream;
 import java.awt.Image;
 
 import javax.imageio.ImageIO;
-
-import java.awt.Point;
-
 import KBUtil.StringHelper;
-import KBUtil.Vec2;
-import gamedata.EntityAnimation.Defaultness;
-import gamedata.exceptions.FrameOutOfBoundsException;
+import gamedata.Animation.Defaultness;
+import gamedata.EntityAnimation.EntityAnimationDefaultness;
 import gamedata.exceptions.GameDataException;
 import gamedata.exceptions.InvalidRessourcePathException;
 import gamedata.exceptions.RessourceException;
 import gamedata.exceptions.TransparentGameDataException;
 import gamedata.exceptions.WhatTheHellException;
+import gamedata.parsers.AnimationParser;
 import gamedata.parsers.DescriptorReader;
 
 public class RessourcePath {
@@ -171,7 +169,7 @@ public class RessourcePath {
      * Adds a new animation to the specified GameData based on basic information from the text files.
      * Handles the interpretation of these informations (loading the given image file, parsing the tag, etc)
      */
-    private Animation addAnimation(GameData gd, String tag, int nbFrames, String source_filename, String descriptor_filename) throws RessourceException{
+    public Animation addAnimation(GameData gd, String tag, int nbFrames, String source_filename, String descriptor_filename) throws RessourceException{
         String[] tagSplit = StringHelper.split(tag, "/");
 
         if (tagSplit.length < 2 ) { 
@@ -185,24 +183,22 @@ public class RessourcePath {
             if (!GameData.isValidIdentifier(tagSplit[1])) throw new RessourceException("Invalid animation name : " + tagSplit[1]);
         
             if (tagSplit[0].startsWith("$"))
-                return addAnimation(gd.tryStage(tagSplit[0]), tagSplit[1], nbFrames, source_filename, descriptor_filename);
+                return addAnimation(gd.tryStage(tagSplit[0].substring(1)), tagSplit[1], nbFrames, source_filename, descriptor_filename);
             return addAnimation(gd.tryChampion(tagSplit[0]), tagSplit[1], nbFrames, source_filename, descriptor_filename);
         }
 
         //3 fields : parse 
 
-        if (!GameData.isValidIdentifier(tagSplit[1])){
-            throw new RessourceException("Invalid animation name : " + tagSplit[1]);
-        }
-        
-        return addAnimation(gd.tryChampion(tagSplit[0]), tagSplit[1], nbFrames, source_filename, descriptor_filename);
-    }
+        if (!GameData.isValidIdentifier(tagSplit[1])) throw new RessourceException("Invalid domain name : " + tagSplit[0]);
+        if (!GameData.isValidIdentifier(tagSplit[2])) throw new RessourceException("Invalid animation name : " + tagSplit[1]);
 
-    private <A extends Animation> void parseAnimationDescriptor(A anim, String descriptor_filename){
-        try (BufferedReader reader = fileReader(descriptor_filename)){
-            
-        } catch (IOException ex){
-
+        switch (tagSplit[0]){
+            case "Stage", "S" :
+                return addAnimation(gd.tryStage(tagSplit[1]), tagSplit[2], nbFrames, source_filename, descriptor_filename);
+            case "Champion", "Champ", "C":  
+                return addAnimation(gd.tryChampion(tagSplit[1]), tagSplit[2], nbFrames, source_filename, descriptor_filename);
+            default:
+                throw new RessourceException("Unknown domain type : " + tagSplit[0]);
         }
     }
 
@@ -218,33 +214,20 @@ public class RessourcePath {
         if (fields[1].endsWith(".dat")){ //animation has a descriptor
             parseAnimationDescriptor(gd, fields[0], file, fields[1]);
         } else { //no
-            EntityAnimation anim;
-            try {
-                anim = addAnimation(gd, fields[0], Integer.parseInt(fields[1]), file, null);
-            } catch (NumberFormatException e){
-                throw new RessourceException("File info second field is neither a descriptor filename of a valid number", e);
-            }
-            
-            if (fields.length > 2){
-                anim.setSpeed(Double.parseDouble(fields[2]));
-                if (fields.length > 3){
-                    if (fields[3].equals("c")){
-                        for (int i = 0; i < anim.getNbFrames(); i++){
-                            try {
-                                Frame frame; EntityFrame entity_frame;
-                                frame = anim.getFrame(i);
-                                entity_frame = anim.getEntityFrame(i);
-                                fullFrameHurtbox(frame, entity_frame);
-                            } catch (FrameOutOfBoundsException e){
-                                throw new WhatTheHellException("Supposedly safe array iteration went out of bounds", e);
-                            }
-
-                        }
-                    }
-                }
-            }
+            AnimationParser.parseAnimationShortDescriptor(gd, fields, this, file);
         }
 
+    }
+
+    private void parseAnimationDescriptor(GameData gd, String tag, String source_filename, String descriptor_filename) throws RessourceException{
+        try {
+            AnimationParser.parseAnimationDescriptor(gd, tag, this, source_filename, descriptor_filename, fileReader(descriptor_filename));
+        } catch (FileNotFoundException ex){
+            throw new RessourceException("Could not open file : " + descriptor_filename);
+        }  catch (IOException ex) {
+            throw new RessourceException("Error while reading descriptor file : " + descriptor_filename, ex);
+        }
+        
     }
 
     private void parseChampionDescriptor(Champion c, String filename) throws RessourceException, WhatTheHellException {
@@ -262,6 +245,24 @@ public class RessourcePath {
         Champion c = gd.tryChampion(info, file);
         c.setDescriptorFilename(file);
         parseChampionDescriptor(c, file);
+    }
+
+    public void parseStage(GameData gd, String file, String info) throws RessourceException, WhatTheHellException{
+        System.out.println("PARSE STAGE");
+        Stage s = gd.tryStage(info, file);
+        s.setDescriptorFilename(file);
+        parseStageDescriptor(s, file);
+    }
+
+    private void parseStageDescriptor(Stage s, String filename)  throws RessourceException, WhatTheHellException {
+        if (filename == null) throw new RessourceException("null descriptor filename for champion " + s.getName());
+
+        try (DescriptorReader reader = new DescriptorReader(fileReader(filename))){
+            String line = reader.readLine();
+            s.setDisplayName(line);
+        }  catch (IOException e){
+            throw new RessourceException("Couldn't descriptor file " + filename, e);
+        }
     }
 
     private static final String listFilename = "project_db.txt";
@@ -298,9 +299,13 @@ public class RessourcePath {
                     case "C":
                         parseChampion(gd, file.trim(), split[1]);
                         break;
+                    case "S":
+                        parseStage(gd, file.trim(), split[1]);
+                        break;
+                    
                 }
             }
-                    
+  
             return gd;
         } catch (NoSuchFileException e){
             throw new RessourceException("The specified directory is not a valid ressource path : does not contain a project_db.txt file.", e);
@@ -317,7 +322,7 @@ public class RessourcePath {
      * Each method is called for a specific missing info. If a call to these methods returns false, an exception is raised.
     */
     public static abstract class MissingInfoListener {
-        public boolean missingEntityAnimationDescriptor(RessourcePath r, EntityAnimation anim, Champion c){return false;}
+        public boolean missingAnimationDescriptor(RessourcePath r, Animation anim, NamedAnimationPool<?> c){return false;}
         public boolean missingChampionDescriptor(RessourcePath r, Champion c){return false;}
     }
 
@@ -341,17 +346,17 @@ public class RessourcePath {
     /**
      * Obtains the descriptor filename of an EntityAnimation, calling the right method of a specified MissingInfoListener if it can't be found
      */
-    private String getEntityAnimationDescriptorFilename(EntityAnimation anim, Champion c, MissingInfoListener mil) throws TransparentGameDataException{
+    private String getAnimationDescriptorFilename(Animation anim, NamedAnimationPool<?> c, MissingInfoListener mil) throws TransparentGameDataException{
         String toWrite = anim.getDescriptorFilename();
 
         if (toWrite != null){   //if the info isn't missing in the first place
             return toWrite;     //just return it
-        } else if (mil != null && mil.missingEntityAnimationDescriptor(this, anim, c)){  //if is is, do we have a MIL and did its method supposedly succeed ?
+        } else if (mil != null && mil.missingAnimationDescriptor(this, anim, c)){  //if is is, do we have a MIL and did its method supposedly succeed ?
             toWrite = anim.getDescriptorFilename(); //if so, we test the info again
             if (toWrite != null) return toWrite;
         }   //if the info is actually still missing OR the method indicated that it failed OR we didn't even have a MIL
-
-        throw new TransparentGameDataException("Animation" + anim.getName() + " of champion " + anim.getName() + " does not have a descriptor file but needs one. Please set one."); //just raise an exception
+        
+        throw new TransparentGameDataException("Animation" + anim.getName() + " of " + c.getEntityDesignation() + " does not have a descriptor file but needs one. Please set one."); //just raise an exception
     }
 
     public void saveGameData(GameData gd, MissingInfoListener mil) throws GameDataException, TransparentGameDataException, IOException{
@@ -363,8 +368,32 @@ public class RessourcePath {
                 writeString(listWriter, file.getValue()); listWriter.newLine();
             }
 
+            for (Stage s : gd.getStages()){
+                System.out.println("Writing champion " + s.getDisplayName() + " " + s.getDescriptorFilename());
+                
+                writeString(listWriter, s.getDescriptorFilename()); listWriter.newLine();
+                writeString(listWriter, "S:" + s.getName()); listWriter.newLine();
+
+                for (Animation anim : s){
+                    writeString(listWriter, anim.getSourceFilename()); listWriter.newLine();
+                    writeString(listWriter, "A:" + "Stage/" + s.getName() + "/" + anim.getName() + " ");
+
+                    if (anim.areFramesDefault()){
+                        writeString(listWriter, "" + anim.getNbFrames() + " " + anim.getSpeed());
+                    } else {
+                        toWrite = getAnimationDescriptorFilename(anim, s, mil);
+                        writeString(listWriter, toWrite);
+
+                        try (BufferedWriter descriptorWriter = fileWriter(anim.getDescriptorPath())){
+                            writeString(descriptorWriter, anim.generateDescriptor());
+                        }
+                    }
+                    listWriter.newLine();
+                }
+            }
+
             for (Champion c : gd){
-                System.out.println("Writing champion " + c.getDislayName() + " " + c.getDescriptorFilename());
+                System.out.println("Writing champion " + c.getDisplayName() + " " + c.getDescriptorFilename());
 
                 toWrite = getChampionDescriptorFilename(c, mil);
 
@@ -372,13 +401,15 @@ public class RessourcePath {
                 writeString(listWriter, "C:" + c.getName()); listWriter.newLine();
 
                 for (EntityAnimation anim : c){
+                    System.out.println("Writing animation " + anim.getName());
+
                     writeString(listWriter, anim.getSourceFilename()); listWriter.newLine();
                     writeString(listWriter, "A:" + c.getName() + "/" + anim.getName() + " ");
 
-                    Defaultness defaultness = anim.areFramesDefault();
+                    Defaultness defaultness = anim.getFramesDefaultness();
                     if (defaultness.needDescriptor()){
 
-                        toWrite = getEntityAnimationDescriptorFilename(anim, c, mil);
+                        toWrite = getAnimationDescriptorFilename(anim, c, mil);
                         writeString(listWriter, toWrite);
 
                         try (BufferedWriter descriptorWriter = fileWriter(anim.getDescriptorPath())){
@@ -386,12 +417,11 @@ public class RessourcePath {
                         }
                     } else {
                         writeString(listWriter, "" + anim.getNbFrames() + " " + anim.getSpeed());
-                        if (defaultness == Defaultness.DEFAULT_CBOX){
+                        if (defaultness == EntityAnimationDefaultness.DEFAULT_CBOX){
                             writeString(listWriter, " c");
                         }
                     }
 
-                    System.out.println("Writing animation " + anim.getName());
 
                     listWriter.newLine();
                 }

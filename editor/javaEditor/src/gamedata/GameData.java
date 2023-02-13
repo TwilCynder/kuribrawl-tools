@@ -1,6 +1,7 @@
 package gamedata;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -75,8 +76,18 @@ public class GameData implements Iterable<Champion> {
         return c;
     }
 
-    public Collection<Stage> getChampgetStages(){
-        return stages.values();
+    public Stage tryStage(String name, String descriptor_filename){
+        Stage s = stages.get(name);
+        if (s == null)  {
+            s = addStage(name, descriptor_filename);
+        } else {
+            s.setDescriptorFilename(descriptor_filename);
+        }
+        return s;
+    }
+
+    public Collection<Stage> getStages(){
+        return Collections.unmodifiableCollection(stages.values());
     }
 
     public void addOtherFile(String filename, String info){
@@ -110,6 +121,13 @@ public class GameData implements Iterable<Champion> {
         for (Champion c : this){
             res.add(c.getDescriptorFilename());
             for (EntityAnimation anim : c){
+                res.add(anim.getSourceFilename());
+            }
+        }
+
+        for (Stage s : getStages()){
+            res.add(s.getDescriptorFilename());
+            for (Animation anim : s){
                 res.add(anim.getSourceFilename());
             }
         }
@@ -152,7 +170,7 @@ public class GameData implements Iterable<Champion> {
     public void printAnimations(){
         System.out.println("Using this GameData : ");
 		for (Champion c : this){
-			System.out.println("==" + c.getDislayName() + "==");
+			System.out.println("==" + c.getDisplayName() + "==");
             for (EntityAnimation anim : c){
                 System.out.println(anim.getName());
             }

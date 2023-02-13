@@ -169,6 +169,7 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
 
     public EntityAnimationEditor(EntityAnimation anim, EntityAnimationEditorWindow win){
         super(anim);
+        System.out.println("EAE constructed "+ anim);
         this.editorWindow = win;
         onAnimationChanged();
     }
