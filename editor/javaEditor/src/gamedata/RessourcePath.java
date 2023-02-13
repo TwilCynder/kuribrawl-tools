@@ -305,7 +305,7 @@ public class RessourcePath {
                     
                 }
             }
-                    
+  
             return gd;
         } catch (NoSuchFileException e){
             throw new RessourceException("The specified directory is not a valid ressource path : does not contain a project_db.txt file.", e);
