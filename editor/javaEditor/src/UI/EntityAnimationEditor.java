@@ -209,10 +209,10 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         if (selected_cbox == null) return;
         if (selected_cbox instanceof Hitbox){
             if (!getCurrentEntityFrame().hitboxes.remove(selected_cbox)) 
-                throw new IllegalStateException("Current selected hitbox is not part of the hitbox list of the current frame");
+                throw new IllegalStateException("Current selected hitbox is not part of the current frame's hitboxes");
         } else if (selected_cbox instanceof Hurtbox){
             if (!getCurrentEntityFrame().hurtboxes.remove(selected_cbox)) 
-                throw new IllegalStateException("Current selected hurtbox is not part of the hitbox list of the current frame");
+                throw new IllegalStateException("Current selected hurtbox is not part of the current frame's hurtboxes");
         }
 
         selected_cbox = null;
