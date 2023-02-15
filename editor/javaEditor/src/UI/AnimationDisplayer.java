@@ -90,6 +90,7 @@ public class AnimationDisplayer extends ZoomingDisplayer{
      * @throws IllegalStateException if the current frame index is out of the frame array bounds ; this should never be the case as the index is checked to avoid that
      */
     public Frame getCurrentFrame() throws IllegalStateException {
+        //TODO make it actually throw an exception (if current_frame is null ?)
         return currentFrame; 
     }
 

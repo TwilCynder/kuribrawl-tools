@@ -69,7 +69,6 @@ import UI.forms.RenameChampionDescriptorForm;
 import UI.forms.RenameSourceImageForm;
 import gamedata.AngleMode;
 import gamedata.Animation;
-import gamedata.AnimationPool;
 import gamedata.Champion;
 import gamedata.CollisionBox;
 import gamedata.DamageHitbox;

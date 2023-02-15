@@ -121,6 +121,12 @@ public class EntityAnimationDisplayer extends AnimationDisplayer {
         return selected_cbox;
     }
 
+    protected CollisionBox resetSelectedCBox(){
+        CollisionBox cbox = selected_cbox;
+        selected_cbox = null;
+        return cbox;
+    }
+
     public Hurtbox getSelectedHurtbox() throws IllegalStateException{
         if (selected_cbox == null || !(selected_cbox instanceof Hurtbox)) throw new IllegalStateException("Selected Cbox is " + selected_cbox + "(should be a Hurtbox)");
         return (Hurtbox)selected_cbox;
