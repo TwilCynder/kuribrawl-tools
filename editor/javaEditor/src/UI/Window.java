@@ -61,6 +61,8 @@ import KBUtil.ui.display.Displayable;
 import KBUtil.ui.display.InteractableDisplayable;
 import KBUtil.ui.documentFilters.IntegerDocumentFilter;
 import KBUtil.ui.documentFilters.RealNumberDocumentFilter;
+import UI.displayers.EntityAnimationDisplayer;
+import UI.displayers.EntityAnimationEditor;
 import UI.exceptions.WindowStateException;
 import UI.forms.ChangeDescriptorFilenameForm;
 import UI.forms.ChangeSourceImageForm;

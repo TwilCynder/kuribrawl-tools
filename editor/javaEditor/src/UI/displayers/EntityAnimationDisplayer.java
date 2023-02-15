@@ -1,4 +1,4 @@
-package UI;
+package UI.displayers;
 
 import gamedata.Animation;
 import gamedata.CollisionBox;

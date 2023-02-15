@@ -1,4 +1,4 @@
-package UI;
+package UI.displayers;
 
 import gamedata.CollisionBox;
 import gamedata.EntityAnimation;
@@ -6,6 +6,7 @@ import java.awt.Graphics;
 import java.awt.Point;
 import KBUtil.ui.display.Displayer;
 import KBUtil.ui.display.InteractableDisplayable;
+import UI.EntityAnimationEditorWindow;
 
 import java.awt.event.KeyEvent;
 

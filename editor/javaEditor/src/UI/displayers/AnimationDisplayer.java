@@ -1,4 +1,4 @@
-package UI;
+package UI.displayers;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -6,6 +6,7 @@ import java.awt.Point;
 
 import KBUtil.Rectangle;
 import KBUtil.Size2D;
+import UI.ZoomingDisplayer;
 import gamedata.Animation;
 import gamedata.Frame;
 import gamedata.exceptions.FrameOutOfBoundsException;
