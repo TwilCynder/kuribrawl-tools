@@ -23,7 +23,7 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     @Override
     public void draw(Graphics g, int x, int y, int w, int h, double zoom) throws IllegalStateException{
         super.draw(g, x, y, w, h, zoom);
-        editor_backend.draw(g, x, y, w, h, zoom, this);
+        editor_backend.draw(g, x, y, w, h, this);
     }
 
     public void setSelectedCBox(CollisionBox cbox){
@@ -33,12 +33,12 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
 
     @Override
     public void mousePressed(Point pos, Displayer displayer){
-        editor_backend.mousePressed(getAnimPosition(pos), displayer);
+        editor_backend.mousePressed(pos, this, displayer);
     }
 
     @Override
     public void mouseDragged(Point currentpos, Displayer displayer){
-        editor_backend.mouseDragged(getAnimPosition(currentpos), displayer);
+        editor_backend.mouseDragged(currentpos, this, displayer);
     }
 
     @Override

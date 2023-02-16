@@ -1359,7 +1359,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 	public void updateAnimControls(EntityAnimation anim, boolean ignoreModifications){
 		initializing = ignoreModifications;
-
+		
 		tfAnimSpeed.setText(Double.toString(anim.getSpeed()));
 
 		initializing = false;

@@ -33,28 +33,36 @@ import gamedata.Hurtbox;
 import gamedata.exceptions.RessourceException;
 import gamedata.exceptions.WhatTheHellException;
 
-public class EntityAnimationEditorBackend implements ClipboardOwner{
+/**
+ * Class exposing EntityAnimation editing functionalities. These functionalities will be called by en EntityAnimationEditor.
+ */
+public class EntityAnimationEditorBackend extends AnimationEditorBackend implements ClipboardOwner{
+    //TODO avoir l'EntityAnimationEditor en propriété
     private EntityAnimationEditorWindow editorWindow;
     private Point drag_start_pos;
     private Rectangle selection;
 
     private static final Color selection_color = new Color(127, 127, 127, 255);
 
-    
+    /**
+     * Popup menu displayed inside an editor.
+     */
     private static abstract class InternalMenu extends JPopupMenu {
         protected Point pos = new Point(0, 0);
         protected Displayer displayer;
-        protected EntityAnimationEditor editor;
+        //protected EntityAnimationEditor editor;
 
-        public void show(EntityAnimationEditor editor_, Displayer invoker, int x, int y) {
+        public void show(Displayer invoker, int x, int y) {
             displayer = invoker;
-            editor = editor_;
             JComponent component = invoker.getComponent();
             if (component == null) return;
             pos = new Point(x, y);
             super.show(invoker.getComponent(), x, y);
         }
 
+        /**
+         * Initializes the items in this menu.
+         */
         public abstract void initItems();
 
         public InternalMenu(){
@@ -62,8 +70,22 @@ public class EntityAnimationEditorBackend implements ClipboardOwner{
         }
     }
 
+    /**
+     * Popup menu displayed inside an EntityAnimation editor, specifically. 
+     */
+    private static abstract class EntityAnimationPopupMenu extends InternalMenu {
+        protected EntityAnimationEditor editor;
+
+        public void show(EntityAnimationEditor editor_, Displayer invoker, int x, int y) {
+            super.show(invoker, x, y);
+            editor = editor_;
+        }
+    }
     
-    private class PopupMenu extends InternalMenu {
+    /**
+     * The basic popup menu displayed when right-clicking in an empty area
+     */
+    private class PopupMenu extends EntityAnimationPopupMenu {
         @Override
         public void initItems(){
             JMenuItem item;
@@ -80,7 +102,7 @@ public class EntityAnimationEditorBackend implements ClipboardOwner{
             item = new JMenuItem("Move origin here");
             item.addActionListener(new ActionListener(){
                 public void actionPerformed(ActionEvent e){
-                    moveOrigin(editor, displayer, pos);
+                    moveOrigin(pos, editor, displayer);
                 }
             });
             add(item);
@@ -88,6 +110,9 @@ public class EntityAnimationEditorBackend implements ClipboardOwner{
         
     };
 
+    /**
+     * Popup menu displayed when right cliking a collision box
+     */
     private class PopupCollisionboxMenu extends PopupMenu {
         public void initItems() {
             JMenuItem item;
@@ -120,8 +145,10 @@ public class EntityAnimationEditorBackend implements ClipboardOwner{
     private PopupMenu popup_menu = new PopupMenu();
     private PopupCollisionboxMenu popup_collisionbox_menu = new PopupCollisionboxMenu();
 
-    
-    private class SelectionPopupMenu extends InternalMenu {
+    /**
+     * The popup menu displayed after performing a rectangle selection
+     */
+    private class SelectionPopupMenu extends EntityAnimationPopupMenu {
      
         public void initItems() {
             JMenuItem item = new JMenuItem("Create hurtbox");
@@ -170,7 +197,11 @@ public class EntityAnimationEditorBackend implements ClipboardOwner{
         onAnimationChanged(editor);
     }
 
-    public void draw(Graphics g, int x, int y, int w, int h, double zoom, EntityAnimationEditor editor) throws IllegalStateException{
+    /**
+     * Draws information related to the edition to the Canvas displaying the editor.
+     * @throws IllegalStateException
+     */
+    public void draw(Graphics g, int x, int y, int w, int h, EntityAnimationEditor editor) throws IllegalStateException{
         if (selection != null && selection.w + selection.h > 6){
             Rectangle display_selection = editor.getDisplayRectangle(selection);
             g.setColor(selection_color);
@@ -179,16 +210,12 @@ public class EntityAnimationEditorBackend implements ClipboardOwner{
     }
 
     /**
-     * Move origin to a certain anim pos and then updates whatever needs ot be updated following this change
-     * @param displayer the Displayer to update
-     * @param pos the position at which origin should be moved to, relative to the displayer
+     * Deletes a collision box from a given entity frame.
+     * @param d displayer that may need to be updated following this operation
+     * @param cbox collision box to remove
+     * @param entity_frame entity frame to remove the cbox from
+     * @throws IllegalStateException
      */
-    private void moveOrigin(EntityAnimationEditor editor, Displayer displayer, Point pos){
-        moveOriginToDisplayPos(pos, editor);
-        displayer.update();
-        updateFrameControls(editor);
-    }
-
     private void deleteCbox(Displayer d, CollisionBox cbox, EntityFrame entity_frame) throws IllegalStateException{
         if (cbox == null) return;
         if (cbox instanceof Hitbox){
@@ -203,26 +230,45 @@ public class EntityAnimationEditorBackend implements ClipboardOwner{
         editorWindow.notifyDataModified();
     }
 
+    /**
+     * Deletes the selected cbox from the currently edited entity animation.
+     * @param editor
+     * @param d displayer that may need to be updated following this operation
+     */
     private void deleteSelectedCbox(EntityAnimationEditor editor, Displayer d){
         deleteCbox(d, editor.resetSelectedCBox(), editor.getCurrentEntityFrame());
         onSelectedCBoxChanged(editor);
     }
 
+    /**
+     * Copy a collision box to the clipboard.
+     * @param cbox
+     */
     private void copyCollisionBox(CollisionBox cbox){
         if (cbox == null) return;
         ClipboardManager.setClipboardText(cbox.generateDescriptor(false, 0), this);
     }
 
+    /**
+     * Copy the currently selected collision box to the clipboard. 
+     * @param editor
+     */
     private void copySelectedCollisionBox(EntityAnimationEditor editor){
         copyCollisionBox(editor.getSelectedCBox());
     }
 
+    /**
+     * Attemps to paste the content of the clipboard to the currently editor frame, 
+     * i.e. parses the content of the clipboard and adds it to the current frame if it could be resolved to an entity frame element.
+     */
     protected void pasteIntoFrame(EntityAnimationEditor editor, Displayer d){
         pasteIntoFrame(editor.getCurrentEntityFrame(), d);
     }
 
     /**
-     * Pastes into the current frame, i.e. parses the content of the clipboard and adds it to the current frame if it could be resolved to an element.
+     * Attemps to paste the content of the clipboard to a given entity frame
+     * @param eframe the entity frame where we'll try to put the resolved entity frame element.
+     * @param d displayer that may need to be updated following this operation.
      */
     private void pasteIntoFrame(EntityFrame eframe, Displayer d){
         //TODO : this looks like code duplication, fix it
@@ -263,7 +309,34 @@ public class EntityAnimationEditorBackend implements ClipboardOwner{
         }
 
     }
-    
+
+    /**
+     * Move the origin of the current frame to a certain anim pos and then updates whatever needs ot be updated following this change.
+     * @param displayer the Displayer to update
+     * @param displaypoint the position at which origin should be moved to, *relative to the displayer*.
+     */
+    private void moveOrigin(Point displaypoint, EntityAnimationEditor editor, Displayer displayer){
+        moveOriginToDisplayPos(displaypoint, editor);
+        displayer.update();
+        updateFrameControls(editor);
+    }
+
+    /**
+     * Moves the origin of the current frame to a certain display position, i.e. to the position in the animation that is
+     * displayed at the specified position on the editor. 
+     * @param displaypoint the on-screen point to which the origin should be moved.
+     * @param editor
+     */
+    private void moveOriginToDisplayPos(Point displaypoint, EntityAnimationEditor editor){
+        moveOrigin(editor.getAnimPosition(displaypoint), editor);
+    }
+
+    /**
+     * Moves the origin of the current frame to the given point (relative to the origin). 
+     * @param animpoint
+     * @param editor
+     * @throws IllegalStateException
+     */
     private void moveOrigin(Point animpoint, EntityAnimationEditor editor) throws IllegalStateException{
         //Point animpoint = getAnimPosition(display_point);
         //Size2D frame_size = current_anim.getFrameSize();
@@ -276,6 +349,12 @@ public class EntityAnimationEditorBackend implements ClipboardOwner{
         //}   
     }
 
+    /**
+     * Changes the x coordinate of the origin of the current frame
+     * @param x new coordinate
+     * @param editor
+     * @throws IllegalStateException
+     */
     public void moveOriginX(int x, EntityAnimationEditor editor) throws IllegalStateException {
         EntityAnimation.moveOriginX(
                 editor.getCurrentFrame(),
@@ -284,6 +363,12 @@ public class EntityAnimationEditorBackend implements ClipboardOwner{
             ); 
     }
 
+    /**
+     * Changes the y coordinate of the origin of the current frame
+     * @param y new coordinate
+     * @param editor
+     * @throws IllegalStateException
+     */
     public void moveOriginY(int y, EntityAnimationEditor editor) throws IllegalStateException {
         EntityAnimation.moveOriginY(
                 editor.getCurrentFrame(),
@@ -292,42 +377,69 @@ public class EntityAnimationEditorBackend implements ClipboardOwner{
             ); 
     }
 
-    private void moveOriginToDisplayPos(Point p, EntityAnimationEditor editor){
-        moveOrigin(editor.getAnimPosition(p), editor);
-    }
-
     public EntityAnimationEditorWindow getWindow(){
         return editorWindow;
     }
 
+    /**
+     * Handles operations that must be run whenever the current animation of an editor is changed. 
+     * @param editor
+     */
     protected void onAnimationChanged(EntityAnimationEditor editor){
         editor.setFrameIndex(0);
         updateAnimationControls(true, editor.current_anim);
         onFrameChanged(editor);
     }
 
+    /**
+     * Updates the editor controls (in the UI) related to the animation.
+     * @param ignoreModifications whether the change should NOT mark data as modified.  
+     * @param current_anim
+     */
     private void updateAnimationControls(boolean ignoreModifications, EntityAnimation current_anim){
         editorWindow.updateAnimControls(current_anim, ignoreModifications);
     }
 
+    /**
+     * Handles operations that must be run whenever the current frame of an editor is changed
+     * @param editor
+     */
     protected void onFrameChanged(EntityAnimationEditor editor){
         editor.selected_cbox = null;
         updateFrameControls(editor, true);
         onSelectedCBoxChanged(editor);
     }
 
+    /**
+     * Updates the editor controls (in the UI) related to the current frame.
+     * @param editor
+     */
     private void updateFrameControls(EntityAnimationEditor editor){
         updateFrameControls(editor, false);
     }
 
+    /**
+     * Updates the editor controls (in the UI) related to the current frame.
+     * @param editor
+     * @param ignoreModifications whether the change should NOT mark data as modified.
+     */
     private void updateFrameControls(EntityAnimationEditor editor, boolean ignoreModifications){
         editorWindow.updateFrameControls(editor.getCurrentFrame(), editor.getCurrentEntityFrame(), ignoreModifications);
     }
 
+    /**
+     * Handles operations that must be run whenever the current frame of an editor is changed
+     * @param editor
+     */
     protected void onSelectedCBoxChanged(EntityAnimationEditor editor){
         updateElementControls(editor, true);
     }
 
+    /**
+     * Updates the editor controls (in the UI) related to the current selected element.
+     * @param editor
+     * @param ignoreModifications whether the change should NOT mark data as modified.
+     */
     private void updateElementControls(EntityAnimationEditor editor, boolean ignoreModifications){
         editorWindow.updateElementControls(editor.selected_cbox, ignoreModifications);
     }
@@ -341,29 +453,44 @@ public class EntityAnimationEditorBackend implements ClipboardOwner{
         //menfou
     }
 
+    /**
+     * Cancels the rectangle selection and reflects it visually
+     */
     protected void cancelSelection(Displayer d){
         selection = null;
         d.update();
     }
 
-    public void mousePressed(Point animpos, Displayer displayer){
-        drag_start_pos = animpos;
-        selection = new Rectangle(animpos.x, animpos.y, 1, 1);
+    /**
+     * Called when the left button of the mouse has been pressed while on the editor.
+     * @param pos position of the mouse in the editor
+     * @param displayer
+     */
+    public void mousePressed(Point pos, EntityAnimationEditor editor, Displayer displayer){
+        pos = editor.getAnimPosition(pos);
+        drag_start_pos = pos;
+        selection = new Rectangle(pos.x, pos.y, 1, 1);
     }
 
-    public void mouseDragged(Point animpos, Displayer displayer){
-        int w = animpos.x - drag_start_pos.x;
+    /**
+     * Called when the mouse has been moved with the left button down.
+     * @param pos position of the mouse in the editor.
+     * @param displayer
+     */
+    public void mouseDragged(Point pos, EntityAnimationEditor editor, Displayer displayer){
+        pos = editor.getAnimPosition(pos);
+        int w = pos.x - drag_start_pos.x;
         if (w < 0){
-            selection.x = animpos.x;
+            selection.x = pos.x;
             selection.w = -w;
         } else {
             selection.x = drag_start_pos.x;
             selection.w = w;
         }    
 
-        int h = animpos.y - drag_start_pos.y;
+        int h = pos.y - drag_start_pos.y;
         if (h < 0){
-            selection.y = animpos.y;
+            selection.y = pos.y;
             selection.h = -h;
         } else {
             selection.y = drag_start_pos.y;
@@ -373,6 +500,12 @@ public class EntityAnimationEditorBackend implements ClipboardOwner{
         displayer.update();
     }
 
+    /**
+     * Called when the left button of the mouse has been released. 
+     * @param pos Position of the mouse, in pixels, relative to the the editor.
+     * @param editor
+     * @param displayer
+     */
     public void mouseReleased(Point pos, EntityAnimationEditor editor, Displayer displayer){
         if (selection != null){
             if (selection.w + selection.h < 10){
@@ -387,6 +520,12 @@ public class EntityAnimationEditorBackend implements ClipboardOwner{
         System.out.println("Right click !");
     };
 
+    /**
+     * Called when an action that typically triggers actiation of a popup on the current system is performed. 
+     * @param editor
+     * @param p position of the mouse on the editor 
+     * @param d
+     */
     public void onPopupTrigger(EntityAnimationEditor editor, Point p, Displayer d){
         JComponent component = d.getComponent();
         if (component == null) return;
@@ -405,6 +544,9 @@ public class EntityAnimationEditorBackend implements ClipboardOwner{
         switch (ev.getKeyCode()){
             case KeyEvent.VK_DELETE:
                 deleteSelectedCbox(editor, d);
+                break;
+            case KeyEvent.VK_ESCAPE:
+                editor.resetSelectedCBox();
         }
 
         if ((ev.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) > 0){
