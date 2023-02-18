@@ -1,0 +1,34 @@
+@startuml Editors
+!theme mars
+class AnimationDisplayer
+class AnimationEditor
+class EntityAnimationDisplayer
+class EntityAnimationEditor
+class AnimationEditorWindow
+class EntityAnimationEditorWindow
+abstract class AbstractAnimationEditorBackend
+abstract class AbstractEntityAnimationEditorBackend
+class AnimationEditorBackend
+class EntityAnimationEditorBackend
+
+AnimationDisplayer <|-- AnimationEditor
+AnimationDisplayer <|-- EntityAnimationDisplayer
+EntityAnimationDisplayer <|-- EntityAnimationEditor
+
+AbstractAnimationEditorBackend <|-- AnimationEditorBackend
+AbstractEntityAnimationEditorBackend <|-- EntityAnimationEditorBackend
+AbstractAnimationEditorBackend <|-- AbstractEntityAnimationEditorBackend 
+AnimationEditorBackend *-- AnimationEditorWindow
+EntityAnimationEditorBackend *-- EntityAnimationEditorWindow
+
+AnimationEditor *-- AnimationEditorBackend 
+EntityAnimationEditor *-- EntityAnimationEditorBackend 
+
+class Animation
+class EntityAnimation
+
+Animation <|--EntityAnimation
+AnimationDisplayer *-- Animation
+EntityAnimationDisplayer *--EntityAnimation
+
+@enduml

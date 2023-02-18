@@ -1,34 +1,21 @@
 package UI.displayers;
 
-import gamedata.CollisionBox;
-import gamedata.EntityAnimation;
-import java.awt.Graphics;
 import java.awt.Point;
-import KBUtil.ui.display.Displayer;
-import KBUtil.ui.display.InteractableDisplayable;
-import UI.EntityAnimationEditorWindow;
-
 import java.awt.event.KeyEvent;
 
-public class EntityAnimationEditor extends EntityAnimationDisplayer implements InteractableDisplayable {
-    AbstractEntityAnimationEditorBackend editor_backend;
+import KBUtil.ui.display.Displayer;
+import KBUtil.ui.display.Interactable;
+import UI.AnimationEditorWindow;
+import gamedata.Animation;
 
-    public EntityAnimationEditor(EntityAnimation anim, EntityAnimationEditorWindow win){
+public class AnimationEditor extends AnimationDisplayer implements Interactable {
+    AbstractAnimationEditorBackend editor_backend;
+
+    public AnimationEditor(Animation anim, AnimationEditorWindow win){
         super(anim);
         System.out.println("EAE constructed "+ anim);
-        editor_backend = new EntityAnimationEditorBackend(this, win);
+        editor_backend = new AnimationEditorBackend(this, win);
         onAnimationChanged();
-    }
-
-    @Override
-    public void draw(Graphics g, int x, int y, int w, int h, double zoom) throws IllegalStateException{
-        super.draw(g, x, y, w, h, zoom);
-        editor_backend.draw(g, x, y, w, h, this);
-    }
-
-    public void setSelectedCBox(CollisionBox cbox){
-        selected_cbox = cbox;
-        onSelectedCBoxChanged();
     }
 
     @Override
@@ -48,17 +35,11 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
 
     @Override
     public void onLeftClick(Point p, Displayer d) throws IllegalStateException{
-        CollisionBox cbox = getCboxAt(getAnimPosition(p));
-        if (cbox != selected_cbox) {
-            setSelectedCBox(cbox);
-            d.update();
-        }
         editor_backend.onLeftClick(p, d);
     }
 
     @Override
     public void onRightClick(Point p, Displayer d){
-        System.out.println("Right click !");
         editor_backend.onRightClick(p, d);
     };
 
@@ -72,7 +53,7 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
        editor_backend.onKeyPressed(this, ev, d);
     }
 
-    public EntityAnimationEditorWindow getWindow(){
+    public AnimationEditorWindow getWindow(){
         return editor_backend.getEditorWindow();
     }
 
@@ -89,7 +70,7 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     }
 
     @Override
-    public void setAnimation(EntityAnimation anim){
+    public void setAnimation(Animation anim){
         super.setAnimation(anim);
         onAnimationChanged();
     }
@@ -101,20 +82,4 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
     private void onFrameChanged(){
         editor_backend.onFrameChanged(this);
     }
-
-    private void onSelectedCBoxChanged() {
-        editor_backend.onSelectedCBoxChanged(this);
-    }
-
-    public void moveOriginX(int x){
-        editor_backend.moveOriginX(x, this);
-    }
-
-    public void moveOriginY(int y){
-        editor_backend.moveOriginY(y, this);
-    }
-
-    public AbstractEntityAnimationEditorBackend getBackend(){
-        return editor_backend;
-    };
 }
