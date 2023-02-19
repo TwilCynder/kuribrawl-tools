@@ -468,7 +468,7 @@ public class OldEntityAnimationEditor extends EntityAnimationDisplayer implement
 
     private void updateFrameControls(boolean ignoreModifications){
         try {
-            editorWindow.updateFrameControls(current_anim.getFrame(currentFrameIndex), current_anim.getEntityFrame(currentFrameIndex), ignoreModifications);
+            editorWindow.updateFrameControls(current_anim.getFrame(currentFrameIndex), ignoreModifications);
         } catch (FrameOutOfBoundsException e){
             throw new IllegalStateException(e);
         }

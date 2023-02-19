@@ -8,6 +8,7 @@ public class AnimationEditorBackend extends AbstractAnimationEditorBackend {
     public AnimationEditorBackend(AnimationEditor editor, AnimationEditorWindow editorWindow) {
         super(editor);
         this.editorWindow = editorWindow;
+        onCreated(editor);
     }
 
     @Override

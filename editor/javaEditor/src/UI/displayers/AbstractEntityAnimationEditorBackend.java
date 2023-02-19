@@ -67,7 +67,7 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
     /**
      * The basic popup menu displayed when right-clicking in an empty area
      */
-    private class PopupMenu extends EntityAnimationPopupMenu {
+    private class PopupMenu extends EntityAnimationPopupMenu implements OriginMovingMenu {
         @Override
         public void initItems(){
             JMenuItem item;
@@ -82,12 +82,13 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
             add(item);
 
             item = new JMenuItem("Move origin here");
-            item.addActionListener(new ActionListener(){
-                public void actionPerformed(ActionEvent e){
-                    moveOrigin(pos, editor, displayer);
-                }
-            });
+            item.addActionListener(createMoveOriginActionListener(this));
             add(item);
+        }
+
+        @Override
+        public void moveOrigin() {
+            AbstractEntityAnimationEditorBackend.this.moveOrigin(pos, editor, displayer);
         }
         
     };
@@ -168,7 +169,11 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
 
     }
 
-    public AbstractEntityAnimationEditorBackend(EntityAnimationEditor editor){
+    protected AbstractEntityAnimationEditorBackend(EntityAnimationEditor editor){
+
+    }
+
+    protected void onCreated(EntityAnimationEditor editor){
         onAnimationChanged(editor);
     }
 
@@ -304,6 +309,11 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
 
     }
 
+    //"hiding" the previous method
+    protected void moveOrigin(Point displaypoint, AnimationEditor editor, Displayer displayer){
+        throw new IllegalStateException("Called basic animation moveOrigin on an EntityAnimation editor");
+    }
+
     /**
      * Move the origin of the current frame to a certain anim pos and then updates whatever needs ot be updated following this change.
      * @param displayer the Displayer to update
@@ -312,7 +322,7 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
     private void moveOrigin(Point displaypoint, EntityAnimationEditor editor, Displayer displayer){
         moveOriginToDisplayPos(displaypoint, editor);
         displayer.update();
-        updateFrameControls(editor);
+        updateFrameControls(editor.getCurrentFrame());
     }
 
     /**
@@ -371,24 +381,6 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
             ); 
     }
 
-    /**
-     * Handles operations that must be run whenever the current animation of an editor is changed. 
-     * @param editor
-     */
-    protected void onAnimationChanged(EntityAnimationEditor editor){
-        editor.setFrameIndex(0);
-        updateAnimationControls(true, editor.current_anim);
-        onFrameChanged(editor);
-    }
-
-    /**
-     * Updates the editor controls (in the UI) related to the animation.
-     * @param ignoreModifications whether the change should NOT mark data as modified.  
-     * @param current_anim
-     */
-    private void updateAnimationControls(boolean ignoreModifications, EntityAnimation current_anim){
-        getEditorWindow().updateAnimControls(current_anim, ignoreModifications);
-    }
 
     /**
      * Handles operations that must be run whenever the current frame of an editor is changed
@@ -396,25 +388,8 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
      */
     protected void onFrameChanged(EntityAnimationEditor editor){
         editor.selected_cbox = null;
-        updateFrameControls(editor, true);
+        super.onFrameChanged(editor);
         onSelectedCBoxChanged(editor);
-    }
-
-    /**
-     * Updates the editor controls (in the UI) related to the current frame.
-     * @param editor
-     */
-    private void updateFrameControls(EntityAnimationEditor editor){
-        updateFrameControls(editor, false);
-    }
-
-    /**
-     * Updates the editor controls (in the UI) related to the current frame.
-     * @param editor
-     * @param ignoreModifications whether the change should NOT mark data as modified.
-     */
-    private void updateFrameControls(EntityAnimationEditor editor, boolean ignoreModifications){
-        getEditorWindow().updateFrameControls(editor.getCurrentFrame(), editor.getCurrentEntityFrame(), ignoreModifications);
     }
 
     /**
@@ -533,7 +508,18 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
         }
     }
 
+    protected void handleKeyPress(EntityAnimationDisplayer editor, KeyEvent ev, Displayer d){
+        
+    }
+
     public void onKeyPressed(EntityAnimationEditor editor, KeyEvent ev, Displayer d){
+        CollisionBox selected_cbox = editor.selected_cbox;
+
+        if (selected_cbox == null){
+            super.onKeyPressed(editor, ev, d);
+            return;
+        }
+        
         switch (ev.getKeyCode()){
             case KeyEvent.VK_DELETE:
                 deleteSelectedCbox(editor, d);
@@ -554,37 +540,35 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
         }
 
         if ((ev.getModifiersEx() & KeyEvent.ALT_DOWN_MASK) > 0){
-            CollisionBox selected_cbox = editor.selected_cbox;
             switch (ev.getKeyCode()){
                 case KeyEvent.VK_UP:
-                if (selected_cbox != null) selected_cbox.h -= 1;
+                selected_cbox.h -= 1;
                 break;
             case KeyEvent.VK_DOWN:
-                if (selected_cbox != null) selected_cbox.h += 1;
+                selected_cbox.h += 1;
                 break;
             case KeyEvent.VK_LEFT:
-                if (selected_cbox != null) selected_cbox.w -= 1;
+                selected_cbox.w -= 1;
                 break;
             case KeyEvent.VK_RIGHT:
-                if (selected_cbox != null) selected_cbox.w += 1;
+                selected_cbox.w += 1;
                 break;
             default:
                 return;
             }
         } else {
-            CollisionBox selected_cbox = editor.selected_cbox;
             switch (ev.getKeyCode()){
                 case KeyEvent.VK_UP:
-                    if (selected_cbox != null) selected_cbox.y += 1;
+                    selected_cbox.y += 1;
                     break;
                 case KeyEvent.VK_DOWN:
-                    if (selected_cbox != null) selected_cbox.y -= 1;
+                    selected_cbox.y -= 1;
                     break;
                 case KeyEvent.VK_LEFT:
-                    if (selected_cbox != null) selected_cbox.x -= 1;
+                    selected_cbox.x -= 1;
                     break;
                 case KeyEvent.VK_RIGHT:
-                    if (selected_cbox != null) selected_cbox.x += 1;
+                    selected_cbox.x += 1;
                     break;
                 default:
                     return;

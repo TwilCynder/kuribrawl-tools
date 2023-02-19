@@ -8,6 +8,7 @@ public class EntityAnimationEditorBackend extends AbstractEntityAnimationEditorB
     public EntityAnimationEditorBackend(EntityAnimationEditor editor, EntityAnimationEditorWindow editorWindow) {
         super(editor);
         this.editorWindow = editorWindow;
+        onCreated(editor);
     }
 
     @Override

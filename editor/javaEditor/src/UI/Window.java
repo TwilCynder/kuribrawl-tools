@@ -1357,7 +1357,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		throw new UnsupportedOperationException();
 	}
 
-	public void updateAnimControls(EntityAnimation anim, boolean ignoreModifications){
+	public void updateAnimControls(Animation anim, boolean ignoreModifications){
 		initializing = ignoreModifications;
 		
 		tfAnimSpeed.setText(Double.toString(anim.getSpeed()));
@@ -1365,7 +1365,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		initializing = false;
 	}
 
-	public void updateFrameControls(Frame frame, EntityFrame entity_frame, boolean ignoreModifications){
+	public void updateFrameControls(Frame frame, boolean ignoreModifications){
 		initializing = ignoreModifications;
 
 		tfFrameDuration.setText(Integer.toString(frame.getDuration()));

@@ -15,7 +15,6 @@ public class AnimationEditor extends AnimationDisplayer implements Interactable 
         super(anim);
         System.out.println("EAE constructed "+ anim);
         editor_backend = new AnimationEditorBackend(this, win);
-        onAnimationChanged();
     }
 
     @Override
@@ -81,5 +80,13 @@ public class AnimationEditor extends AnimationDisplayer implements Interactable 
 
     private void onFrameChanged(){
         editor_backend.onFrameChanged(this);
+    }
+
+    public void moveOriginX(int x){
+        editor_backend.moveOriginX(x, this);
+    }
+
+    public void moveOriginY(int y){
+        editor_backend.moveOriginY(y, this);
     }
 }

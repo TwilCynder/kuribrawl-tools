@@ -17,7 +17,6 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         super(anim);
         System.out.println("EAE constructed "+ anim);
         editor_backend = new EntityAnimationEditorBackend(this, win);
-        onAnimationChanged();
     }
 
     @Override
