@@ -65,9 +65,9 @@ public abstract class AbstractAnimationEditorBackend {
     }
 
     private static abstract class AnimationPopupMenu extends InternalMenu {
-        protected AnimationEditor editor;
+        protected AnimationDisplayer editor;
 
-        public void show(AnimationEditor editor_, Displayer invoker, int x, int y) {
+        public void show(AnimationDisplayer editor_, Displayer invoker, int x, int y) {
             super.show(invoker, x, y);
             editor = editor_;
         }
@@ -101,7 +101,7 @@ public abstract class AbstractAnimationEditorBackend {
         onAnimationChanged(editor);
     }
     
-    protected void moveOrigin(Point displaypoint, AnimationEditor editor, Displayer displayer){
+    protected void moveOrigin(Point displaypoint, AnimationDisplayer editor, Displayer displayer){
         Frame frame = editor.getCurrentFrame();
         frame.setOrigin(editor.getAnimPosition(displaypoint));
         displayer.update();
@@ -114,7 +114,7 @@ public abstract class AbstractAnimationEditorBackend {
      * @param editor
      * @throws IllegalStateException
      */
-    public void moveOriginX(int x, AnimationEditor editor) throws IllegalStateException {
+    public void moveOriginX(int x, AnimationDisplayer editor) throws IllegalStateException {
         Frame f = editor.getCurrentFrame();
         f.setOriginX(x);
     }
@@ -125,20 +125,20 @@ public abstract class AbstractAnimationEditorBackend {
      * @param editor
      * @throws IllegalStateException
      */
-    public void moveOriginY(int y, AnimationEditor editor) throws IllegalStateException {
+    public void moveOriginY(int y, AnimationDisplayer editor) throws IllegalStateException {
         Frame f = editor.getCurrentFrame();
         f.setOriginX(y);
     }
 
-    public void mousePressed(Point pos, AnimationEditor editor, Displayer displayer){
+    public void mousePressed(Point pos, AnimationDisplayer editor, Displayer displayer){
         
     }
 
-    public void mouseDragged(Point pos, AnimationEditor editor, Displayer displayer){
+    public void mouseDragged(Point pos, AnimationDisplayer editor, Displayer displayer){
 
     }
 
-    public void mouseReleased(Point pos, AnimationEditor editor, Displayer displayer){
+    public void mouseReleased(Point pos, AnimationDisplayer editor, Displayer displayer){
 
     }
 
@@ -150,7 +150,7 @@ public abstract class AbstractAnimationEditorBackend {
 
     };
 
-    public void onPopupTrigger(AnimationEditor editor, Point p, Displayer d){
+    public void onPopupTrigger(AnimationDisplayer editor, Point p, Displayer d){
         JComponent component = d.getComponent();
         if (component == null) return;
 
@@ -158,12 +158,10 @@ public abstract class AbstractAnimationEditorBackend {
 
     }
 
-    public void onKeyPressed(AnimationEditor editor, KeyEvent ev, Displayer d){
-        onKeyPressed(editor, ev, d);
-    }
-
     public void onKeyPressed(AnimationDisplayer editor, KeyEvent ev, Displayer d){
-        
+        switch (ev.getKeyCode()){
+            
+        }
     }
 
     /**
