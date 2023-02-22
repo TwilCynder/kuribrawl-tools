@@ -4,11 +4,11 @@ import java.awt.Point;
 import java.awt.event.KeyEvent;
 
 import KBUtil.ui.display.Displayer;
-import KBUtil.ui.display.Interactable;
+import KBUtil.ui.display.InteractableDisplayable;
 import UI.AnimationEditorWindow;
 import gamedata.Animation;
 
-public class AnimationEditor extends AnimationDisplayer implements Interactable {
+public class AnimationEditor extends AnimationDisplayer implements InteractableDisplayable {
     AbstractAnimationEditorBackend editor_backend;
 
     public AnimationEditor(Animation anim, AnimationEditorWindow win){

@@ -11,13 +11,13 @@ import javax.swing.JPanel;
 
 import KBUtil.ui.OpenPathButton;
 import UI.Window;
-import gamedata.EntityAnimation;
+import gamedata.Animation;
 
 public class ChangeSourceImageForm extends RelativePathInputForm {
     private static String title = "Change source image";
-    EntityAnimation anim;
+    Animation anim;
 
-    public ChangeSourceImageForm(Window frame, EntityAnimation anim) {
+    public ChangeSourceImageForm(Window frame, Animation anim) {
         super(frame, title);
         this.anim = anim;
         init();

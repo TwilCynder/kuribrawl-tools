@@ -7,16 +7,16 @@ import javax.swing.JPanel;
 import KBUtil.Result;
 import KBUtil.ui.OpenPathButton;
 import UI.Window;
-import gamedata.EntityAnimation;
+import gamedata.Animation;
 
 public class RenameSourceImageForm extends RenameFileForm {
     protected String oldSourceImageFilename;
 
-    EntityAnimation anim;
+    Animation anim;
 
     private static String title = "Change the source image";
 
-    public RenameSourceImageForm(Window frame, EntityAnimation anim) {
+    public RenameSourceImageForm(Window frame, Animation anim) {
         super(frame, title);
         this.oldSourceImageFilename = anim.getSourceFilename();
         this.anim = anim;

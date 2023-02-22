@@ -61,6 +61,8 @@ import KBUtil.ui.display.Displayable;
 import KBUtil.ui.display.InteractableDisplayable;
 import KBUtil.ui.documentFilters.IntegerDocumentFilter;
 import KBUtil.ui.documentFilters.RealNumberDocumentFilter;
+import UI.displayers.AnimationDisplayer;
+import UI.displayers.AnimationEditor;
 import UI.displayers.EntityAnimationDisplayer;
 import UI.displayers.EntityAnimationEditor;
 import UI.exceptions.WindowStateException;
@@ -1025,12 +1027,13 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		baseGamedataMenuItems.add(dummyMenuItem);
 		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
 
-		animationGamedataMenuItems = new LinkedList<>();
+		animationGamedataMenuItems = new LinkedList<>();	
 		animationGamedataMenuItems.add(new JMenuItem(changeDescriptorAction));
 		animationGamedataMenuItems.add(new JMenuItem(renameSourceImageAction));
 		animationGamedataMenuItems.add(new JMenuItem(changeSourceImageAction));
-		animationGamedataMenuItems.add(null);
-		animationGamedataMenuItems.add(new JMenuItem(renameChampionDescriptorAction));
+
+		championGamedataMenuItems = new LinkedList<>();
+		championGamedataMenuItems.add(new JMenuItem(renameChampionDescriptorAction));
 
 		addItemsToMenu(gameDataMenu, baseGamedataMenuItems);
 		menu_bar.add(gameDataMenu);
@@ -1108,12 +1111,20 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		}
 	}
 
-	private void setGameDataMenuItems(Collection<JMenuItem> items){
+	/**
+	 * Sets the current items in the Game Data menu, with the content of one or more item collections. 
+	 * Item collections will be separated by a standard separator in the menu. 
+	 * @param items collections of items. 
+	 */
+	@SafeVarargs
+	private void setGameDataMenuItems(Collection<JMenuItem>... items){
 		gameDataMenu.removeAll();
 		addItemsToMenu(gameDataMenu, baseGamedataMenuItems);
 		if (items == null) return;
-		gameDataMenu.addSeparator();
-		addItemsToMenu(gameDataMenu, items);
+		for (Collection<JMenuItem> collection : items){
+			gameDataMenu.addSeparator();
+			addItemsToMenu(gameDataMenu, collection);
+		}
 	}
 
 	private void initAnimationsMenu(GameData gd){
@@ -1190,6 +1201,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 	private Collection<JMenuItem> baseGamedataMenuItems;
 	private Collection<JMenuItem> animationGamedataMenuItems;
+	private Collection<JMenuItem> championGamedataMenuItems;
 	private JMenu gameDataMenu;
 
 	private boolean setAnimDescriptor(Animation anim){
@@ -1197,26 +1209,26 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	}
 
 	private boolean setCurrentAnimDescriptor() throws WindowStateException{
-		EntityAnimationEditor ead = getEAEDitor();
-		EntityAnimation anim = ead.getAnimation();
+		AnimationDisplayer ad = getADisplayer();
+		Animation anim = ad.getAnimation();
 		return setAnimDescriptor(anim);
 	}
 
-	private boolean renameAnimSourceImage(EntityAnimation anim){
+	private boolean renameAnimSourceImage(Animation anim){
 		return (new RenameSourceImageForm(this, anim).showForm()) == JOptionPane.OK_OPTION;
 	}
 
 	private boolean renameCurrentAnimSourceImage() throws WindowStateException{
-		EntityAnimation anim = getCurrentEntityAnimation();
+		Animation anim = getCurrentyAnimation();
 		return renameAnimSourceImage(anim);
 	}
 
-	private boolean changeAnimSourceImage(EntityAnimation anim){
+	private boolean changeAnimSourceImage(Animation anim){
 		return (new ChangeSourceImageForm(this, anim).showForm()) == JOptionPane.OK_OPTION;
 	}
 
 	private boolean changeCurrentAnimSourceImage() throws WindowStateException{
-		EntityAnimation anim = getCurrentEntityAnimation();
+		Animation anim = getCurrentyAnimation();
 		return changeAnimSourceImage(anim);
 	}
 
@@ -1224,10 +1236,15 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		return (new RenameChampionDescriptorForm(this, champion).showForm()) == JOptionPane.OK_OPTION;
 	}
 
+	//TODO réellement sauvegarder l'entité/animationpool actuelle
 	private boolean renamecurrentChampionDescriptor(){
 		EntityAnimation anim = getCurrentEntityAnimation();
-		Champion champion = currentData.getEntityAnimationOwner(anim);
-		return renameChampionDescriptor(champion);
+		NamedAnimationPool<EntityAnimation> owner = currentData.getEntityAnimationOwner(anim);
+		if (owner instanceof Champion){
+			Champion champion = (Champion)owner;
+			return renameChampionDescriptor(champion);
+		}
+		return false;
 	}
 
 	/**
@@ -1312,11 +1329,74 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		updateCurrentZoomField(editor);
 		repaint();
 
+		setGameDataMenuItems(animationGamedataMenuItems, championGamedataMenuItems);
+	}
+
+	public void setDisplayedObject(Animation anim){
+		InteractableDisplayable current = displayCanvas.getInteractable();
+		AnimationEditor editor;
+		if (current instanceof AnimationEditor){
+			editor = (AnimationEditor)current;
+			editor.setAnimation(anim);
+		} else {
+			editor = new AnimationEditor(anim, this);
+			displayCanvas.setInteractable(editor);
+		}
+		editor_controls.show("EntityAnimation");
+		updateCurrentFrameField(editor);
+		updateCurrentZoomField(editor);
+		repaint();
+
 		setGameDataMenuItems(animationGamedataMenuItems);
 	}
 
 	public InteractableDisplayable getCurrentEditor(){
 		return displayCanvas.getInteractable();
+	}
+
+	/**
+	 * Returns the current Editor of the Canvas as an AnimationDisplayer, or throws is Canvas is not currently holding an AnimationDisplayer.
+	 * Cannot return null.  
+	 * @return AnimationDisplayer : the current editor of the Canvas
+	 * @throws WindowStateException
+	 */
+	public AnimationDisplayer getADisplayer() throws WindowStateException {
+		Displayable disp = displayCanvas.getInteractable();
+		if (disp instanceof AnimationDisplayer){
+			return (AnimationDisplayer)disp;
+		} else {
+			throw new WindowStateException("User interacted with EntityAnimation-related control while displayed object was not an EntityAnimationEditor");
+		}
+	}
+
+	/**
+	 * Returns the current Editor of the Canvas as an EADisplayer, or throws is Canvas is not currently holding an EADisplayer.
+	 * Cannot return null.  
+	 * @return EntityAnimationDisplayer : the current editor of the Canvas
+	 * @throws WindowStateException
+	 */
+	public EntityAnimationDisplayer getEADisplayer() throws WindowStateException {
+		Displayable disp = displayCanvas.getInteractable();
+		if (disp instanceof EntityAnimationDisplayer){
+			return (EntityAnimationDisplayer)disp;
+		} else {
+			throw new WindowStateException("User interacted with EntityAnimation-related control while displayed object was not an EntityAnimationEditor");
+		}
+	}
+
+	/**
+	 * Returns the current Editor of the Canvas as an EADisplayer, or throws is Canvas is not currently holding an EADisplayer.
+	 * Cannot return null.
+	 * @return EntityAnimationDisplayer : the current editor of the Canvas
+	 * @throws WindowStateException
+	 */
+	public AnimationEditor getAEditor() throws WindowStateException {
+		Displayable disp = displayCanvas.getInteractable();
+		if (disp instanceof AnimationEditor){
+			return (AnimationEditor)disp;
+		} else {
+			throw new WindowStateException("User interacted with EntityAnimation-related control while displayed object was not an EntityAnimationEditor");
+		}
 	}
 
 	/**
@@ -1333,7 +1413,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			throw new WindowStateException("User interacted with EntityAnimation-related control while displayed object was not an EntityAnimationEditor");
 		}
 	}
-	
+
 
 	/**
 	 * Returns the Entity Animation being edited, or throws if there is none (currently not editing an Entity Animation).
@@ -1342,15 +1422,26 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	 * @throws WindowStateException 
 	 */
 	public EntityAnimation getCurrentEntityAnimation() throws WindowStateException {
-		EntityAnimationEditor ead = getEAEDitor();
+		EntityAnimationDisplayer ead = getEADisplayer();
 		return ead.getAnimation();
 	}
 
-	private void updateCurrentFrameField(EntityAnimationEditor displayer){
+	/**
+	 * Returns the Animation being edited, or throws if there is none (currently not editing an Entity Animation).
+	 * Cannot return null.
+	 * @return Animation : the current animation. If there is none, throws before returning.
+	 * @throws WindowStateException 
+	 */
+	public Animation getCurrentyAnimation() throws WindowStateException {
+		AnimationDisplayer ad = getADisplayer();
+		return ad.getAnimation();
+	}
+
+	private void updateCurrentFrameField(AnimationDisplayer displayer){
 		tfCurrentFrame.setText(displayer.getFrameIndex());
 	}
 
-	private void updateCurrentZoomField(EntityAnimationEditor displayer){
+	private void updateCurrentZoomField(ZoomingDisplayer displayer){
 		tfCurrentZoom.setText(displayer.getZoom());
 	}
 
