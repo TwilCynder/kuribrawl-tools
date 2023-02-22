@@ -100,12 +100,20 @@ public abstract class AbstractAnimationEditorBackend {
     protected void onCreated(AnimationEditor editor){
         onAnimationChanged(editor);
     }
+
+    protected void notifyDataModified(){
+        getEditorWindow().notifyDataModified();
+    }
+
+    protected void notifyAndUpdate(Displayer d){
+        notifyDataModified();
+        d.update();
+    }
     
     protected void moveOrigin(Point displaypoint, AnimationDisplayer editor, Displayer displayer){
         Frame frame = editor.getCurrentFrame();
         frame.setOrigin(editor.getAnimPosition(displaypoint));
-        displayer.update();
-        getEditorWindow().notifyDataModified();
+        notifyAndUpdate(displayer);
     }
 
     /**
@@ -127,7 +135,7 @@ public abstract class AbstractAnimationEditorBackend {
      */
     public void moveOriginY(int y, AnimationDisplayer editor) throws IllegalStateException {
         Frame f = editor.getCurrentFrame();
-        f.setOriginX(y);
+        f.setOriginY(y);
     }
 
     public void mousePressed(Point pos, AnimationDisplayer editor, Displayer displayer){
@@ -158,9 +166,33 @@ public abstract class AbstractAnimationEditorBackend {
 
     }
 
-    public void onKeyPressed(AnimationDisplayer editor, KeyEvent ev, Displayer d){
+    protected boolean handleKeyPress(AnimationDisplayer editor, KeyEvent ev, Displayer d, Frame frame){
+        Point origin = frame.getOrigin();
         switch (ev.getKeyCode()){
-            
+            case KeyEvent.VK_UP:
+                this.moveOriginY(origin.y - 1, editor);
+                break;
+            case KeyEvent.VK_DOWN:
+                this.moveOriginY(origin.y + 1, editor);
+                break;
+            case KeyEvent.VK_LEFT:
+                moveOriginX(origin.x - 1, editor);
+                break;
+            case KeyEvent.VK_RIGHT:
+                moveOriginX(origin.x + 1, editor);
+                break;
+            default:
+                return false;
+        }
+
+        return true;
+    }
+
+    public void onKeyPressed(AnimationDisplayer editor, KeyEvent ev, Displayer d){
+        Frame frame = editor.getCurrentFrame();
+        if (handleKeyPress(editor, ev, d, frame)){
+            notifyAndUpdate(d);
+            updateFrameControls(frame);
         }
     }
 

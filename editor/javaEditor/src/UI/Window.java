@@ -1333,6 +1333,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			throw new WindowStateException("User interacted with EntityAnimation-related control while displayed object was not an EntityAnimationEditor");
 		}
 	}
+	
 
 	/**
 	 * Returns the Entity Animation being edited, or throws if there is none (currently not editing an Entity Animation).

@@ -61,9 +61,6 @@ public class EntityAnimationDisplayer extends AnimationDisplayer {
 
         if (currentEntityFrame == null) throw new IllegalStateException("No current entity frame (null)");
 
-        System.out.println("Drawing " + current_anim.getName() + " " + currentFrameIndex);
-        System.out.println(currentEntityFrame.hurtboxes.size());
-
         for (Hurtbox hb : currentEntityFrame.hurtboxes){
             if (hb == selected_cbox){
                 g.setColor(selected_color);
