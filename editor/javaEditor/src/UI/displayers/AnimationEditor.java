@@ -4,11 +4,10 @@ import java.awt.Point;
 import java.awt.event.KeyEvent;
 
 import KBUtil.ui.display.Displayer;
-import KBUtil.ui.display.InteractableDisplayable;
 import UI.AnimationEditorWindow;
 import gamedata.Animation;
 
-public class AnimationEditor extends AnimationDisplayer implements InteractableDisplayable {
+public class AnimationEditor extends AnimationDisplayer implements EditorFrontend {
     AbstractAnimationEditorBackend editor_backend;
 
     public AnimationEditor(Animation anim, AnimationEditorWindow win){
@@ -88,5 +87,10 @@ public class AnimationEditor extends AnimationDisplayer implements InteractableD
 
     public void moveOriginY(int y){
         editor_backend.moveOriginY(y, this);
+    }
+
+    @Override
+    public AbstractAnimationEditorBackend getBackend() {
+        return editor_backend;
     }
 }

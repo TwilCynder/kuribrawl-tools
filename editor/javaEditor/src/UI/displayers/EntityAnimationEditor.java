@@ -5,12 +5,11 @@ import gamedata.EntityAnimation;
 import java.awt.Graphics;
 import java.awt.Point;
 import KBUtil.ui.display.Displayer;
-import KBUtil.ui.display.InteractableDisplayable;
 import UI.EntityAnimationEditorWindow;
 
 import java.awt.event.KeyEvent;
 
-public class EntityAnimationEditor extends EntityAnimationDisplayer implements InteractableDisplayable {
+public class EntityAnimationEditor extends EntityAnimationDisplayer implements EditorFrontend {
     AbstractEntityAnimationEditorBackend editor_backend;
 
     public EntityAnimationEditor(EntityAnimation anim, EntityAnimationEditorWindow win){
@@ -113,7 +112,9 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements I
         editor_backend.moveOriginY(y, this);
     }
 
+    @Override
     public AbstractEntityAnimationEditorBackend getBackend(){
         return editor_backend;
     };
+
 }

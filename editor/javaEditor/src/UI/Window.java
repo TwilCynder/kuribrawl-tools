@@ -61,8 +61,11 @@ import KBUtil.ui.display.Displayable;
 import KBUtil.ui.display.InteractableDisplayable;
 import KBUtil.ui.documentFilters.IntegerDocumentFilter;
 import KBUtil.ui.documentFilters.RealNumberDocumentFilter;
+import UI.displayers.AbstractAnimationEditorBackend;
+import UI.displayers.AbstractEntityAnimationEditorBackend;
 import UI.displayers.AnimationDisplayer;
 import UI.displayers.AnimationEditor;
+import UI.displayers.EditorFrontend;
 import UI.displayers.EntityAnimationDisplayer;
 import UI.displayers.EntityAnimationEditor;
 import UI.exceptions.WindowStateException;
@@ -205,7 +208,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			IntegerSpinner source = (IntegerSpinner)e.getSource();
 			try{
 				int value = source.getValueInt();
-				EntityAnimationEditor editor = getEAEDitor();
+				EntityAnimationEditor editor = getEAEditor();
 				stateChanged(editor, value);
 				updateVisualEditor();
 			} catch (WindowStateException ex){
@@ -233,7 +236,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		public void focusLost(FocusEvent e){
 			if (!componentClass.isInstance(e.getSource())) throw new IllegalStateException("Typed listener specific to " + componentClass.getName() + "used on different component : " + e.getSource());
 			T source = (T)e.getSource(); //do not worry
-			EntityAnimationEditor editor = getEAEDitor();
+			EntityAnimationEditor editor = getEAEditor();
 			try{
 				focusLost(editor, source);
 			} catch (NumberFormatException ex){
@@ -578,7 +581,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			public void actionPerformed(ActionEvent e) {
 				EntityAnimationEditor displayer;
 				try {
-					displayer = getEAEDitor();
+					displayer = getEAEditor();
 					displayer.incrFrame();
 					updateVisualEditor();
 					updateCurrentFrameField(displayer);
@@ -591,7 +594,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			public void actionPerformed(ActionEvent e) {
 				EntityAnimationEditor displayer;
 				try {
-					displayer = getEAEDitor();
+					displayer = getEAEditor();
 					displayer.decrFrame();
 					updateVisualEditor();
 					updateCurrentFrameField(displayer);
@@ -604,7 +607,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			public void actionPerformed(ActionEvent e){
 				EntityAnimationEditor displayer;
 				try {
-					displayer = getEAEDitor();
+					displayer = getEAEditor();
 					double zoom = displayer.getZoom();
 					if (zoom > 1.0){
 						zoom -= 1.0;
@@ -621,7 +624,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			public void actionPerformed(ActionEvent e){
 				EntityAnimationEditor displayer;
 				try {
-					displayer = getEAEDitor();
+					displayer = getEAEditor();
 					double zoom = displayer.getZoom();
 					if (zoom < 4.0){
 						zoom += 1.0;
@@ -734,7 +737,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 						MapComboBoxItem<?, ?> item = (MapComboBoxItem<?, ?>)e.getItem();
 						 if (item.getValue() instanceof HurtboxType){
 							HurtboxType type = (HurtboxType)item.getValue();
-							EntityAnimationDisplayer displayer = getEAEDitor();
+							EntityAnimationDisplayer displayer = getEAEditor();
 							Hurtbox hurtbox = displayer.getSelectedHurtbox();
 
 							hurtbox.type = type; //wooooo tout ça pour ça t content twil dmerd
@@ -754,7 +757,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				try {
 					if (e.getItem() instanceof HitboxType){
 						HitboxType type = (HitboxType)e.getItem();
-						EntityAnimationDisplayer displayer = getEAEDitor();
+						EntityAnimationDisplayer displayer = getEAEditor();
 						Hitbox hitbox = displayer.getSelectedHitbox();
 						if (hitbox.getClass() != type.getHitboxClass()){
 							EntityFrame frame;
@@ -772,7 +775,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 							int index = frame.hitboxes.indexOf(hitbox);
 							if (index == -1) throw new IllegalStateException("Selected hitbox is not in the current frame hitboxes list");
 							frame.hitboxes.set(index, newHitbox);
-							getEAEDitor().setSelectedCBox(newHitbox);
+							getEAEditor().setSelectedCBox(newHitbox);
 							updateHitboxTypeSpecificControls(newHitbox, type, false);
 
 							notifyDataModified();
@@ -849,7 +852,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 						MapComboBoxItem<?, ?> item = (MapComboBoxItem<?, ?>)e.getItem();
 						if (item.getValue() instanceof AngleMode){
 							AngleMode type = (AngleMode)item.getValue();
-							EntityAnimationDisplayer displayer = getEAEDitor();
+							EntityAnimationDisplayer displayer = getEAEditor();
 							DamageHitbox damage_hitbox = (DamageHitbox)displayer.getSelectedDamageHitbox();
 
 							damage_hitbox.angle_mode = type;
@@ -1405,15 +1408,35 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	 * @return EntityAnimationEditor : the current editor of the Canvas
 	 * @throws WindowStateException
 	 */
-	public EntityAnimationEditor getEAEDitor() throws WindowStateException {
+	/*/
+	public EntityAnimationEditor getEAEditor() throws WindowStateException {
 		Displayable disp = displayCanvas.getInteractable();
 		if (disp instanceof EntityAnimationEditor){
 			return (EntityAnimationEditor)disp;
 		} else {
 			throw new WindowStateException("User interacted with EntityAnimation-related control while displayed object was not an EntityAnimationEditor");
 		}
+	}*/
+	
+
+	public AbstractAnimationEditorBackend getAEditorBackend() throws WindowStateException {
+		Displayable disp = displayCanvas.getInteractable();
+		if (disp instanceof AnimationEditor){
+			AbstractAnimationEditorBackend editor_backend = ((EditorFrontend)disp).getBackend();
+			return editor_backend;
+		} else {
+			throw new WindowStateException("User interacted with Animation-related control while displayed object was not an AnimationEditor"); 
+		}
 	}
 
+	public AbstractEntityAnimationEditorBackend getEAEditorBackend() throws WindowStateException {	
+		AbstractAnimationEditorBackend editor_backend = getAEditorBackend();
+		if (editor_backend instanceof AbstractEntityAnimationEditorBackend){
+			return (AbstractEntityAnimationEditorBackend)editor_backend;
+		} else {
+			throw new WindowStateException("User interacted with EntityAnimation-related control while displayed object was not an EntityAnimationAnimationEditor"); 
+		}
+	}
 
 	/**
 	 * Returns the Entity Animation being edited, or throws if there is none (currently not editing an Entity Animation).
