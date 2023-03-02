@@ -201,15 +201,14 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	 * stateChanged(EntityAnimationEditor, int) will be called on focus lost
 	 */
 	private abstract class SpinChangeListener implements ChangeListener {
-		public abstract void stateChanged(EntityAnimationEditor editor, int value);
+		public abstract void stateChanged(int value);
 
 		public void stateChanged(ChangeEvent e){
 			if (!(e.getSource() instanceof IntegerSpinner)) throw new IllegalStateException("IntegerSpinner-specific change listener called on another component");
 			IntegerSpinner source = (IntegerSpinner)e.getSource();
 			try{
 				int value = source.getValueInt();
-				EntityAnimationEditor editor = getEAEditor();
-				stateChanged(editor, value);
+				stateChanged(value);
 				updateVisualEditor();
 			} catch (WindowStateException ex){
 				if (!initializing) throw ex;
@@ -228,7 +227,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			componentClass = componentType;
 		}
 
-		public abstract void focusLost(EntityAnimationEditor editor, T source) throws NumberFormatException;
+		public abstract void focusLost(T source) throws NumberFormatException;
 
 		public void focusGained(FocusEvent e){}
 
@@ -236,9 +235,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		public void focusLost(FocusEvent e){
 			if (!componentClass.isInstance(e.getSource())) throw new IllegalStateException("Typed listener specific to " + componentClass.getName() + "used on different component : " + e.getSource());
 			T source = (T)e.getSource(); //do not worry
-			EntityAnimationEditor editor = getEAEditor();
 			try{
-				focusLost(editor, source);
+				focusLost(source);  
 			} catch (NumberFormatException ex){
 				System.out.println("Garbage input in tf frame duration");
 			}
@@ -579,9 +577,9 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		btnButtonRight.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				EntityAnimationEditor displayer;
+				AnimationDisplayer displayer;
 				try {
-					displayer = getEAEditor();
+					displayer = getADisplayer();
 					displayer.incrFrame();
 					updateVisualEditor();
 					updateCurrentFrameField(displayer);
@@ -592,9 +590,9 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		btnButtonLeft.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				EntityAnimationEditor displayer;
+				AnimationDisplayer displayer;
 				try {
-					displayer = getEAEditor();
+					displayer = getADisplayer();
 					displayer.decrFrame();
 					updateVisualEditor();
 					updateCurrentFrameField(displayer);
@@ -605,9 +603,9 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		btnzoomout.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
-				EntityAnimationEditor displayer;
+				AnimationDisplayer displayer;
 				try {
-					displayer = getEAEditor();
+					displayer = getADisplayer();
 					double zoom = displayer.getZoom();
 					if (zoom > 1.0){
 						zoom -= 1.0;
@@ -622,9 +620,9 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		btnzoomin.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
-				EntityAnimationEditor displayer;
+				AnimationDisplayer displayer;
 				try {
-					displayer = getEAEditor();
+					displayer = getADisplayer();
 					double zoom = displayer.getZoom();
 					if (zoom < 4.0){
 						zoom += 1.0;
@@ -644,18 +642,20 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		});
 
 		tfAnimSpeed.addFocusListener(new TwilFocusListener<TwilTextField>(TwilTextField.class){
-			public void focusLost(EntityAnimationEditor editor, TwilTextField source){
-				EntityAnimation anim = editor.getAnimation();
+			public void focusLost(TwilTextField source){
+				AnimationDisplayer editor = getADisplayer();
+				Animation anim = editor.getAnimation();
 				double value = Double.parseDouble(source.getText());
 				anim.setSpeed(value);
-
+				
 				notifyDataModified();
 			}
 		});
 
 		tfFrameDuration.addFocusListener(new TwilFocusListener<TwilTextField>(TwilTextField.class) {
-			public void focusLost(EntityAnimationEditor editor, TwilTextField source){
+			public void focusLost(TwilTextField source){
 				int value = source.getInt();
+				AnimationDisplayer editor = getADisplayer();
 				Frame frame = editor.getCurrentFrame();
 				frame.setDuration(value);
 
@@ -671,7 +671,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		});
 
 		spinFrameOriginY.addChangeListener(new SpinChangeListener() {
-			public void stateChanged(EntityAnimationEditor editor, int value){
+			public void stateChanged(int value){
+				AnimationEditor editor = getAEditor();
 				editor.moveOriginY(value);
 				notifyDataModified();
 			}
