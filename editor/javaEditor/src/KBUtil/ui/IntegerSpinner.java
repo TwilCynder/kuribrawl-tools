@@ -1,7 +1,5 @@
 package KBUtil.ui;
 
-import javax.swing.SpinnerModel;
-
 public class IntegerSpinner extends TwilSpinner {
     public IntegerSpinner(){
         super();
@@ -21,7 +19,4 @@ public class IntegerSpinner extends TwilSpinner {
 
     public void validateInt(){
     }
-
-    @Override
-    public void setModel(SpinnerModel m){}
 }

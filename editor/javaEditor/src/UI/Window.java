@@ -33,6 +33,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SpringLayout;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -55,6 +56,7 @@ import KBUtil.ui.IntegerSpinner;
 import KBUtil.ui.MapComboBox;
 import KBUtil.ui.MapComboBoxItem;
 import KBUtil.ui.PathChooser;
+import KBUtil.ui.PositiveSpinnerModel;
 import KBUtil.ui.TwilTextField;
 import KBUtil.ui.display.Canvas;
 import KBUtil.ui.display.Displayable;
@@ -346,12 +348,14 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		hurtbox.add(dummyLabel, "2, 4, left, default");
 
 		spinHurtboxWidth = new IntegerSpinner();
+		spinHurtboxWidth.setModel(new PositiveSpinnerModel());
 		hurtbox.add(spinHurtboxWidth, "4, 4");
 
 		dummyLabel = new JLabel("height");
 		hurtbox.add(dummyLabel, "6, 4, right, default");
 
 		spinHurtboxHeight = new IntegerSpinner();
+		spinHurtboxHeight.setModel(new PositiveSpinnerModel());
 		hurtbox.add(spinHurtboxHeight, "8, 4");
 
 		comboHurtboxType = new MapComboBox<>(hurtboxTypesNames);
@@ -395,12 +399,14 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		hitbox.add(dummyLabel, "2, 4, left, default");
 
 		spinHitboxWidth = new IntegerSpinner();
+		spinHitboxWidth.setModel(new PositiveSpinnerModel());
 		hitbox.add(spinHitboxWidth, "4, 4");
 
 		dummyLabel = new JLabel("height");
 		hitbox.add(dummyLabel, "6, 4, right, default");
 
 		spinHitboxHeight = new IntegerSpinner();
+		spinHitboxHeight.setModel(new PositiveSpinnerModel());
 		hitbox.add(spinHitboxHeight, "8, 4");
 
 		comboHitboxType = new JComboBox<HitboxType>(HitboxType.values());
@@ -713,7 +719,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				EntityAnimationDisplayer editor = getEADisplayer();
 				CollisionBox cbox = editor.getSelectedCBox();
 				if (cbox != null)
-					cbox.w = value;
+					cbox.w = value > 0 ? value : 1;
 					notifyDataModified();
 			}
 		};
