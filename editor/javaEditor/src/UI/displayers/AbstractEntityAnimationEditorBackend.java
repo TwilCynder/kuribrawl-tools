@@ -517,6 +517,10 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
         }
     }
 
+    private int decreaseValue(int value, int minimum){
+        return value > minimum ? value - 1 : minimum;
+    }
+
     private boolean handleCollisionboxKeyPress(KeyEvent ev, Displayer d, Frame frame, CollisionBox selected_cbox){
         if ((ev.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) > 0){
             switch (ev.getKeyCode()){
@@ -526,19 +530,40 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
                 case KeyEvent.VK_V:
                     return pasteIntoFrame(d);
             }
-        } else if ((ev.getModifiersEx() & KeyEvent.ALT_DOWN_MASK) > 0){
+        } else if ((ev.getModifiersEx() & KeyEvent.SHIFT_DOWN_MASK) > 0){
             switch (ev.getKeyCode()){
                 case KeyEvent.VK_UP:
-                selected_cbox.h -= 1;
+                selected_cbox.h = decreaseValue(selected_cbox.h, 1);
                 return true;
             case KeyEvent.VK_DOWN:
                 selected_cbox.h += 1;
                 return true;
             case KeyEvent.VK_LEFT:
-                selected_cbox.w -= 1;
+                selected_cbox.w = decreaseValue(selected_cbox.w, 1);
                 return true;
             case KeyEvent.VK_RIGHT:
                 selected_cbox.w += 1;
+                return true;
+            default:
+                break;
+            }
+        } else if((ev.getModifiersEx() & KeyEvent.ALT_DOWN_MASK) > 0){
+            switch (ev.getKeyCode()){
+                case KeyEvent.VK_UP:
+                selected_cbox.y += 1;
+                selected_cbox.h += 1;
+                return true;
+            case KeyEvent.VK_DOWN:
+                selected_cbox.y -= 1;
+                selected_cbox.h = decreaseValue(selected_cbox.h, 1);
+                return true;
+            case KeyEvent.VK_LEFT:
+                selected_cbox.x -= 1;
+                selected_cbox.w += 1;
+                return true;
+            case KeyEvent.VK_RIGHT:
+                selected_cbox.x += 1;
+                selected_cbox.w -= decreaseValue(selected_cbox.w, 1);
                 return true;
             default:
                 break;
