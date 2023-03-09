@@ -52,9 +52,13 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
     @Override
     protected abstract EntityAnimationEditorWindow getEditorWindow();
 
+    @Override 
+    protected abstract EntityAnimationDisplayer getEditor();
+
     /**
      * Popup menu displayed inside an EntityAnimation editor, specifically. 
      */
+    /*
     private static abstract class EntityAnimationPopupMenu extends InternalMenu {
         protected EntityAnimationEditor editor;
 
@@ -63,11 +67,12 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
             editor = editor_;
         }
     }
+    */
     
     /**
      * The basic popup menu displayed when right-clicking in an empty area
      */
-    private class PopupMenu extends EntityAnimationPopupMenu implements OriginMovingMenu {
+    private class PopupMenu extends InternalMenu implements OriginMovingMenu {
         @Override
         public void initItems(){
             JMenuItem item;
@@ -75,7 +80,7 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
             item = new JMenuItem("Paste");
             item.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e){
-                    pasteIntoFrame(editor, displayer);
+                    pasteIntoFrame(displayer);
                 }
             });
             item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.CTRL_DOWN_MASK));
@@ -88,7 +93,7 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
 
         @Override
         public void moveOrigin() {
-            AbstractEntityAnimationEditorBackend.this.moveOrigin(pos, editor, displayer);
+            AbstractEntityAnimationEditorBackend.this.moveOrigin(pos, displayer);
         }
         
     };
@@ -103,7 +108,7 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
             item = new JMenuItem("Delete");
             item.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e){
-                    deleteSelectedCbox(editor, displayer);
+                    deleteSelectedCbox(displayer);
                 }
             });
             item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
@@ -112,7 +117,7 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
             item = new JMenuItem("Copy");
             item.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e){
-                    copySelectedCollisionBox(editor);
+                    copySelectedCollisionBox();
                 }
             });
             item.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK));
@@ -131,13 +136,13 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
     /**
      * The popup menu displayed after performing a rectangle selection
      */
-    private class SelectionPopupMenu extends EntityAnimationPopupMenu {
+    private class SelectionPopupMenu extends InternalMenu {
      
         public void initItems() {
             JMenuItem item = new JMenuItem("Create hurtbox");
             item.addActionListener(new ActionListener(){
                 public void actionPerformed(ActionEvent e){
-                    createHurtbox(editor, selection);
+                    createHurtbox(selection);
                     cancelSelection(displayer);
                 }
             });
@@ -146,7 +151,7 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
             item = new JMenuItem("Create hitbox");
             item.addActionListener(new ActionListener(){
                 public void actionPerformed(ActionEvent e){
-                    createHitbox(editor, selection);
+                    createHitbox(selection);
                     cancelSelection(displayer);
                 }
             });
@@ -173,23 +178,24 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
 
     }
 
-    protected void onCreated(EntityAnimationEditor editor){
-        onAnimationChanged(editor);
+    protected void onCreated(){
+        onAnimationChanged();
     }
 
     /**
      * Draws information related to the edition to the Canvas displaying the editor.
      * @throws IllegalStateException
      */
-    public void draw(Graphics g, int x, int y, int w, int h, EntityAnimationEditor editor) throws IllegalStateException{
+    public void draw(Graphics g, int x, int y, int w, int h) throws IllegalStateException{
         if (selection != null && selection.w + selection.h > 6){
-            Rectangle display_selection = editor.getDisplayRectangle(selection);
+            Rectangle display_selection = getEditor().getDisplayRectangle(selection);
             g.setColor(selection_color);
             g.drawRect(display_selection.x, display_selection.y, display_selection.w, display_selection.h);
         }
     }
 
-    private void createHurtbox(EntityAnimationEditor editor, Rectangle rect){
+    private void createHurtbox(Rectangle rect){
+        EntityAnimationDisplayer editor = getEditor();
         Frame frame = editor.getCurrentFrame();
         EntityFrame entity_frame = editor.getCurrentEntityFrame();
         frame.makeRelativeToOrigin(rect);
@@ -198,7 +204,8 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
         notifyDataModified();
     }
 
-    private void createHitbox(EntityAnimationEditor editor, Rectangle rect){
+    private void createHitbox(Rectangle rect){
+        EntityAnimationDisplayer editor = getEditor();
         Frame frame = editor.getCurrentFrame();
         EntityFrame entity_frame = editor.getCurrentEntityFrame();
         frame.makeRelativeToOrigin(rect);
@@ -233,9 +240,10 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
      * @param editor
      * @param d displayer that may need to be updated following this operation
      */
-    private void deleteSelectedCbox(EntityAnimationDisplayer editor, Displayer d){
+    private void deleteSelectedCbox(Displayer d){
+        EntityAnimationDisplayer editor = getEditor();
         deleteCbox(d, editor.resetSelectedCBox(), editor.getCurrentEntityFrame());
-        onSelectedCBoxChanged(editor);
+        onSelectedCBoxChanged();
     }
 
     /**
@@ -251,16 +259,16 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
      * Copy the currently selected collision box to the clipboard. 
      * @param editor
      */
-    private void copySelectedCollisionBox(EntityAnimationDisplayer editor){
-        copyCollisionBox(editor.getSelectedCBox());
+    private void copySelectedCollisionBox(){
+        copyCollisionBox(getEditor().getSelectedCBox());
     }
 
     /**
      * Attemps to paste the content of the clipboard to the currently editor frame, 
      * i.e. parses the content of the clipboard and adds it to the current frame if it could be resolved to an entity frame element.
      */
-    protected boolean pasteIntoFrame(EntityAnimationDisplayer editor, Displayer d){
-        return pasteIntoFrame(editor.getCurrentEntityFrame(), d);
+    protected boolean pasteIntoFrame(Displayer d){
+        return pasteIntoFrame(getEditor().getCurrentEntityFrame(), d);
     }
 
     /**
@@ -309,17 +317,13 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
 
     }
 
-    //"hiding" the previous method
-    protected void moveOrigin(Point displaypoint, AnimationEditor editor, Displayer displayer){
-        throw new IllegalStateException("Called basic animation moveOrigin on an EntityAnimation editor");
-    }
-
     /**
      * Move the origin of the current frame to a certain anim pos and then updates whatever needs ot be updated following this change.
      * @param displayer the Displayer to update
      * @param displaypoint the position at which origin should be moved to, *relative to the displayer*.
      */
-    private void moveOrigin(Point displaypoint, EntityAnimationEditor editor, Displayer displayer){
+    protected void moveOrigin(Point displaypoint, Displayer displayer){
+        EntityAnimationDisplayer editor = getEditor();
         moveOriginToDisplayPos(displaypoint, editor);
         displayer.update();
         updateFrameControls(editor.getCurrentFrame());
@@ -331,7 +335,7 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
      * @param displaypoint the on-screen point to which the origin should be moved.
      * @param editor
      */
-    private void moveOriginToDisplayPos(Point displaypoint, EntityAnimationEditor editor){
+    private void moveOriginToDisplayPos(Point displaypoint, EntityAnimationDisplayer editor){
         moveOrigin(editor.getAnimPosition(displaypoint), editor);
     }
 
@@ -341,7 +345,7 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
      * @param editor
      * @throws IllegalStateException
      */
-    private void moveOrigin(Point animpoint, EntityAnimationEditor editor) throws IllegalStateException{
+    private void moveOrigin(Point animpoint, EntityAnimationDisplayer editor) throws IllegalStateException{
         //Point animpoint = getAnimPosition(display_point);
         //Size2D frame_size = current_anim.getFrameSize();
         //if (animpoint.x >= 0 && animpoint.x < frame_size.w && animpoint.y >= 0 && animpoint.y < frame_size.h){
@@ -353,29 +357,14 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
         //}   
     }
 
-    public void moveOriginX(int x, AnimationDisplayer editor) throws IllegalStateException {
-        if (editor instanceof EntityAnimationDisplayer){
-            moveOriginX(x, (EntityAnimationDisplayer)editor);
-        } else {
-            super.moveOriginX(x, editor);
-        }
-    }
-
-    public void moveOriginY(int y, AnimationDisplayer editor) throws IllegalStateException {
-        if (editor instanceof EntityAnimationDisplayer){
-            moveOriginY(y, (EntityAnimationDisplayer)editor);
-        } else {
-            super.moveOriginY(y, editor);
-        }
-    }
-
     /**
      * Changes the x coordinate of the origin of the current frame
      * @param x new coordinate
      * @param editor
      * @throws IllegalStateException
      */
-    public void moveOriginX(int x, EntityAnimationDisplayer editor) throws IllegalStateException {
+    public void moveOriginX(int x) throws IllegalStateException {
+        EntityAnimationDisplayer editor = getEditor();
         EntityAnimation.moveOriginX(
                 editor.getCurrentFrame(),
                 editor.getCurrentEntityFrame(),
@@ -389,7 +378,8 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
      * @param editor
      * @throws IllegalStateException
      */
-    public void moveOriginY(int y, EntityAnimationDisplayer editor) throws IllegalStateException {
+    public void moveOriginY(int y) throws IllegalStateException {
+        EntityAnimationDisplayer editor = getEditor();
         EntityAnimation.moveOriginY(
                 editor.getCurrentFrame(),
                 editor.getCurrentEntityFrame(),
@@ -402,18 +392,19 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
      * Handles operations that must be run whenever the current frame of an editor is changed
      * @param editor
      */
-    protected void onFrameChanged(EntityAnimationDisplayer editor){
+    protected void onFrameChanged(){
+        EntityAnimationDisplayer editor = getEditor();
         editor.selected_cbox = null;
-        super.onFrameChanged(editor);
-        onSelectedCBoxChanged(editor);
+        super.onFrameChanged();
+        onSelectedCBoxChanged();
     }
 
     /**
      * Handles operations that must be run whenever the current frame of an editor is changed
      * @param editor
      */
-    protected void onSelectedCBoxChanged(EntityAnimationDisplayer editor){
-        updateElementControls(editor, true);
+    protected void onSelectedCBoxChanged(){
+        updateElementControls(true);
     }
 
     /**
@@ -421,13 +412,13 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
      * @param editor
      * @param ignoreModifications whether the change should NOT mark data as modified.
      */
-    private void updateElementControls(EntityAnimationDisplayer editor, boolean ignoreModifications){
-        getEditorWindow().updateElementControls(editor.selected_cbox, ignoreModifications);
+    private void updateElementControls(boolean ignoreModifications){
+        getEditorWindow().updateElementControls(getEditor().selected_cbox, ignoreModifications);
     }
 
     @SuppressWarnings("unused")
-    private void updateElementControls(EntityAnimationEditor editor){
-        updateElementControls(editor, false);
+    private void updateElementControls(){
+        updateElementControls(false);
     }
 
     public void lostOwnership(Clipboard clipboard, Transferable contents){
@@ -447,8 +438,8 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
      * @param pos position of the mouse in the editor
      * @param displayer
      */
-    public void mousePressed(Point pos, EntityAnimationEditor editor, Displayer displayer){
-        pos = editor.getAnimPosition(pos);
+    public void mousePressed(Point pos, Displayer displayer){
+        pos = getEditor().getAnimPosition(pos);
         drag_start_pos = pos;
         selection = new Rectangle(pos.x, pos.y, 1, 1);
     }
@@ -458,8 +449,8 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
      * @param pos position of the mouse in the editor.
      * @param displayer
      */
-    public void mouseDragged(Point pos, EntityAnimationEditor editor, Displayer displayer){
-        pos = editor.getAnimPosition(pos);
+    public void mouseDragged(Point pos, Displayer displayer){
+        pos = getEditor().getAnimPosition(pos);
         int w = pos.x - drag_start_pos.x;
         if (w < 0){
             selection.x = pos.x;
@@ -487,12 +478,12 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
      * @param editor
      * @param displayer
      */
-    public void mouseReleased(Point pos, EntityAnimationEditor editor, Displayer displayer){
+    public void mouseReleased(Point pos, Displayer displayer){
         if (selection != null){
             if (selection.w + selection.h < 10){
                 cancelSelection(displayer);
             } else {
-                selection_popup_menu.show(editor, displayer, pos.x, pos.y);
+                selection_popup_menu.show(displayer, pos.x, pos.y);
             }   
         }
     }
@@ -510,28 +501,30 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
      * @param p position of the mouse on the editor 
      * @param d
      */
-    public void onPopupTrigger(EntityAnimationEditor editor, Point p, Displayer d){
+    public void onPopupTrigger(Point p, Displayer d){
         JComponent component = d.getComponent();
         if (component == null) return;
         
+        EntityAnimationDisplayer editor = getEditor();
+
         Frame frame = editor.getCurrentFrame();
         Point animpos = editor.getAnimPosition(p);
 
         if (editor.selected_cbox != null && editor.selected_cbox.isInside(animpos, frame.getOrigin())) {
-            popup_collisionbox_menu.show(editor, d, p.x, p.y);
+            popup_collisionbox_menu.show(d, p.x, p.y);
         } else {
-            popup_menu.show(editor, d, p.x, p.y);
+            popup_menu.show(d, p.x, p.y);
         }
     }
 
-    private boolean handleCollisionboxKeyPress(EntityAnimationDisplayer editor, KeyEvent ev, Displayer d, Frame frame, CollisionBox selected_cbox){
+    private boolean handleCollisionboxKeyPress(KeyEvent ev, Displayer d, Frame frame, CollisionBox selected_cbox){
         if ((ev.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) > 0){
             switch (ev.getKeyCode()){
                 case KeyEvent.VK_C:
-                    copySelectedCollisionBox(editor);
+                    copySelectedCollisionBox();
                     return true;
                 case KeyEvent.VK_V:
-                    return pasteIntoFrame(editor, d);
+                    return pasteIntoFrame(d);
             }
         } else if ((ev.getModifiersEx() & KeyEvent.ALT_DOWN_MASK) > 0){
             switch (ev.getKeyCode()){
@@ -565,10 +558,10 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
                     selected_cbox.x += 1;
                     return true;
                 case KeyEvent.VK_DELETE:
-                    deleteSelectedCbox(editor, d);
+                    deleteSelectedCbox(d);
                     return true;
                 case KeyEvent.VK_ESCAPE:
-                    editor.resetSelectedCBox();
+                    getEditor().resetSelectedCBox();
                     return true;
                 default:
                     break;
@@ -577,32 +570,31 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
         return false;
     }
 
-    protected boolean handleKeyPress(EntityAnimationDisplayer editor, KeyEvent ev, Displayer d, Frame frame, CollisionBox selected_cbox){
+    protected boolean handleKeyPress(KeyEvent ev, Displayer d, Frame frame, CollisionBox selected_cbox){
         boolean modifs;
         if (selected_cbox != null){
-            modifs = handleCollisionboxKeyPress(editor, ev, d, frame, selected_cbox);
+            modifs = handleCollisionboxKeyPress(ev, d, frame, selected_cbox);
         } else {
             modifs = false;
         }
 
         if (!modifs){
-            return super.handleKeyPress(editor, ev, d, frame);
+            return super.handleKeyPress(ev, d, frame);
         }
 
         return modifs;
 
     }
 
-    public boolean onKeyPressed(EntityAnimationEditor editor, KeyEvent ev, Displayer d){
+    public void onKeyPressed(KeyEvent ev, Displayer d){
+        EntityAnimationDisplayer editor = getEditor();
         CollisionBox selected_cbox = editor.selected_cbox;
         Frame frame = editor.getCurrentFrame();
 
-        if (handleKeyPress(editor, ev, d, frame, selected_cbox)){
+        if (handleKeyPress(ev, d, frame, selected_cbox)){
             notifyAndUpdate(d);
-            updateElementControls(editor);
+            updateElementControls();
         }
-
-        return true;
 
     }
 }

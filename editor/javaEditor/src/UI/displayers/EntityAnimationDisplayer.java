@@ -83,6 +83,10 @@ public class EntityAnimationDisplayer extends AnimationDisplayer {
         }
     }
 
+    public void setSelectedCBox(CollisionBox cbox){
+        selected_cbox = cbox;
+    }
+
     protected CollisionBox getCboxAt(Point animpos) throws IllegalStateException{
         CollisionBox selected = null; 
         Frame frame = getCurrentFrame();

@@ -21,27 +21,28 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements E
     @Override
     public void draw(Graphics g, int x, int y, int w, int h, double zoom) throws IllegalStateException{
         super.draw(g, x, y, w, h, zoom);
-        editor_backend.draw(g, x, y, w, h, this);
+        editor_backend.draw(g, x, y, w, h);
     }
 
+    @Override
     public void setSelectedCBox(CollisionBox cbox){
-        selected_cbox = cbox;
+        super.setSelectedCBox(cbox);
         onSelectedCBoxChanged();
     }
 
     @Override
     public void mousePressed(Point pos, Displayer displayer){
-        editor_backend.mousePressed(pos, this, displayer);
+        editor_backend.mousePressed(pos, displayer);
     }
 
     @Override
     public void mouseDragged(Point currentpos, Displayer displayer){
-        editor_backend.mouseDragged(currentpos, this, displayer);
+        editor_backend.mouseDragged(currentpos, displayer);
     }
 
     @Override
     public void mouseReleased(Point pos, Displayer displayer){
-        editor_backend.mouseReleased(pos, this, displayer);
+        editor_backend.mouseReleased(pos, displayer);
     }
 
     @Override
@@ -62,12 +63,13 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements E
 
     @Override
     public void onPopupTrigger(Point p, Displayer d){
-        editor_backend.onPopupTrigger(this, p, d);
+        editor_backend.onPopupTrigger(p, d);
     }
 
     @Override
     public void onKeyPressed(KeyEvent ev, Displayer d){
-       editor_backend.onKeyPressed(this, ev, d);
+    System.out.println();
+       editor_backend.onKeyPressed(ev, d);
     }
 
     public EntityAnimationEditorWindow getWindow(){
@@ -93,23 +95,23 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements E
     }
 
     private void onAnimationChanged(){
-        editor_backend.onAnimationChanged(this);
+        editor_backend.onAnimationChanged();
     }
 
     private void onFrameChanged(){
-        editor_backend.onFrameChanged(this);
+        editor_backend.onFrameChanged();
     }
 
     private void onSelectedCBoxChanged() {
-        editor_backend.onSelectedCBoxChanged(this);
+        editor_backend.onSelectedCBoxChanged();
     }
 
     public void moveOriginX(int x){
-        editor_backend.moveOriginX(x, this);
+        editor_backend.moveOriginX(x);
     }
 
     public void moveOriginY(int y){
-        editor_backend.moveOriginY(y, this);
+        editor_backend.moveOriginY(y);
     }
 
     @Override

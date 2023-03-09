@@ -17,10 +17,12 @@ import gamedata.Frame;
 public abstract class AbstractAnimationEditorBackend {
 
     protected abstract AnimationEditorWindow getEditorWindow();
-        /**
+
+    protected abstract AnimationDisplayer getEditor();
+
+    /**
      * Popup menu displayed inside an editor.
      */
-
     protected interface OriginMovingMenu {
         public void moveOrigin();
     }
@@ -64,18 +66,18 @@ public abstract class AbstractAnimationEditorBackend {
         }
     }
 
+    /*
     private static abstract class AnimationPopupMenu extends InternalMenu {
-        protected AnimationDisplayer editor;
 
-        public void show(AnimationDisplayer editor_, Displayer invoker, int x, int y) {
+        public void show(Displayer invoker, int x, int y) {
             super.show(invoker, x, y);
-            editor = editor_;
         }
     }
+    */
 
-    private class PopupMenu extends AnimationPopupMenu implements OriginMovingMenu {
+    private class PopupMenu extends InternalMenu implements OriginMovingMenu {
         public void moveOrigin(){
-            AbstractAnimationEditorBackend.this.moveOrigin(pos, editor, displayer);
+            AbstractAnimationEditorBackend.this.moveOrigin(pos, displayer);
         }
 
         @Override
@@ -93,12 +95,8 @@ public abstract class AbstractAnimationEditorBackend {
     protected AbstractAnimationEditorBackend(){
     }
 
-    protected AbstractAnimationEditorBackend(AnimationEditor editor){
-
-    }
-
-    protected void onCreated(AnimationEditor editor){
-        onAnimationChanged(editor);
+    protected void onCreated(){
+        onAnimationChanged();
     }
 
     protected void notifyDataModified(){
@@ -110,7 +108,8 @@ public abstract class AbstractAnimationEditorBackend {
         d.update();
     }
     
-    protected void moveOrigin(Point displaypoint, AnimationDisplayer editor, Displayer displayer){
+    protected void moveOrigin(Point displaypoint, Displayer displayer){
+        AnimationDisplayer editor = getEditor();
         Frame frame = editor.getCurrentFrame();
         frame.setOrigin(editor.getAnimPosition(displaypoint));
         notifyAndUpdate(displayer);
@@ -122,8 +121,8 @@ public abstract class AbstractAnimationEditorBackend {
      * @param editor
      * @throws IllegalStateException
      */
-    public void moveOriginX(int x, AnimationDisplayer editor) throws IllegalStateException {
-        Frame f = editor.getCurrentFrame();
+    public void moveOriginX(int x) throws IllegalStateException {
+        Frame f = getEditor().getCurrentFrame();
         f.setOriginX(x);
     }
 
@@ -133,20 +132,20 @@ public abstract class AbstractAnimationEditorBackend {
      * @param editor
      * @throws IllegalStateException
      */
-    public void moveOriginY(int y, AnimationDisplayer editor) throws IllegalStateException {
-        Frame f = editor.getCurrentFrame();
+    public void moveOriginY(int y) throws IllegalStateException {
+        Frame f = getEditor().getCurrentFrame();
         f.setOriginY(y);
     }
 
-    public void mousePressed(Point pos, AnimationDisplayer editor, Displayer displayer){
+    public void mousePressed(Point pos, Displayer displayer){
         
     }
 
-    public void mouseDragged(Point pos, AnimationDisplayer editor, Displayer displayer){
+    public void mouseDragged(Point pos, Displayer displayer){
 
     }
 
-    public void mouseReleased(Point pos, AnimationDisplayer editor, Displayer displayer){
+    public void mouseReleased(Point pos, Displayer displayer){
 
     }
 
@@ -158,39 +157,42 @@ public abstract class AbstractAnimationEditorBackend {
 
     };
 
-    public void onPopupTrigger(AnimationDisplayer editor, Point p, Displayer d){
+    public void onPopupTrigger(Point p, Displayer d){
         JComponent component = d.getComponent();
         if (component == null) return;
 
-        popup_menu.show(editor, d, p.x, p.y);
+        popup_menu.show(d, p.x, p.y);
 
     }
 
-    protected boolean handleKeyPress(AnimationDisplayer editor, KeyEvent ev, Displayer d, Frame frame){
+    protected boolean handleKeyPress(KeyEvent ev, Displayer d, Frame frame){
         Point origin = frame.getOrigin();
-        switch (ev.getKeyCode()){
-            case KeyEvent.VK_UP:
-                this.moveOriginY(origin.y - 1, editor);
-                break;
-            case KeyEvent.VK_DOWN:
-                this.moveOriginY(origin.y + 1, editor);
-                break;
-            case KeyEvent.VK_LEFT:
-                moveOriginX(origin.x - 1, editor);
-                break;
-            case KeyEvent.VK_RIGHT:
-                moveOriginX(origin.x + 1, editor);
-                break;
-            default:
-                return false;
-        }
+        if (ev.getModifiersEx() == 0)
+            switch (ev.getKeyCode()){
+                case KeyEvent.VK_UP:
+                    this.moveOriginY(origin.y - 1);
+                    break;
+                case KeyEvent.VK_DOWN:
+                    this.moveOriginY(origin.y + 1);
+                    break;
+                case KeyEvent.VK_LEFT:
+                    moveOriginX(origin.x - 1);
+                    break;
+                case KeyEvent.VK_RIGHT:
+                    moveOriginX(origin.x + 1);
+                    break;
+                default:
+                    return false;
+            }
 
         return true;
     }
 
-    public void onKeyPressed(AnimationDisplayer editor, KeyEvent ev, Displayer d){
-        Frame frame = editor.getCurrentFrame();
-        if (handleKeyPress(editor, ev, d, frame)){
+    public void onKeyPressed(KeyEvent ev, Displayer d){
+        System.out.println("On key pressed AAEB");
+
+        Frame frame = getEditor().getCurrentFrame();
+        if (handleKeyPress(ev, d, frame)){
             notifyAndUpdate(d);
             updateFrameControls(frame);
         }
@@ -200,10 +202,11 @@ public abstract class AbstractAnimationEditorBackend {
      * Handles operations that must be run whenever the current animation of an editor is changed. 
      * @param editor
      */
-    protected void onAnimationChanged(AnimationDisplayer editor){
+    protected void onAnimationChanged(){
+        AnimationDisplayer editor = getEditor();
         editor.setFrameIndex(0);
         updateAnimationControls(true, editor.current_animation);
-        onFrameChanged(editor);
+        onFrameChanged();
     }
 
     /**
@@ -219,8 +222,8 @@ public abstract class AbstractAnimationEditorBackend {
      * Handles operations that must be run whenever the current frame of an editor is changed
      * @param editor
      */
-    protected void onFrameChanged(AnimationDisplayer editor){
-        updateFrameControls(editor.getCurrentFrame(), true);
+    protected void onFrameChanged(){
+        updateFrameControls(getEditor().getCurrentFrame(), true);
     }
 
     /**

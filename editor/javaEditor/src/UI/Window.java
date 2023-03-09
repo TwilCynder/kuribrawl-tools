@@ -664,7 +664,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		});
 
 		spinFrameOriginX.addChangeListener(new SpinChangeListener() {
-			public void stateChanged(EntityAnimationEditor editor, int value){
+			public void stateChanged(int value){
+				AbstractAnimationEditorBackend editor = getAEditorBackend();
 				editor.moveOriginX(value);
 				notifyDataModified();
 			}
@@ -672,7 +673,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		spinFrameOriginY.addChangeListener(new SpinChangeListener() {
 			public void stateChanged(int value){
-				AnimationEditor editor = getAEditor();
+				AbstractAnimationEditorBackend editor = getAEditorBackend();
 				editor.moveOriginY(value);
 				notifyDataModified();
 			}
@@ -680,7 +681,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		ChangeListener cboxXChangeListener = new SpinChangeListener() {
 			@Override
-			public void stateChanged(EntityAnimationEditor editor, int value) {
+			public void stateChanged(int value) {
+				EntityAnimationDisplayer editor = getEADisplayer();
 				CollisionBox cbox = editor.getSelectedCBox();
 				if (cbox != null)
 					cbox.x = value;
@@ -693,7 +695,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		ChangeListener cboxYChangeListener = new SpinChangeListener() {
 			@Override
-			public void stateChanged(EntityAnimationEditor editor, int value) {
+			public void stateChanged(int value) {
+				EntityAnimationDisplayer editor = getEADisplayer();
 				CollisionBox cbox = editor.getSelectedCBox();
 				if (cbox != null)
 					cbox.y = value;
@@ -706,7 +709,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		ChangeListener cboxWChangeListener = new SpinChangeListener() {
 			@Override
-			public void stateChanged(EntityAnimationEditor editor, int value) {
+			public void stateChanged(int value) {
+				EntityAnimationDisplayer editor = getEADisplayer();
 				CollisionBox cbox = editor.getSelectedCBox();
 				if (cbox != null)
 					cbox.w = value;
@@ -719,7 +723,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		ChangeListener cboxHChangeListener = new SpinChangeListener() {
 			@Override
-			public void stateChanged(EntityAnimationEditor editor, int value) {
+			public void stateChanged(int value) {
+				EntityAnimationDisplayer editor = getEADisplayer();
 				CollisionBox cbox = editor.getSelectedCBox();
 				if (cbox != null)
 					cbox.h = value;
@@ -738,7 +743,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 						MapComboBoxItem<?, ?> item = (MapComboBoxItem<?, ?>)e.getItem();
 						 if (item.getValue() instanceof HurtboxType){
 							HurtboxType type = (HurtboxType)item.getValue();
-							EntityAnimationDisplayer displayer = getEAEditor();
+							EntityAnimationDisplayer displayer = getEADisplayer();
 							Hurtbox hurtbox = displayer.getSelectedHurtbox();
 
 							hurtbox.type = type; //wooooo tout ça pour ça t content twil dmerd
@@ -758,7 +763,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				try {
 					if (e.getItem() instanceof HitboxType){
 						HitboxType type = (HitboxType)e.getItem();
-						EntityAnimationDisplayer displayer = getEAEditor();
+						EntityAnimationDisplayer displayer = getEADisplayer();
 						Hitbox hitbox = displayer.getSelectedHitbox();
 						if (hitbox.getClass() != type.getHitboxClass()){
 							EntityFrame frame;
@@ -776,7 +781,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 							int index = frame.hitboxes.indexOf(hitbox);
 							if (index == -1) throw new IllegalStateException("Selected hitbox is not in the current frame hitboxes list");
 							frame.hitboxes.set(index, newHitbox);
-							getEAEditor().setSelectedCBox(newHitbox);
+							getEADisplayer().setSelectedCBox(newHitbox);
 							updateHitboxTypeSpecificControls(newHitbox, type, false);
 
 							notifyDataModified();
@@ -791,7 +796,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		tfDamages.addFocusListener(new TwilFocusListener<JTextField>(JTextField.class) {
 			@Override
-			public void focusLost(EntityAnimationEditor editor, JTextField source){
+			public void focusLost(JTextField source){
+				EntityAnimationDisplayer editor = getEADisplayer();
 				double value = Double.parseDouble(source.getText());
 				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
 				damage_hitbox.damage = value;
@@ -801,7 +807,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		tfAngle.addFocusListener(new TwilFocusListener<TwilTextField>(TwilTextField.class) {
 			@Override
-			public void focusLost(EntityAnimationEditor editor, TwilTextField source){
+			public void focusLost(TwilTextField source){
+				EntityAnimationDisplayer editor = getEADisplayer();
 				int value = source.getInt();
 				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
 				damage_hitbox.angle = value;
@@ -811,7 +818,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		tfBKB.addFocusListener(new TwilFocusListener<JTextField>(JTextField.class) {
 			@Override
-			public void focusLost(EntityAnimationEditor editor, JTextField source){
+			public void focusLost(JTextField source){
+				EntityAnimationDisplayer editor = getEADisplayer();
 				double value = Double.parseDouble(source.getText());
 				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
 				damage_hitbox.base_knockback = value;
@@ -821,7 +829,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		tfSKB.addFocusListener(new TwilFocusListener<JTextField>(JTextField.class) {
 			@Override
-			public void focusLost(EntityAnimationEditor editor, JTextField source){
+			public void focusLost(JTextField source){
+				EntityAnimationDisplayer editor = getEADisplayer();
 				double value = Double.parseDouble(source.getText());
 				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
 				damage_hitbox.scaling_knockback = value;
@@ -830,7 +839,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		});
 
 		spinHitboxPrio.addChangeListener(new SpinChangeListener() {
-			public void stateChanged(EntityAnimationEditor editor, int value){
+			public void stateChanged(int value){
+				EntityAnimationDisplayer editor = getEADisplayer();
 				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
 				damage_hitbox.priority = value;
 				notifyDataModified();
@@ -838,7 +848,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		});
 
 		spinHitID.addChangeListener(new SpinChangeListener() {
-			public void stateChanged(EntityAnimationEditor editor, int value){
+			public void stateChanged(int value){
+				EntityAnimationDisplayer editor = getEADisplayer();
 				DamageHitbox damage_hitbox = (DamageHitbox)editor.getSelectedDamageHitbox();
 				damage_hitbox.hitID = value;
 				notifyDataModified();
@@ -853,7 +864,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 						MapComboBoxItem<?, ?> item = (MapComboBoxItem<?, ?>)e.getItem();
 						if (item.getValue() instanceof AngleMode){
 							AngleMode type = (AngleMode)item.getValue();
-							EntityAnimationDisplayer displayer = getEAEditor();
+							EntityAnimationDisplayer displayer = getEADisplayer();
 							DamageHitbox damage_hitbox = (DamageHitbox)displayer.getSelectedDamageHitbox();
 
 							damage_hitbox.angle_mode = type;
@@ -1418,7 +1429,6 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			throw new WindowStateException("User interacted with EntityAnimation-related control while displayed object was not an EntityAnimationEditor");
 		}
 	}*/
-	
 
 	public AbstractAnimationEditorBackend getAEditorBackend() throws WindowStateException {
 		Displayable disp = displayCanvas.getInteractable();

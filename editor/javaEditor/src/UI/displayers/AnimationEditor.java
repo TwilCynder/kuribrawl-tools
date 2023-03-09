@@ -18,17 +18,17 @@ public class AnimationEditor extends AnimationDisplayer implements EditorFronten
 
     @Override
     public void mousePressed(Point pos, Displayer displayer){
-        editor_backend.mousePressed(pos, this, displayer);
+        editor_backend.mousePressed(pos, displayer);
     }
 
     @Override
     public void mouseDragged(Point currentpos, Displayer displayer){
-        editor_backend.mouseDragged(currentpos, this, displayer);
+        editor_backend.mouseDragged(currentpos, displayer);
     }
 
     @Override
     public void mouseReleased(Point pos, Displayer displayer){
-        editor_backend.mouseReleased(pos, this, displayer);
+        editor_backend.mouseReleased(pos, displayer);
     }
 
     @Override
@@ -43,12 +43,12 @@ public class AnimationEditor extends AnimationDisplayer implements EditorFronten
 
     @Override
     public void onPopupTrigger(Point p, Displayer d){
-        editor_backend.onPopupTrigger(this, p, d);
+        editor_backend.onPopupTrigger(p, d);
     }
 
     @Override
     public void onKeyPressed(KeyEvent ev, Displayer d){
-       editor_backend.onKeyPressed(this, ev, d);
+       editor_backend.onKeyPressed(ev, d);
     }
 
     public AnimationEditorWindow getWindow(){
@@ -74,19 +74,11 @@ public class AnimationEditor extends AnimationDisplayer implements EditorFronten
     }
 
     private void onAnimationChanged(){
-        editor_backend.onAnimationChanged(this);
+        editor_backend.onAnimationChanged();
     }
 
     private void onFrameChanged(){
-        editor_backend.onFrameChanged(this);
-    }
-
-    public void moveOriginX(int x){
-        editor_backend.moveOriginX(x, this);
-    }
-
-    public void moveOriginY(int y){
-        editor_backend.moveOriginY(y, this);
+        editor_backend.onFrameChanged();
     }
 
     @Override
