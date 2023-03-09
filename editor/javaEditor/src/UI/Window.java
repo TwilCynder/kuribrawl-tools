@@ -33,7 +33,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.SpringLayout;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -1154,7 +1153,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		for (Champion c : gd){
 			JMenu champion_submenu = new JMenu(c.getDisplayName());
             for (EntityAnimation anim : c){
-				champion_submenu.add(new AnimationMenuItem(anim, this));
+				champion_submenu.add(EntityAnimationMenuItem.create(anim, this));
             }
 			animations_menu.add(champion_submenu);
         }

@@ -3,18 +3,17 @@ package UI;
 import javax.swing.JMenuItem;
 
 import UI.listeners.AnimationMenuItemListener;
-import gamedata.EntityAnimation;
+import gamedata.Animation;
 
-
-public class AnimationMenuItem extends JMenuItem{
-    private EntityAnimation anim;
-    private Window window;
+public abstract class AnimationMenuItem extends JMenuItem {
+    protected Window window;
 
     private static final AnimationMenuItemListener listener = new AnimationMenuItemListener(); // take this java developers
 
-    public AnimationMenuItem(EntityAnimation anim, Window win)throws NullPointerException{
+    abstract public Animation getAnimation();
+
+    public AnimationMenuItem(Animation anim, Window win)throws NullPointerException{
         super (anim.getName());
-        this.anim = anim;
         this.window = win;
 
         if (win == null){
@@ -24,11 +23,12 @@ public class AnimationMenuItem extends JMenuItem{
         addActionListener(listener);
     }
 
-    public EntityAnimation getAnimation(){
-        return anim;
-    }
-
     public Window getWindow(){
         return window;
     }
+
+    public static AnimationMenuItem create(Animation anim, Window win){
+        return new ConcreteAnimationMenuItem(anim, win);
+    }
+
 }
