@@ -1,5 +1,7 @@
 package UI;
 
+import java.awt.event.ActionListener;
+
 import javax.swing.JMenuItem;
 
 import UI.listeners.AnimationMenuItemListener;
@@ -12,6 +14,10 @@ public abstract class AnimationMenuItem extends JMenuItem {
 
     abstract public Animation getAnimation();
 
+    protected ActionListener getListener(){
+        return listener;
+    }
+
     public AnimationMenuItem(Animation anim, Window win)throws NullPointerException{
         super (anim.getName());
         this.window = win;
@@ -20,7 +26,7 @@ public abstract class AnimationMenuItem extends JMenuItem {
             throw new NullPointerException("AnimationMenuItem : window (second parameter) should not be null");
         }
 
-        addActionListener(listener);
+        addActionListener(getListener());
     }
 
     public Window getWindow(){
