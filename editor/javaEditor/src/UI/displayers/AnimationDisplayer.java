@@ -74,7 +74,7 @@ public class AnimationDisplayer extends ZoomingDisplayer{
         int dh = (int)(source_size.h * zoom);
         return new Rectangle(
             x + (totalW / 2) - ((dw / 2)),
-            y + (totalH / 2) - ((dw / 2)),
+            y + (totalH / 2) - ((dh / 2)),
             dw,
             dh
         );

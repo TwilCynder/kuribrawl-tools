@@ -89,6 +89,7 @@ import gamedata.Hurtbox;
 import gamedata.HurtboxType;
 import gamedata.NamedAnimationPool;
 import gamedata.RessourcePath;
+import gamedata.Stage;
 import gamedata.WindHitbox;
 import gamedata.RessourcePath.MissingInfoListener;
 import gamedata.exceptions.GameDataException;
@@ -1156,7 +1157,15 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				champion_submenu.add(EntityAnimationMenuItem.create(anim, this));
             }
 			animations_menu.add(champion_submenu);
-        }
+		}
+
+		for (Stage s : gd.getStages()){
+			JMenu stages_submenu = new JMenu(s.getDisplayName());
+			for (Animation anim : s){
+				stages_submenu.add(AnimationMenuItem.create(anim, this));
+            }
+			animations_menu.add(stages_submenu);
+		}
 	}
 
 	/**

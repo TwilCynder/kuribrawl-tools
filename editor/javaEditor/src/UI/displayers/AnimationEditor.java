@@ -12,7 +12,6 @@ public class AnimationEditor extends AnimationDisplayer implements EditorFronten
 
     public AnimationEditor(Animation anim, AnimationEditorWindow win){
         super(anim);
-        System.out.println("EAE constructed "+ anim);
         editor_backend = new AnimationEditorBackend(this, win);
     }
 

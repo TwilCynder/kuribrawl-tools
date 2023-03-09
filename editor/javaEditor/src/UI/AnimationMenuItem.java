@@ -25,7 +25,7 @@ public abstract class AnimationMenuItem extends JMenuItem {
         if (win == null){
             throw new NullPointerException("AnimationMenuItem : window (second parameter) should not be null");
         }
-
+        
         addActionListener(getListener());
     }
 
