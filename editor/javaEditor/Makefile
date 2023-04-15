@@ -1,6 +1,8 @@
 EXEC = kuribrawl-editor.jar
 
-all: release
+SRC= $(shell find src -name '*.java")
+
+all: standalone
 
 
 dependant:
@@ -14,7 +16,7 @@ else
 	ant dist-zip
 endif 
 
-release:
+standalone:
 ifeq (, $(shell which ant 2> /dev/null))
 
 ifeq (, $(shell which unzip 2> /dev/null))
@@ -34,6 +36,10 @@ endif
 else
 	ant build
 endif 
+
+release: standalone
+	@mkdir -p "../../../release/tools/editor/"
+	cp $(EXEC) "../../../release/tools/editor/$(EXEC)"
 
 clear:
 	-@rm -r classes/*

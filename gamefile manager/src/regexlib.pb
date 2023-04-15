@@ -12,7 +12,7 @@ Procedure checkString(regex.l, string.s)
 EndProcedure
 
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 10
+; CursorPosition = 11
 ; Folding = -
 ; EnableXP
 ; DPIAware
