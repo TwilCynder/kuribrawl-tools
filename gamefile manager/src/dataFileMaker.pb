@@ -486,7 +486,7 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
                     ;- - - Optional hurtbox type
                     value = Val(GMB_StringField(line, 6, " "))
                     If value < 0 Or value > 2
-                        error(errorLocationInfo("Invalid hurtbox type : should be between 0 and 2. Using 0 instead."))
+                        error(errorLocationInfo("Invalid hurtbox type : should be between 0 and 2."))
                     EndIf
                     WriteAsciiCharacter(datafile, Val(value$))
                     printLog("    Hurtbox type : " + *debugValues\hurtboxTypes[value])
@@ -1030,8 +1030,8 @@ If logging
 EndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 871
-; FirstLine = 852
+; CursorPosition = 488
+; FirstLine = 467
 ; Folding = ------
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe
