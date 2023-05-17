@@ -4,8 +4,9 @@ SRC= $(shell find src -name '*.java")
 
 all: standalone
 
+SOURCES=$(shell find src -name "*.java")
 
-dependant:
+dependant: $(SOURCES)
 ifeq (, $(shell which ant 2> /dev/null))
 	-@mkdir classes 2> /dev/null
 	javac -d ./classes -cp "./src;./lib/*" ./src/testPackage/Test.java
@@ -16,7 +17,7 @@ else
 	ant dist-zip
 endif 
 
-standalone:
+standalone: $(SOURCES)
 ifeq (, $(shell which ant 2> /dev/null))
 
 ifeq (, $(shell which unzip 2> /dev/null))
