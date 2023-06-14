@@ -195,7 +195,7 @@ public class Animation {
     public String generateDescriptorHead() {
         String res = "" + frames.length + System.lineSeparator();
         if (!isSpeedDefault()){
-            res += speed + System.lineSeparator();
+            res += "s" + speed + System.lineSeparator();
         }
         return res;
     }
