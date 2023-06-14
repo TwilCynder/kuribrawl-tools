@@ -95,7 +95,7 @@ public class EntityAnimationDisplayer extends AnimationDisplayer {
 
         for (Hitbox h : entity_frame.hitboxes){
             if (h == selected_cbox) {
-                selected = h;
+                //selected = h;
                 continue;
             }
             if (h.isInside(animpos, origin)){
@@ -105,7 +105,7 @@ public class EntityAnimationDisplayer extends AnimationDisplayer {
 
         for (Hurtbox h : entity_frame.hurtboxes){
             if (h == selected_cbox) {
-                selected = h;
+                //selected = h;
                 continue;
             }
             if (h.isInside(animpos, origin)){

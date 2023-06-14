@@ -1281,7 +1281,6 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	 */
 	private boolean checkBeforeClosing(){
 		if (modifsOccured()){
-			System.out.println("ALO");
 			int result = JOptionPane.showConfirmDialog(Window.this,
 				"Des modifications n'ont pas été sauvegardées. Voulez vous sauvegarder ?", "Confirm exit", JOptionPane.YES_NO_CANCEL_OPTION);
 				System.out.println(result);
@@ -1294,7 +1293,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 						return false;
 				}
 		}
-		System.out.println("we can close");
+		
 		return true;
 	}
 

@@ -489,7 +489,7 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
     }
 
     public void onLeftClick(Point p, Displayer d){
-
+        
     }
 
     public void onRightClick(Point p, Displayer d){
