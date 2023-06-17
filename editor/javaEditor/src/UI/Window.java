@@ -1105,6 +1105,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	}
 
 	private void addItemsToMenu(JMenu menu, Collection<JMenuItem> items) {
+		System.out.println("AITM " + items.size());
 		for (var item : items){
 			if (item == null){
 				menu.addSeparator();
@@ -1114,48 +1115,40 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		}
 	}
 
+	private JMenuItem createMenuItem(Action action, KeyStroke ks){
+		JMenuItem item = new JMenuItem(action);
+		item.setAccelerator(ks);
+		return item;
+	}
+
 	private void initMenus(){
-		Collection<JMenuItem> baseFileMenuItems = new LinkedList<>();
-		Collection<JMenuItem> gameDataFileMenuItems = new LinkedList<>();
-		
 		preload_bar = new JMenuBar();
 		gamedata_bar = new JMenuBar();
 
 		JMenu dummyMenu;
 		JMenuItem dummyMenuItem;
 
-		// base file menu items
-		dummyMenuItem = new JMenuItem(loadGameDataAction);
-		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, KeyEvent.CTRL_DOWN_MASK));
-		baseFileMenuItems.add(dummyMenuItem);
-
-		dummyMenuItem = new JMenuItem(testAction);
-		baseFileMenuItems.add(dummyMenuItem);
-		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.CTRL_DOWN_MASK));
-
-
-		// file menu items with gd loaded
-		dummyMenuItem = new JMenuItem(closeGameDataAction);
-		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, KeyEvent.CTRL_DOWN_MASK));
-		gameDataFileMenuItems.add(dummyMenuItem);
-
-		dummyMenuItem = new JMenuItem(saveAction);
-		gameDataFileMenuItems.add(dummyMenuItem);
-		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
-
-		gameDataFileMenuItems.add(new JMenuItem(saveAsAction));
-
-		gameDataFileMenuItems.add(new JMenuItem(saveArchiveAction));
-
-		//file menus themselves
+		// base file menu
 		dummyMenu = new JMenu("File");
-		addItemsToMenu(dummyMenu, baseFileMenuItems);
+
+		dummyMenu.add(createMenuItem(loadGameDataAction, KeyStroke.getKeyStroke(KeyEvent.VK_L, KeyEvent.CTRL_DOWN_MASK)));
+		dummyMenu.add(createMenuItem(testAction, KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.CTRL_DOWN_MASK)));
+
 		preload_bar.add(dummyMenu);
 
+		// file menu items with gd loaded
 		dummyMenu = new JMenu("File");
-		addItemsToMenu(dummyMenu, baseFileMenuItems);
+
+		dummyMenu.add(createMenuItem(loadGameDataAction, KeyStroke.getKeyStroke(KeyEvent.VK_L, KeyEvent.CTRL_DOWN_MASK)));
+		dummyMenu.add(createMenuItem(testAction, KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.CTRL_DOWN_MASK)));
+
 		dummyMenu.addSeparator();
-		addItemsToMenu(dummyMenu, gameDataFileMenuItems);
+
+		dummyMenu.add(createMenuItem(closeGameDataAction, KeyStroke.getKeyStroke(KeyEvent.VK_Q, KeyEvent.CTRL_DOWN_MASK)));
+		dummyMenu.add(createMenuItem(saveAction, KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK)));
+		dummyMenu.add(new JMenuItem(saveAsAction));
+		dummyMenu.add(new JMenuItem(saveArchiveAction));
+
 		gamedata_bar.add(dummyMenu);
 
 		//animations menu
@@ -1323,6 +1316,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 	public void closeGameData(){
 		clearGUI();
+
 		setMenuBar_(preload_bar);
 
 		currentData = null;
