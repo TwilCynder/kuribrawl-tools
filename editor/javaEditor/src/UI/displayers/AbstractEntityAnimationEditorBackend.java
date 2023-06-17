@@ -326,7 +326,7 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
         EntityAnimationDisplayer editor = getEditor();
         moveOriginToDisplayPos(displaypoint, editor);
         displayer.update();
-        updateFrameControls(editor.getCurrentFrame());
+        updateFrameControls(editor.getCurrentFrame(), true);
     }
 
     /**
@@ -602,8 +602,11 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
         } else {
             modifs = false;
         }
-
-        if (!modifs){
+        
+        if (modifs){
+            notifyAndUpdate(d);
+            updateElementControls(true);
+        } else {
             return super.handleKeyPress(ev, d, frame);
         }
 
@@ -616,10 +619,8 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
         CollisionBox selected_cbox = editor.selected_cbox;
         Frame frame = editor.getCurrentFrame();
 
-        if (handleKeyPress(ev, d, frame, selected_cbox)){
-            notifyAndUpdate(d);
-            updateElementControls();
-        }
+        handleKeyPress(ev, d, frame, selected_cbox);
+
 
     }
 }

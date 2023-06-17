@@ -48,9 +48,6 @@ public class EntityAnimationEditor extends EntityAnimationDisplayer implements E
     @Override
     public void onLeftClick(Point p, Displayer d) throws IllegalStateException{
         CollisionBox cbox = getCboxAt(getAnimPosition(p));
-        System.out.println(p);
-        System.out.println(getAnimPosition(p));
-        System.out.println(cbox);
         if (cbox == null){
             resetSelectedCBox();
         } else if (cbox != selected_cbox) {

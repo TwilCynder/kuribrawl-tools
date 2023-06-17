@@ -113,6 +113,7 @@ public abstract class AbstractAnimationEditorBackend {
         Frame frame = editor.getCurrentFrame();
         frame.setOrigin(editor.getAnimPosition(displaypoint));
         notifyAndUpdate(displayer);
+        updateFrameControls(frame, false);
     }
 
     /**
@@ -184,18 +185,15 @@ public abstract class AbstractAnimationEditorBackend {
                 default:
                     return false;
             }
-
+        
+        notifyAndUpdate(d);
+        updateFrameControls(frame, true);
         return true;
     }
 
     public void onKeyPressed(KeyEvent ev, Displayer d){
-        System.out.println("On key pressed AAEB");
-
         Frame frame = getEditor().getCurrentFrame();
-        if (handleKeyPress(ev, d, frame)){
-            notifyAndUpdate(d);
-            updateFrameControls(frame);
-        }
+        handleKeyPress(ev, d, frame);
     }
 
     /**
