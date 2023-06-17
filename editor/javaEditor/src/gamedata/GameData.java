@@ -155,6 +155,14 @@ public class GameData implements Iterable<Champion> {
             }
         }
 
+        for (Stage s : getStages()){
+            res.add(s.getDescriptorFilename());
+            for (Animation anim : s){
+                res.add(anim.getSourceFilename());
+                res.add(anim.getDescriptorFilename());
+            }
+        }
+
         for (var file : otherFiles.entrySet()){
             res.add(file.getKey());
         }
