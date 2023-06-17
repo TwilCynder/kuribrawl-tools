@@ -10,8 +10,11 @@ import java.awt.event.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -257,7 +260,15 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 	private Action loadGameDataAction = new AbstractAction("Load Game Data") {
 		public void actionPerformed(ActionEvent e){
-			
+			openResourcePathDialogue();
+		}
+	};
+
+	private Action closeGameDataAction = new AbstractAction("Close Game Data") {
+		public void actionPerformed(ActionEvent e){
+			if (checkBeforeClosing()){ //check if we can close safely
+				closeGameData();
+			}
 		}
 	};
 
@@ -295,7 +306,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 					"This feature saves the ressource files to an archive in their current state.\nSome modifications to the game data have not been saved to the ressource files and will not be present in the archive.\nDo you want to save before archiving ?", "Editor", JOptionPane.YES_NO_CANCEL_OPTION))
 				{
 					case JOptionPane.YES_OPTION:
-						//save
+						saveData();
 						break;
 					case JOptionPane.NO_OPTION:
 						break;
@@ -1087,6 +1098,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	}
 
 	private void setMenuBar_(JMenuBar bar){
+		if (getJMenuBar() == bar) return;
+
 		setJMenuBar(bar);
 		SwingUtilities.updateComponentTreeUI(this);
 	}
@@ -1112,7 +1125,8 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		JMenuItem dummyMenuItem;
 
 		// base file menu items
-		dummyMenuItem = new JMenuItem("Load Game Data");
+		dummyMenuItem = new JMenuItem(loadGameDataAction);
+		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, KeyEvent.CTRL_DOWN_MASK));
 		baseFileMenuItems.add(dummyMenuItem);
 
 		dummyMenuItem = new JMenuItem(testAction);
@@ -1121,7 +1135,9 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 
 		// file menu items with gd loaded
-		gameDataFileMenuItems.add(new JMenuItem("Close Game Data"));
+		dummyMenuItem = new JMenuItem(closeGameDataAction);
+		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, KeyEvent.CTRL_DOWN_MASK));
+		gameDataFileMenuItems.add(dummyMenuItem);
 
 		dummyMenuItem = new JMenuItem(saveAction);
 		gameDataFileMenuItems.add(dummyMenuItem);
@@ -1256,6 +1272,14 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			GameData gd;
 			try {
 				RessourcePath originPath = new RessourcePath(selected);
+
+				if (currentData != null){
+					if (!checkBeforeClosing()){
+						return;
+					}
+					closeGameData();
+				}
+				
 				gd = originPath.parseGameData();
 				System.out.println(selected);
 				setGameData(gd, originPath);
@@ -1298,16 +1322,15 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	}
 
 	public void closeGameData(){
-		if (checkBeforeClosing()){
-			clearGUI();
+		clearGUI();
+		setMenuBar_(preload_bar);
 
-			currentData = null;
-			currentFileList = null;
-			currentRessourcePath = null;
-			modifsOccured = false;
-			initializing = true;
-		}
-		//TODO : reset le menu
+		currentData = null;
+		currentFileList = null;
+		currentRessourcePath = null;
+		modifsOccured = false;
+		initializing = true;
+		
 	}
 
 	private MissingInfoListener missingInfoListener = new MissingInfoListener() {
@@ -1359,6 +1382,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	}
 
 	//TODO réellement sauvegarder l'entité/animationpool actuelle
+	//j'ai pas la moidre idée de ce que ça voulait dire
 	private boolean renamecurrentChampionDescriptor(){
 		EntityAnimation anim = getCurrentEntityAnimation();
 		NamedAnimationPool<EntityAnimation> owner = currentData.getEntityAnimationOwner(anim);
@@ -1375,6 +1399,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	 */
 	public void saveDataTo(RessourcePath rPath){
 		try {
+
 			rPath.saveGameData(currentData, missingInfoListener);
 		} catch (GameDataException ex){
 			errorPopup("Error : invalid game data.");
@@ -1419,6 +1444,19 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		}
 	}
 
+	public Path makeBackupPath(){
+		return Paths.get("backup", "" + Calendar.getInstance().getTime().getTime() + ".zip");
+	}
+
+	public Path saveBackup(RessourcePath rPath) throws IOException {
+		Path path = rPath.getPath();
+		Path backupPath = path.resolve(makeBackupPath());
+
+		rPath.saveAsArchive(currentFileList, backupPath);
+
+		return backupPath;
+	}
+
 	/**
 	 * Saves the current gamedata to the current ressource path.
 	 * If there is none, asks the user for one by falling back to saveDataAs
@@ -1428,8 +1466,35 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			saveDataAs();
 			return;
 		}
+
+		Path backup_path = null;
+		try {
+			backup_path = saveBackup(currentRessourcePath);
+		} catch (IOException ex){
+			ex.printStackTrace();
+			if (JOptionPane.showConfirmDialog(this,
+					"Error while saving a backup of the Game Data. \n Do you want to save anyway ?", "Editor", 
+					JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION){
+				return;
+			}
+		}
+
 		saveDataTo(currentRessourcePath);
 		resetDataModified();
+
+		if (backup_path != null){
+			if (JOptionPane.showConfirmDialog(this,
+					"The Game Data was saved. Do you want to delete the backup I made right before ?", "Editor", 
+					JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
+				
+				try {
+					Files.delete(backup_path);
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				}
+				
+			}
+		}
 	}
 
 	public void updateVisualEditor(){
