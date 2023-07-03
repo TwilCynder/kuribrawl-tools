@@ -1,4 +1,4 @@
-package testPackage;
+package main;
 
 import KBUtil.ui.PathChooser;
 import UI.Window;
@@ -14,7 +14,7 @@ import java.nio.file.Path;
 
 import javax.swing.JOptionPane;
 
-public class Test {
+public class Main {
     public static void main(String[] args) {
         System.out.println("Test Java VSC !");
 
