@@ -357,6 +357,8 @@ public class AnimationParser extends Parser {
                     }
                     
                     break;
+                    default:
+                    System.err.println("WARNING : unknown marker at beginning of line " + line_index + " in descriptor " + descriptor_filename);
                 }
             }
         } catch (IllegalStateException ex){

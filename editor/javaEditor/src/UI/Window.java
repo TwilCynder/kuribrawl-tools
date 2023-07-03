@@ -10,6 +10,8 @@ import java.awt.event.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -17,6 +19,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Stream;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -34,6 +37,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SpringLayout;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.WindowConstants;
@@ -75,6 +79,7 @@ import UI.forms.ChangeSourceImageForm;
 import UI.forms.NewAnimationForm;
 import UI.forms.RenameChampionDescriptorForm;
 import UI.forms.RenameSourceImageForm;
+import UI.forms.SelectBackupForm;
 import gamedata.AngleMode;
 import gamedata.Animation;
 import gamedata.Champion;
@@ -94,6 +99,7 @@ import gamedata.WindHitbox;
 import gamedata.RessourcePath.MissingInfoListener;
 import gamedata.exceptions.GameDataException;
 import gamedata.exceptions.InvalidRessourcePathException;
+import gamedata.exceptions.RessourceException;
 import gamedata.exceptions.TransparentGameDataException;
 
 public class Window extends JFrame implements EntityAnimationEditorWindow {
@@ -127,7 +133,15 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	private JPanel damage_hitbox;
 	private JPanel wind_hitbox;
 
+	private JMenuBar preload_bar;	
+	private JMenuBar gamedata_bar;
+
 	private JMenu animations_menu;
+	private JMenu gameDataMenu;
+
+	Collection<JMenuItem> baseGamedataMenuItems = new LinkedList<>();
+	Collection<JMenuItem> animationGamedataMenuItems = new LinkedList<>();
+	Collection<JMenuItem> championGamedataMenuItems = new LinkedList<>();
 
 	private JTextField tfDamages;
 	private TwilTextField tfAngle;
@@ -244,6 +258,143 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			}
 		}
 	}
+
+	private Action loadGameDataAction = new AbstractAction("Load Game Data") {
+		public void actionPerformed(ActionEvent e){
+			openResourcePathDialogue();
+		}
+	};
+
+	private Action closeGameDataAction = new AbstractAction("Close Game Data") {
+		public void actionPerformed(ActionEvent e){
+			if (checkBeforeClosing()){ //check if we can close safely
+				closeGameData();
+			}
+		}
+	};
+
+	private Action saveAsAction = new AbstractAction("Save as") {
+		public void actionPerformed(ActionEvent e){
+			saveDataAs();
+		}
+	};
+
+	private Action saveAction = new AbstractAction("Save") {
+		public void actionPerformed(ActionEvent e){
+			if (modifsOccured()){
+				saveData();
+			}
+		}
+	};
+
+	
+	private Action testAction = new AbstractAction("Test"){
+		public void actionPerformed(ActionEvent e){
+			System.out.println("Test !");
+		}
+	};
+
+	private Action saveArchiveAction = new AbstractAction("Save as archive"){
+		public void actionPerformed(ActionEvent e){
+			if (currentRessourcePath == null){
+				System.out.println("Can't save current ressource files as archive, as there is no open ressource folder");
+				errorPopup("Can't save current ressource files as archive, as there is no open ressource folder");
+				return;
+			}
+
+			if (modifsOccured()){
+				switch (JOptionPane.showConfirmDialog(Window.this,
+					"This feature saves the ressource files to an archive in their current state.\nSome modifications to the game data have not been saved to the ressource files and will not be present in the archive.\nDo you want to save before archiving ?", "Editor", JOptionPane.YES_NO_CANCEL_OPTION))
+				{
+					case JOptionPane.YES_OPTION:
+						saveData();
+						break;
+					case JOptionPane.NO_OPTION:
+						break;
+					default:
+						return;
+				}
+			}
+
+			PathChooser chooser = new PathChooser(PathChooser.Mode.FILE, currentRessourcePath.getPath());
+			chooser.addChoosableFileFilters(new FileNameExtensionFilter("ZIP Archives", "zip"));
+			chooser.setAcceptAllFileFilterUsed(false);
+			Path dest = chooser.savePath(Window.this);
+
+			if (dest != null){
+				try {
+					if (Files.exists(dest) && JOptionPane.showConfirmDialog(Window.this,
+					dest.toAbsolutePath().toString() + " already exists. Overwrite it ?", "Editor", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION){
+						return;
+					}
+
+					currentRessourcePath.saveAsArchive(currentFileList, dest);
+				} catch (IOException ex){
+					ex.printStackTrace();
+					errorPopup("Could not save ressource directory as archive : \n" + ex.toString());
+				}
+			}
+
+		}
+	};
+
+	Action restoreBackupAction = new AbstractAction("Restore Backup") {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			try {
+				Path p = selectBackup();
+				System.out.println(p);
+			} catch (IOException ex){
+				ex.printStackTrace();
+				JOptionPane.showMessageDialog(Window.this,
+				"Could not access backup files : " + ex.getMessage(),
+				"Inane error",
+				JOptionPane.ERROR_MESSAGE);
+			}
+
+		}
+
+	};
+
+	Action newAnimationAction = new AbstractAction("New animation") {
+		public void actionPerformed(ActionEvent e){
+			if (currentData == null) return;
+			if (currentRessourcePath == null) {
+				errorPopup("Cannot create a new animation without a ressource path to get files from.");
+				return;
+			}
+
+			new NewAnimationForm(Window.this).showForm();
+		}
+	};
+
+	Action changeDescriptorAction = new AbstractAction("Change animation descriptor filename") {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			setCurrentAnimDescriptor();
+		}
+	};
+
+	Action renameSourceImageAction = new AbstractAction("Rename animation source image") {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			renameCurrentAnimSourceImage();
+		}
+	};
+
+	Action changeSourceImageAction = new AbstractAction("Change animation source image") {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			changeCurrentAnimSourceImage();
+		}
+	};
+
+	Action renameChampionDescriptorAction = new AbstractAction("Rename champion descriptor") {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			renamecurrentChampionDescriptor();
+		}
+	};
 
 	private void createLayout(){
 		JPanel dummyPanel;
@@ -579,8 +730,6 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		//============= CALLBACKS =============
 
-
-
 		btnButtonRight.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				AnimationDisplayer displayer;
@@ -911,155 +1060,10 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		createLayout();
 
-		//============= ACTIONS ==================
-
-		Action testAction = new AbstractAction("Test"){
-			public void actionPerformed(ActionEvent e){
-				System.out.println("Test !");
-			}
-		};
-
-		Action saveArchiveAction = new AbstractAction("Save as archive"){
-			public void actionPerformed(ActionEvent e){
-				if (currentRessourcePath == null){
-					System.out.println("Can't save current ressource files as archive, as there is no open ressource folder");
-					errorPopup("Can't save current ressource files as archive, as there is no open ressource folder");
-					return;
-				}
-
-				if (modifsOccured()){
-					switch (JOptionPane.showConfirmDialog(Window.this,
-						"This feature saves the ressource files to an archive in their current state.\nSome modifications to the game data have not been saved to the ressource files and will not be present in the archive.\nDo you want to save before archiving ?", "Editor", JOptionPane.YES_NO_CANCEL_OPTION))
-					{
-						case JOptionPane.YES_OPTION:
-							//save
-							break;
-						case JOptionPane.NO_OPTION:
-							break;
-						default:
-							return;
-					}
-				}
-
-				PathChooser chooser = new PathChooser(PathChooser.Mode.FILE, currentRessourcePath.getPath());
-				chooser.addChoosableFileFilters(new FileNameExtensionFilter("ZIP Archives", "zip"));
-				chooser.setAcceptAllFileFilterUsed(false);
-				Path dest = chooser.savePath(Window.this);
-
-				if (dest != null){
-					try {
-						if (Files.exists(dest) && JOptionPane.showConfirmDialog(Window.this,
-						dest.toAbsolutePath().toString() + " already exists. Overwrite it ?", "Editor", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION){
-							return;
-						}
-
-						currentRessourcePath.saveAsArchive(currentFileList, dest);
-					} catch (IOException ex){
-						ex.printStackTrace();
-						errorPopup("Could not save ressource directory as archive : \n" + ex.toString());
-					}
-				}
-
-			}
-		};
-
-		Action saveAction = new AbstractAction("Save") {
-			public void actionPerformed(ActionEvent e){
-				if (modifsOccured()){
-					saveData();
-				}
-			}
-		};
-
-		Action saveAsAction = new AbstractAction("Save as") {
-			public void actionPerformed(ActionEvent e){
-				saveDataAs();
-			}
-		};
-
-		Action newAnimationAction = new AbstractAction("New animation") {
-			public void actionPerformed(ActionEvent e){
-				if (currentData == null) return;
-				if (currentRessourcePath == null) {
-					errorPopup("Cannot create a new animation without a ressource path to get files from.");
-					return;
-				}
-
-				new NewAnimationForm(Window.this).showForm();
-			}
-		};
-
-		Action changeDescriptorAction = new AbstractAction("Change animation descriptor filename") {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setCurrentAnimDescriptor();
-			}
-		};
-
-		Action renameSourceImageAction = new AbstractAction("Rename animation source image") {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				renameCurrentAnimSourceImage();
-			}
-		};
-
-		Action changeSourceImageAction = new AbstractAction("Change animation source image") {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				changeCurrentAnimSourceImage();
-			}
-		};
-
-		Action renameChampionDescriptorAction = new AbstractAction("Rename champion descriptor") {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				renamecurrentChampionDescriptor();
-			}
-		};
-
 		//============= MENU ==================
 
-		JMenuBar menu_bar = new JMenuBar();
-
-		JMenu dummyMenu = new JMenu("File");
-
-		JMenuItem dummyMenuItem = new JMenuItem(testAction);
-		dummyMenu.add(dummyMenuItem);
-		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.CTRL_DOWN_MASK));
-
-		dummyMenuItem = new JMenuItem(saveAction);
-		dummyMenu.add(dummyMenuItem);
-		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
-
-		dummyMenu.add(new JMenuItem(saveAsAction));
-
-		dummyMenu.add(new JMenuItem(saveArchiveAction));
-
-		menu_bar.add(dummyMenu);
-
-		animations_menu = new JMenu("Animations");
-		menu_bar.add(animations_menu);
-
-		gameDataMenu = new JMenu("Game Data");
-
-		baseGamedataMenuItems = new LinkedList<>();
-
-		dummyMenuItem = new JMenuItem(newAnimationAction);
-		baseGamedataMenuItems.add(dummyMenuItem);
-		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
-
-		animationGamedataMenuItems = new LinkedList<>();	
-		animationGamedataMenuItems.add(new JMenuItem(changeDescriptorAction));
-		animationGamedataMenuItems.add(new JMenuItem(renameSourceImageAction));
-		animationGamedataMenuItems.add(new JMenuItem(changeSourceImageAction));
-
-		championGamedataMenuItems = new LinkedList<>();
-		championGamedataMenuItems.add(new JMenuItem(renameChampionDescriptorAction));
-
-		addItemsToMenu(gameDataMenu, baseGamedataMenuItems);
-		menu_bar.add(gameDataMenu);
-
-		setJMenuBar(menu_bar);
+		initMenus();
+		setMenuBar_(preload_bar);
 
 		//=========== SHORTCUTS ==================
 
@@ -1069,24 +1073,14 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 		//========== WINDOW LISTENER =============
 
+		
+
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e){
-				if (modifsOccured()){
-					int result = JOptionPane.showConfirmDialog(Window.this,
-						"Des modifications n'ont pas été sauvegardées. Voulez vous sauvegarder ?", "Confirm exit", JOptionPane.YES_NO_CANCEL_OPTION);
-
-						switch (result){
-							case JOptionPane.YES_OPTION:
-								saveData();
-								break;
-							case JOptionPane.CANCEL_OPTION:
-							case JOptionPane.CLOSED_OPTION:
-								return;
-						}
+				if (checkBeforeClosing()){ //check if we can close safely
+					System.exit(0);
 				}
-
-				System.exit(0);
 			}
 		});
 
@@ -1122,7 +1116,15 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		timer.start();
 	}
 
+	private void setMenuBar_(JMenuBar bar){
+		if (getJMenuBar() == bar) return;
+
+		setJMenuBar(bar);
+		SwingUtilities.updateComponentTreeUI(this);
+	}
+
 	private void addItemsToMenu(JMenu menu, Collection<JMenuItem> items) {
+		System.out.println("AITM " + items.size());
 		for (var item : items){
 			if (item == null){
 				menu.addSeparator();
@@ -1130,6 +1132,64 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 				menu.add(item);
 			}	
 		}
+	}
+
+	private JMenuItem createMenuItem(Action action, KeyStroke ks){
+		JMenuItem item = new JMenuItem(action);
+		item.setAccelerator(ks);
+		return item;
+	}
+
+	private void initMenus(){
+		preload_bar = new JMenuBar();
+		gamedata_bar = new JMenuBar();
+
+		JMenu dummyMenu;
+		JMenuItem dummyMenuItem;
+
+		// base file menu
+		dummyMenu = new JMenu("File");
+
+		dummyMenu.add(createMenuItem(loadGameDataAction, KeyStroke.getKeyStroke(KeyEvent.VK_L, KeyEvent.CTRL_DOWN_MASK)));
+		dummyMenu.add(createMenuItem(testAction, KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.CTRL_DOWN_MASK)));
+
+		preload_bar.add(dummyMenu);
+
+		// file menu items with gd loaded
+		dummyMenu = new JMenu("File");
+
+		dummyMenu.add(createMenuItem(loadGameDataAction, KeyStroke.getKeyStroke(KeyEvent.VK_L, KeyEvent.CTRL_DOWN_MASK)));
+		dummyMenu.add(createMenuItem(testAction, KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.CTRL_DOWN_MASK)));
+
+		dummyMenu.addSeparator();
+
+		dummyMenu.add(createMenuItem(closeGameDataAction, KeyStroke.getKeyStroke(KeyEvent.VK_Q, KeyEvent.CTRL_DOWN_MASK)));
+		dummyMenu.add(createMenuItem(saveAction, KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK)));
+		dummyMenu.add(new JMenuItem(saveAsAction));
+		dummyMenu.add(new JMenuItem(saveArchiveAction));
+		dummyMenu.add(new JMenuItem(restoreBackupAction));
+
+		gamedata_bar.add(dummyMenu);
+
+		//animations menu
+		animations_menu = new JMenu("Animations");
+		gamedata_bar.add(animations_menu);
+
+		//game data menu
+		gameDataMenu = new JMenu("Game Data");
+
+		dummyMenuItem = new JMenuItem(newAnimationAction);
+		baseGamedataMenuItems.add(dummyMenuItem);
+		dummyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.CTRL_DOWN_MASK));
+
+		animationGamedataMenuItems.add(new JMenuItem(changeDescriptorAction));
+		animationGamedataMenuItems.add(new JMenuItem(renameSourceImageAction));
+		animationGamedataMenuItems.add(new JMenuItem(changeSourceImageAction));
+
+		championGamedataMenuItems.add(new JMenuItem(renameChampionDescriptorAction));
+
+		addItemsToMenu(gameDataMenu, baseGamedataMenuItems);
+		gamedata_bar.add(gameDataMenu);
 	}
 
 	/**
@@ -1148,8 +1208,12 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		}
 	}
 
+
+
 	private void initAnimationsMenu(GameData gd){
 		animations_menu.removeAll();
+
+		if (gd == null) return;
 
 		for (Champion c : gd){
 			JMenu champion_submenu = new JMenu(c.getDisplayName());
@@ -1210,7 +1274,78 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		currentRessourcePath = originPath;
 		currentFileList = gd.getUsedFilenames();
 		resetDataModified();
+		setMenuBar_(gamedata_bar);
 	} 
+
+	public void openResourcePathDialogue(){
+		PathChooser chooser = new PathChooser(PathChooser.Mode.DIRECTORY, ".");
+		Path selected = chooser.openPath(this);
+
+		if (selected != null){
+			GameData gd;
+			try {
+				RessourcePath originPath = new RessourcePath(selected);
+
+				if (currentData != null){
+					if (!checkBeforeClosing()){
+						return;
+					}
+					closeGameData();
+				}
+				
+				gd = originPath.parseGameData();
+				System.out.println(selected);
+				setGameData(gd, originPath);
+			} catch (InvalidRessourcePathException | IOException e){
+				e.printStackTrace();
+				JOptionPane.showMessageDialog(this,
+				"Could not read selected ressource file : " + e.getMessage(),
+				"Inane error",
+				JOptionPane.ERROR_MESSAGE);
+			} catch (RessourceException e){
+				e.printStackTrace();
+				JOptionPane.showMessageDialog(this,
+				"Could not read selected ressource file : " + e.getMessage(),
+				"Inane error",
+				JOptionPane.ERROR_MESSAGE);
+			}
+		}
+	}
+
+	/**
+	 * Performs the tasks (such as potentiel cleanups, and checking if we saved) before closing the current GD.
+	 * @return boolean : false if we should cancel the close operation 
+	 */
+	private boolean checkBeforeClosing(){
+		if (modifsOccured()){
+			int result = JOptionPane.showConfirmDialog(Window.this,
+				"Des modifications n'ont pas été sauvegardées. Voulez vous sauvegarder ?", "Confirm exit", JOptionPane.YES_NO_CANCEL_OPTION);
+				System.out.println(result);
+				switch (result){
+					case JOptionPane.YES_OPTION:
+						saveData();
+						break;
+					case JOptionPane.CANCEL_OPTION:
+					case JOptionPane.CLOSED_OPTION:
+						return false;
+				}
+		}
+		
+		return true;
+	}
+
+	public void closeGameData(){
+		clearGUI();
+
+		setMenuBar_(preload_bar);
+
+		currentData = null;
+		currentFileList = null;
+		currentRessourcePath = null;
+		modifsOccured = false;
+		initializing = true;
+		
+	}
 
 	private MissingInfoListener missingInfoListener = new MissingInfoListener() {
 		@Override public boolean missingAnimationDescriptor(RessourcePath r, Animation anim, NamedAnimationPool<?> c) {
@@ -1227,11 +1362,6 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			return setAnimDescriptor(anim);
 		};
 	};
-
-	private Collection<JMenuItem> baseGamedataMenuItems;
-	private Collection<JMenuItem> animationGamedataMenuItems;
-	private Collection<JMenuItem> championGamedataMenuItems;
-	private JMenu gameDataMenu;
 
 	private boolean setAnimDescriptor(Animation anim){
 		return (new ChangeDescriptorFilenameForm(this, anim).showForm()) == JOptionPane.OK_OPTION;
@@ -1266,6 +1396,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	}
 
 	//TODO réellement sauvegarder l'entité/animationpool actuelle
+	//j'ai pas la moidre idée de ce que ça voulait dire
 	private boolean renamecurrentChampionDescriptor(){
 		EntityAnimation anim = getCurrentEntityAnimation();
 		NamedAnimationPool<EntityAnimation> owner = currentData.getEntityAnimationOwner(anim);
@@ -1282,6 +1413,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	 */
 	public void saveDataTo(RessourcePath rPath){
 		try {
+
 			rPath.saveGameData(currentData, missingInfoListener);
 		} catch (GameDataException ex){
 			errorPopup("Error : invalid game data.");
@@ -1326,6 +1458,41 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		}
 	}
 
+	public Path makeBackupPath(){
+		return Paths.get("backup", "" + Calendar.getInstance().getTime().getTime() + ".zip");
+	}
+
+	public Path saveBackup(RessourcePath rPath) throws IOException {
+		Path path = rPath.getPath();
+		Path backupPath = path.resolve(makeBackupPath());
+
+		rPath.saveAsArchive(currentFileList, backupPath);
+
+		return backupPath;
+	}
+
+	private static void restoreArchive(Path archive_path, RessourcePath rPath){
+
+	}
+
+	private void restoreArchive(Path archive_path){
+		if (currentRessourcePath == null){
+			throw new WindowStateException("Tried to restore archive to current resource path but there is none");
+		}
+		restoreArchive(archive_path, currentRessourcePath);
+	}
+
+	private Path selectBackup() throws IOException {
+		if (currentRessourcePath == null){
+			throw new WindowStateException("Tried to select a backup in current resource parth but there is none");
+		}
+
+		Path backup_dir = currentRessourcePath.resolvePath("backup");
+		new SelectBackupForm(Window.this, backup_dir).showForm();
+
+		return null;
+	}
+
 	/**
 	 * Saves the current gamedata to the current ressource path.
 	 * If there is none, asks the user for one by falling back to saveDataAs
@@ -1335,12 +1502,53 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			saveDataAs();
 			return;
 		}
+
+		Path backup_path = null;
+		try {
+			backup_path = saveBackup(currentRessourcePath);
+		} catch (IOException ex){
+			ex.printStackTrace();
+			if (JOptionPane.showConfirmDialog(this,
+					"Error while saving a backup of the Game Data. \n Do you want to save anyway ?", "Editor", 
+					JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION){
+				return;
+			}
+		}
+
 		saveDataTo(currentRessourcePath);
 		resetDataModified();
+
+		if (backup_path != null){
+			if (JOptionPane.showConfirmDialog(this,
+					"The Game Data was saved. Do you want to delete the backup I made right before ?", "Editor", 
+					JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
+				
+				try {
+					Files.delete(backup_path);
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				}
+				
+			}
+		}
 	}
 
 	public void updateVisualEditor(){
 		displayCanvas.repaint();
+	}
+
+	private void clearGUI(){
+		displayCanvas.setInteractable();
+		editor_controls.show("blank");
+	}
+
+	public void setDisplayedObject(){
+		clearGUI();
+		//TODO reset le menu ?
+	}
+
+	public void setDisplayedObject(Object o) throws UnsupportedOperationException{
+		throw new UnsupportedOperationException();
 	}
 
 	public void setDisplayedObject(EntityAnimation anim){
@@ -1491,10 +1699,6 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 	private void updateCurrentZoomField(ZoomingDisplayer displayer){
 		tfCurrentZoom.setText(displayer.getZoom());
-	}
-
-	public void setDisplayedObject(Object o) throws UnsupportedOperationException{
-		throw new UnsupportedOperationException();
 	}
 
 	public void updateAnimControls(Animation anim, boolean ignoreModifications){

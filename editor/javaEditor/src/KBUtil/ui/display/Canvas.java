@@ -113,6 +113,10 @@ public class Canvas extends JPanel implements Displayer{
         return this;
     }
 
+    public void setInteractable(){
+        current_object = null;
+    }
+
     /**
      * Sets the current object.
      * @param obj

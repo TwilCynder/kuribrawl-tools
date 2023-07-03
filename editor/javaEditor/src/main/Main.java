@@ -1,18 +1,8 @@
 package main;
 
-import KBUtil.ui.PathChooser;
 import UI.Window;
 
-import gamedata.GameData;
-import gamedata.RessourcePath;
-import gamedata.exceptions.InvalidRessourcePathException;
-import gamedata.exceptions.RessourceException;
-
 import java.awt.EventQueue;
-import java.io.IOException;
-import java.nio.file.Path;
-
-import javax.swing.JOptionPane;
 
 public class Main {
     public static void main(String[] args) {
@@ -26,30 +16,7 @@ public class Main {
 					Window frame = new Window();
 					frame.setVisible(true);
 
-					PathChooser chooser = new PathChooser(PathChooser.Mode.DIRECTORY, ".");
-					Path selected = chooser.openPath(frame);
-
-					if (selected != null){
-						GameData gd;
-						try {
-							RessourcePath originPath = new RessourcePath(selected);
-							gd = originPath.parseGameData();
-							System.out.println(selected);
-							frame.setGameData(gd, originPath);
-						} catch (InvalidRessourcePathException | IOException e){
-							e.printStackTrace();
-							JOptionPane.showMessageDialog(frame,
-							"Could not read selected ressource file : " + e.getMessage(),
-							"Inane error",
-							JOptionPane.ERROR_MESSAGE);
-						} catch (RessourceException e){
-							e.printStackTrace();
-							JOptionPane.showMessageDialog(frame,
-							"Could not read selected ressource file : " + e.getMessage(),
-							"Inane error",
-							JOptionPane.ERROR_MESSAGE);
-						}
-					}
+					frame.openResourcePathDialogue();
 
 				} catch (Exception e) {
 					e.printStackTrace();
