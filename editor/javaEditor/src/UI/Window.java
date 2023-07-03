@@ -14,12 +14,12 @@ import java.nio.file.Paths;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Stream;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -79,6 +79,7 @@ import UI.forms.ChangeSourceImageForm;
 import UI.forms.NewAnimationForm;
 import UI.forms.RenameChampionDescriptorForm;
 import UI.forms.RenameSourceImageForm;
+import UI.forms.SelectBackupForm;
 import gamedata.AngleMode;
 import gamedata.Animation;
 import gamedata.Champion;
@@ -335,6 +336,24 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 			}
 
 		}
+	};
+
+	Action restoreBackupAction = new AbstractAction("Restore Backup") {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			try {
+				Path p = selectBackup();
+				System.out.println(p);
+			} catch (IOException ex){
+				ex.printStackTrace();
+				JOptionPane.showMessageDialog(Window.this,
+				"Could not access backup files : " + ex.getMessage(),
+				"Inane error",
+				JOptionPane.ERROR_MESSAGE);
+			}
+
+		}
+
 	};
 
 	Action newAnimationAction = new AbstractAction("New animation") {
@@ -1148,6 +1167,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		dummyMenu.add(createMenuItem(saveAction, KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK)));
 		dummyMenu.add(new JMenuItem(saveAsAction));
 		dummyMenu.add(new JMenuItem(saveArchiveAction));
+		dummyMenu.add(new JMenuItem(restoreBackupAction));
 
 		gamedata_bar.add(dummyMenu);
 
@@ -1449,6 +1469,28 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		rPath.saveAsArchive(currentFileList, backupPath);
 
 		return backupPath;
+	}
+
+	private static void restoreArchive(Path archive_path, RessourcePath rPath){
+
+	}
+
+	private void restoreArchive(Path archive_path){
+		if (currentRessourcePath == null){
+			throw new WindowStateException("Tried to restore archive to current resource path but there is none");
+		}
+		restoreArchive(archive_path, currentRessourcePath);
+	}
+
+	private Path selectBackup() throws IOException {
+		if (currentRessourcePath == null){
+			throw new WindowStateException("Tried to select a backup in current resource parth but there is none");
+		}
+
+		Path backup_dir = currentRessourcePath.resolvePath("backup");
+		new SelectBackupForm(Window.this, backup_dir).showForm();
+
+		return null;
 	}
 
 	/**
