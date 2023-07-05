@@ -342,8 +342,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			try {
-				Path p = selectBackup();
-				System.out.println(p);
+				selectBackup();
 			} catch (IOException ex){
 				ex.printStackTrace();
 				JOptionPane.showMessageDialog(Window.this,
@@ -1471,26 +1470,23 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		return backupPath;
 	}
 
-	private static void restoreArchive(Path archive_path, RessourcePath rPath){
-
-	}
-
-	private void restoreArchive(Path archive_path){
-		if (currentRessourcePath == null){
-			throw new WindowStateException("Tried to restore archive to current resource path but there is none");
-		}
-		restoreArchive(archive_path, currentRessourcePath);
-	}
-
-	private Path selectBackup() throws IOException {
+	private void selectBackup() throws IOException {
 		if (currentRessourcePath == null){
 			throw new WindowStateException("Tried to select a backup in current resource parth but there is none");
 		}
 
-		Path backup_dir = currentRessourcePath.resolvePath("backup");
-		new SelectBackupForm(Window.this, backup_dir).showForm();
+		SelectBackupForm form = new SelectBackupForm(Window.this, currentRessourcePath);
 
-		return null;
+		switch (form.getState()){
+			case NO_BACKUPS:
+				errorPopup("There is no backup for the current resource directory.");
+				break;
+			case COULDNT_ACESS_BACKUPS:
+				errorPopup("Could not access the backups (IO error)");
+				break;
+			default:
+				form.showForm();
+		}
 	}
 
 	/**

@@ -452,6 +452,8 @@ public class RessourcePath {
     }
 
     public void saveAsArchive(List<String> files, Path dest) throws IOException {
+        Files.createDirectories(dest.getParent());
+        System.out.println(dest.getParent());
         try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(dest, symlinks_behavior, StandardOpenOption.CREATE))){
             zipFile(listPath, zos);
             for (String file : files){
@@ -475,5 +477,9 @@ public class RessourcePath {
             zos.write(buffer, 0, read);
         }
         zos.closeEntry();
+    }
+
+    public void restoreArchive(Path archivePath){
+        System.out.println("Restoring " + archivePath);
     }
 }
