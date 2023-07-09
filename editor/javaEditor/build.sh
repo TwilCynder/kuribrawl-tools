@@ -20,8 +20,8 @@ then
     fi
     
     mkdir -p classes 2> /dev/null
-	javac -d ./classes -cp "./src;./lib/*" ./src/testPackage/Test.java
-	echo Main-Class: testPackage.Test>manifest.mf
+	javac -d ./classes -cp "./src;./lib/*" ./src/main/Main.java
+	echo Main-Class: main.Main>manifest.mf
 	echo Class-Path: ./lib/*>>manifest.mf
 	
 	mkdir tmp
@@ -39,8 +39,8 @@ then
 
 else
     mkdir -p classes
-    javac -d ./classes -cp "./src;./lib/*" ./src/testPackage/Test.java
-    echo Main-Class: testPackage.Test>manifest.mf
+    javac -d ./classes -cp "./src;./lib/*" ./src/main/Main.java
+    echo Main-Class: main.Main>manifest.mf
     echo Class-Path: ./lib/*>>manifest.mf
     jar cvfm kuribrawl-editor.jar manifest.mf -C classes .
 fi

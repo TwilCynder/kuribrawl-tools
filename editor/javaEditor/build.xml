@@ -4,7 +4,7 @@
     <property name = "exec.file"    value="${ant.project.name}.jar"/>
     <property name="exec-d.file"    value="${ant.project.name}-d.jar"/>
     <property name = "zip.file"     value="${ant.project.name}.zip"/>
-    <property name="main-class"     value="testPackage.Test"/>
+    <property name="main-class"     value="main.Main"/>
 
     <property name="src.dir"        value="src"/>
     <property name="lib.dir"        value="lib"/>

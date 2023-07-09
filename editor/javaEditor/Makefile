@@ -9,8 +9,8 @@ SOURCES=$(shell find src -name "*.java")
 dependant: $(SOURCES)
 ifeq (, $(shell which ant 2> /dev/null))
 	-@mkdir classes 2> /dev/null
-	javac -d ./classes -cp "./src;./lib/*" ./src/testPackage/Test.java
-	echo Main-Class: testPackage.Test>manifest.mf
+	javac -d ./classes -cp "./src;./lib/*" ./src/main/Main.java
+	echo Main-Class: main.Main>manifest.mf
 	echo Class-Path: ./lib/*>>manifest.mf
 	jar cvfm kuribrawl-editor.jar manifest.mf -C classes .
 else
@@ -25,8 +25,8 @@ ifeq (, $(shell which unzip 2> /dev/null))
 endif
 
 	-@mkdir classes 2> /dev/null
-	javac -d ./classes -cp "./src;./lib/*" ./src/testPackage/Test.java
-	echo Main-Class: testPackage.Test>manifest.mf
+	javac -d ./classes -cp "./src;./lib/*" ./src/main/Main.java
+	echo Main-Class: main.Main>manifest.mf
 	echo Class-Path: ./lib/*>>manifest.mf
 	
 	-@mkdir tmp
