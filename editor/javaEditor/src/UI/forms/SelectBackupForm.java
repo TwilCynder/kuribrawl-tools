@@ -159,7 +159,6 @@ public class SelectBackupForm extends EditorForm {
         list = new TwilList<>(makeListModel());
         list.setBorder(new EmptyBorder(list_padding, list_padding, list_padding, list_padding));
         form.add(list);
-        System.out.println("Widht : " + form.getSize().width);
 
         return form;
 
@@ -172,7 +171,13 @@ public class SelectBackupForm extends EditorForm {
         if (p == null){
             return false;
         } else {
-            rPath.restoreArchive(p.getPath());
+
+            try {
+
+                rPath.restoreArchive(p.getPath());
+            } catch (IOException ex){
+                //TODO : message d'erreur qui demande de retry
+            }
             return true;
         }
 

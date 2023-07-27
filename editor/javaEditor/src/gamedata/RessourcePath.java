@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import java.awt.Image;
 
@@ -479,7 +480,16 @@ public class RessourcePath {
         zos.closeEntry();
     }
 
-    public void restoreArchive(Path archivePath){
+    public void restoreArchive(Path archivePath) throws IOException {
         System.out.println("Restoring " + archivePath);
+        ZipInputStream zis = new ZipInputStream(Files.newInputStream(archivePath));
+        for (ZipEntry entry = zis.getNextEntry(); entry != null; entry = zis.getNextEntry()){
+            System.out.println("Unzipping " + entry);
+            Path dest = resolvePath(entry.getName());
+
+            if (dest.startsWith(getPath())){
+                System.out.println("VALID");
+            }
+        }
     }
 }
