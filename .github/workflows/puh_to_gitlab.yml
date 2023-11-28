@@ -3,6 +3,8 @@ name: Push to Gitlab
 on:
   push:
     branches: [ master ]
+  workflow_dispatch:
+
 
 jobs:
   push:
