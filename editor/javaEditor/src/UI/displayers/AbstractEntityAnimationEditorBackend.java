@@ -89,6 +89,15 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
             item = new JMenuItem("Move origin here");
             item.addActionListener(createMoveOriginActionListener(this));
             add(item);
+
+            item = new JMenuItem("Create default hurtboxes");
+            item.addActionListener(new ActionListener(){
+                public void actionPerformed(ActionEvent e){
+                    makeDefaultHurtboxes();
+                    cancelSelection(displayer);
+                }
+            });
+            add(item);
         }
 
         @Override
@@ -201,6 +210,15 @@ public abstract class AbstractEntityAnimationEditorBackend extends AbstractAnima
         frame.makeRelativeToOrigin(rect);
         editor.setSelectedCBox(entity_frame.addHurtbox(rect.x, rect.y, rect.w, rect.h));
         //cancelSelection(d);
+        notifyDataModified();
+    }
+
+    private void makeDefaultHurtboxes(){
+        EntityAnimationDisplayer editor = getEditor();
+        EntityAnimation anim = editor.getAnimation();
+
+        anim.fullFramehurtboxes();
+
         notifyDataModified();
     }
 

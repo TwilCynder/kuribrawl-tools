@@ -3,6 +3,7 @@ package gamedata;
 import gamedata.EntityFrame.FrameMovementAxis;
 import gamedata.exceptions.FrameOutOfBoundsException;
 import gamedata.exceptions.GameDataException;
+import gamedata.exceptions.WhatTheHellException;
 import gamedata.parsers.AnimationParser;
 
 import java.awt.Image;
@@ -225,6 +226,20 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
         );
         frame.setOriginY(new_y);
         shiftElements(entity_frame, diff);
+    }
+
+    public void fullFramehurtboxes(){
+        for (int i = 0; i < this.getNbFrames(); i++){
+            Frame frame; EntityFrame entity_frame;
+            try {
+                frame = this.getFrame(i);
+                entity_frame = this.getEntityFrame(i);
+            } catch (FrameOutOfBoundsException e){
+                throw new WhatTheHellException("Supposedly safe array iteration went out of bounds", e);
+            }
+
+            entity_frame.fullFrameHurtbox(frame);
+        }
     }
 
     @Override

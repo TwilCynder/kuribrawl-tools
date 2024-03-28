@@ -381,6 +381,14 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		}
 	};
 
+	Action makeDefaultHurtboxesAction = new AbstractAction("Make default hurtboxes") {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			makeFullFrameHurtboxes();
+		}
+		
+	};
+
 	Action changeSourceImageAction = new AbstractAction("Change animation source image") {
 		@Override
 		public void actionPerformed(ActionEvent e) {
@@ -1184,6 +1192,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		animationGamedataMenuItems.add(new JMenuItem(changeDescriptorAction));
 		animationGamedataMenuItems.add(new JMenuItem(renameSourceImageAction));
 		animationGamedataMenuItems.add(new JMenuItem(changeSourceImageAction));
+		animationGamedataMenuItems.add(new JMenuItem(makeDefaultHurtboxesAction));
 
 		championGamedataMenuItems.add(new JMenuItem(renameChampionDescriptorAction));
 
@@ -1388,6 +1397,14 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 	private boolean changeCurrentAnimSourceImage() throws WindowStateException{
 		Animation anim = getCurrentyAnimation();
 		return changeAnimSourceImage(anim);
+	}
+
+	private boolean makeFullFrameHurtboxes() {
+		EntityAnimation anim = getCurrentEntityAnimation();
+		anim.fullFramehurtboxes();
+		notifyDataModified();
+		updateVisualEditor();
+		return true;
 	}
 
 	private boolean renameChampionDescriptor(Champion champion){

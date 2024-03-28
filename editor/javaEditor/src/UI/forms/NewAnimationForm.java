@@ -229,6 +229,7 @@ public class NewAnimationForm extends EditorForm {
 
         try {
             currentRessourcePath.addAnimation(champion, animName, nbFrames, sourceImageFilename, descriptorFilename);
+            editor.notifyDataModified();
             editor.updateAnimations();
             currentData.printAnimations();
         } catch (RessourceException ex){    

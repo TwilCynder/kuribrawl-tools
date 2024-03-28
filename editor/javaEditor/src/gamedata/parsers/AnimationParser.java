@@ -300,17 +300,7 @@ public class AnimationParser extends Parser {
                         fields = StringHelper.split(line, " ");
                         if (fields.length > 1 && fields[1].equals("all")){
                             EntityAnimation eanim = estate.getAnimation();
-                            for (int i = 0; i < anim.getNbFrames(); i++){
-                                Frame frame; EntityFrame entity_frame;
-                                try {
-                                    frame = anim.getFrame(i);
-                                    entity_frame = eanim.getEntityFrame(i);
-                                } catch (FrameOutOfBoundsException e){
-                                    throw new WhatTheHellException("Supposedly safe array iteration went out of bounds", e);
-                                }
-        
-                                entity_frame.fullFrameHurtbox(frame);
-                            }
+                            eanim.fullFramehurtboxes();
                         } else {
         
                             if (fields.length < 2){
