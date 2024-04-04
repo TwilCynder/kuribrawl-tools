@@ -829,10 +829,10 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
                     value$ = GMB_StringField(line, i, " ")
                     If value$ = "" Or value$ = "x"
                         printLog("  - Profondeur : 0 (défaut)")
-                        writeShort(datafile, 0)
+                        writeDouble(datafile, 0)
                     Else
                         printLog("  - Profondeur : " + value$)
-                        writeShort(datafile, Val(value$))
+                        writeDouble(datafile, ValD(value$))
                     EndIf
                 EndIf
 
