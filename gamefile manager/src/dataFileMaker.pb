@@ -6,11 +6,11 @@ IncludeFile "regexlib.pb"
 
 #DFV_MAJ = 0
 #DFV_MIN = 3
-#DFV_REV = 2
+#DFV_REV = 3
 
 #RFV_MAJ = 0
 #RFV_MIN = 3
-#RFV_REV = 4
+#RFV_REV = 5
 
 Structure File
     path.s
@@ -74,9 +74,13 @@ EndEnumeration
 #FILEMARKER_HURTBOXFRAMEINDEX = $31
 #FILEMARKER_HITBOXINFO = 4
 #FILEMARKER_HITBOXFRAMEINDEX = $41
+#FILEMARKER_LANDINGINFO = 5
+#FILEMARKER_LANDING_NORMAL = $50
+#FILEMARKER_LANDING_ANIMATION = $51
+#FILEMARKER_LANDING_NOTHING = $52
+
 ;Champions
 #FILEMARKER_MOVEINFO = 2
-#FILEMARKER_LANDINGLAG = $20
 #FILEMARKER_MULTIMOVE = 3
 #FILEMARKER_MULTIMOVEEND = $30
 ;Stage
@@ -576,9 +580,76 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
                         Default
                             error(errorLocationInfo("Invalid hitbox type : " + value))
                     EndSelect
-
-                    ;WriteAsciiCharacter(datafile, #FILEMARKER_GENERICSEPARATOR)
-                    ;printLog("    Writing end marker")
+                    
+                Case "l"
+                    ;- - Landing info line -------------------------------------------------------------
+                    
+                    checkIsEntityM("Landing")
+                    Debug "Loc : " + Loc(datafile)
+                    
+                    printLog("  Writing landing info")
+                    WriteAsciiCharacter(datafile, #FILEMARKER_LANDINGINFO)
+                    
+                    value$ = GMB_StringField(line, 2, " ")
+                    If value$ = ""
+                        error(errorLocationInfo(" : No frame index specified at the start of landing behavior descriptor"))
+                    EndIf
+                    Debug value$
+                    value = Val(value$)
+                    If value < 0 Or value > frameNumber
+                        error(errorLocationInfo(" : frame index must be between 0 and the frame number (" + frameNumber + ")"))
+                    EndIf
+                    
+                    printLog("    Starting frame : " + value)
+                    writeUShort(datafile, value)
+                    
+                    value$ = GMB_StringField(line, 3, " ")
+                    Debug value$
+                    Select value$
+                        Case "n"
+                            printLog("    Type : Nothing")
+                            WriteAsciiCharacter(datafile, #FILEMARKER_LANDING_NOTHING)
+                        Case "l"
+                            printLog("    Type : Normal")
+                            WriteAsciiCharacter(datafile, #FILEMARKER_LANDING_NORMAL)
+                            value$ = GMB_StringField(line, 4, " ")
+                            If value$ 
+                                value = Val(value$)
+                                printLog("    Duration : " + value)
+                                writeShort(datafile, value)
+                            Else
+                                printLog("    Duration : animation default (-1)")
+                                writeShort(datafile, -1)
+                            EndIf 
+                        Case "a"
+                            printLog("    Type : Animation")
+                            WriteAsciiCharacter(datafile, #FILEMARKER_LANDING_ANIMATION)
+                            value$ = GMB_StringField(line, 5, " ")
+                            If value$ 
+                                value = Val(value$)
+                                printLog("    Duration : " + value)
+                                writeShort(datafile, value)
+                            Else
+                                printLog("    Duration : animation default (-1)")
+                                writeShort(datafile, -1)
+                            EndIf 
+                            
+                            value$ = GMB_StringField(line, 4, " ")
+                            
+                            If value$ = ""
+                                error(errorLocationInfo(" : No animation name"))
+                            ElseIf Not isValidIdentifier(value$)
+                                error(errorLocationInfo(" : " + value$ + " is not a valid animation name"))
+                            EndIf 
+                            
+                            printLog("    Animation name : " + value$)
+                            writeAsciiString(datafile, value$)
+                            
+                        Case ""
+                            error(errorLocationInfo(" : No landing behavior type specified in landing behavior descriptor"))
+                        Default 
+                            error(errorLocationInfo(" : Invalid behavior type indicator, should be n, l or a was " + value$))
+                    EndSelect
                 Case "#"
                     ;it's a comment
                 Default
@@ -795,7 +866,7 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
                     writeAsciiString(datafile, value$)
                 EndIf
 
-            Case "b" ;platform
+            Case "b" ;background element
                 WriteAsciiCharacter(datafile, #FILEMARKER_BACKGROUNDELEMENT)
                 printLog("  Writing background element info")
 
@@ -1024,14 +1095,14 @@ size.l = Loc(0)
 CloseFile(0)
 
 If logging
-    ;Input()
+    Input()
     PrintN("===============================")
     PrintN("FINISHED. File size : " + size)
 EndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 601
-; FirstLine = 576
+; CursorPosition = 644
+; FirstLine = 609
 ; Folding = ------
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe

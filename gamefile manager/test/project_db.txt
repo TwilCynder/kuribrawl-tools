@@ -6,3 +6,5 @@ oracle.png
 I:oracle
 testStage.dat
 S:test
+nair_strip6.png
+A:acid/nair nair_acid.dat
