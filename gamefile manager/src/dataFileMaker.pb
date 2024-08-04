@@ -285,7 +285,7 @@ EndMacro
 
 
 Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
-    Define value.l, line.s, value$, valueD.d, frameNumber.a, lastModifiedFrame.b = -1, i.b
+    Define value.l, line.s, value$, valueD.d, frameNumber.l, lastModifiedFrame.b = -1, i.b
 
     lineN.l = 1
 
@@ -315,11 +315,11 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
                 EndIf
             EndIf
         EndIf
-        If value > 255
-            error("Frame number must be between 0 and 255")
+        If value > 65535
+            error("Frame number must be between 0 and 65535")
         EndIf
         printLog("  Frame number : " + value)
-        WriteAsciiCharacter(datafile, value)
+        writeUShort(datafile, value)
         frameNumber = value
 
         ;- Reading other lines --------------------------------------------------------------------
@@ -333,7 +333,7 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
                     value$ = Mid(line, 2)
                     valueD = ValD(value$)
                     If valueD <= 0
-                        warning(errorLocationInfo(" : Null or negative speed   using 1 instead"))
+                        warning(errorLocationInfo(" : Null or negative speed, using 1 instead"))
                     Else
                         WriteAsciiCharacter(datafile, #FILEMARKER_ANIMSPEED)
                         WriteDouble(datafile, valueD)
@@ -352,7 +352,7 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
                     EndIf
 
                     WriteAsciiCharacter(datafile, #FILEMARKER_FRAMEINFO)
-                    WriteAsciiCharacter(datafile, value)
+                    writeUShort(datafile, value)
                     printLog("  Info on frame " + value)
                     lastModifiedFrame = value
                     ;- - - Reading all values
@@ -427,7 +427,7 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
                         For i = 0 To frameNumber - 1
                             printLog(~"    Writing full-frame hurtox on frame " + Str(i))
                             WriteAsciiCharacter(datafile, #FILEMARKER_FRAMEINFO)
-                            WriteAsciiCharacter(datafile, i)
+                            writeUShort(datafile, i)
                             WriteAsciiCharacter(datafile, #FILEMARKER_HURTBOXINFO)
                             WriteUnicodeCharacter(datafile, #MAX_VALUE_SHORT)
                         Next
@@ -448,7 +448,7 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
                             EndIf
                             If value <> lastModifiedFrame
                                 WriteAsciiCharacter(datafile, #FILEMARKER_FRAMEINFO)
-                                WriteAsciiCharacter(datafile, value)
+                                writeUShort(datafile, value)
                                 printlog("    Hurtbox is on frame " + Str(value) + " instead of the last modified frame")
                             EndIf
                         EndIf
@@ -512,7 +512,7 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
                             value = Val(value$)
                             If value <> lastModifiedFrame
                                 WriteAsciiCharacter(datafile, #FILEMARKER_FRAMEINFO)
-                                WriteAsciiCharacter(datafile, value)
+                                writeUShort(datafile, value)
                                 printlog("    Hitbox is on frame " + Str(value) + " instead of the last modified frame")
                             EndIf
                         EndIf
@@ -599,7 +599,7 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
         If frameNumber < 1
             error("Null or negative frame number")
         EndIf
-        WriteByte(datafile, frameNumber)
+        writeUShort(datafile, frameNumber)
         printLog("  Frames number : " + value$)
 
         value$ = GMB_StringField(info, 2, " ")
@@ -616,7 +616,7 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
             For i = 0 To frameNumber - 1
                 printLog(~"    Writing full-frame hurtox (0x7FFF) on frame " + Str(i))
                 WriteAsciiCharacter(datafile, #FILEMARKER_FRAMEINFO)
-                WriteAsciiCharacter(datafile, i)
+                writeUShort(datafile, i)
                 WriteAsciiCharacter(datafile, #FILEMARKER_HURTBOXINFO)
                 WriteWord(datafile, #MAX_VALUE_SHORT)
             Next
@@ -710,28 +710,28 @@ Procedure writeChampionFile(datafile.l, sourceFileName.s)
 
     While Not line = ""
         Select Left(line, 1)
-            Case "m"
-                value$ = GMB_StringField(line, 2, " ")
-                If value$ = ""
-                    error("Move names cannot be empty")
-                EndIf
-                WriteAsciiCharacter(datafile, #FILEMARKER_MOVEINFO)
-                writeAsciiString(datafile, value$)
-                printLog("- Writing move info : " + value$)
-
-                ;- - - Reading all values
-                For i = 3 To GMB_CountFields(line, " ")
-                    value$ = GMB_StringField(line, i, " ")
-                    Select value$
-                        Case "l" ; landing lag
-                            i + 1
-                            value$ = GMB_StringField(line, i, " ")
-                            WriteAsciiCharacter(datafile, #FILEMARKER_LANDINGLAG)
-                            WriteAsciiCharacter(datafile, Val(value$))
-                            printLog("  - Landing lag : " + value$)
-                    EndSelect
-
-                Next
+;             Case "m"
+;                 value$ = GMB_StringField(line, 2, " ")
+;                 If value$ = ""
+;                     error("Move names cannot be empty")
+;                 EndIf
+;                 WriteAsciiCharacter(datafile, #FILEMARKER_MOVEINFO)
+;                 writeAsciiString(datafile, value$)
+;                 printLog("- Writing move info : " + value$)
+; 
+;                 ;- - - Reading all values
+;                 For i = 3 To GMB_CountFields(line, " ")
+;                     value$ = GMB_StringField(line, i, " ")
+;                     Select value$
+;                         Case "l" ; landing lag
+;                             i + 1
+;                             value$ = GMB_StringField(line, i, " ")
+;                             WriteAsciiCharacter(datafile, #FILEMARKER_LANDINGLAG)
+;                             WriteAsciiCharacter(datafile, Val(value$))
+;                             printLog("  - Landing lag : " + value$)
+;                     EndSelect
+; 
+;                 Next
         EndSelect
         line = getDescriptorLine(sourceFile, @lineN)
     Wend
@@ -829,10 +829,10 @@ Procedure writeStageFile(datafile.l, sourceFileName.s)
                     value$ = GMB_StringField(line, i, " ")
                     If value$ = "" Or value$ = "x"
                         printLog("  - Profondeur : 1 (défaut)")
-                        writeDouble(datafile, 1)
+                        WriteDouble(datafile, 1)
                     Else
                         printLog("  - Profondeur : " + value$)
-                        writeDouble(datafile, ValD(value$))
+                        WriteDouble(datafile, ValD(value$))
                     EndIf
                 EndIf
 
@@ -1030,8 +1030,8 @@ If logging
 EndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 488
-; FirstLine = 467
+; CursorPosition = 601
+; FirstLine = 576
 ; Folding = ------
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe
