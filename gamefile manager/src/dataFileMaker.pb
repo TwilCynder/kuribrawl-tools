@@ -52,6 +52,12 @@ Enumeration
     #HITBOXTYPE_SPECIAL
 EndEnumeration
 
+Enumeration 
+    #ANIM_END_NORMAL
+    #ANIM_END_HELPLESS 
+    #ANIM_END_CUSTOM 
+EndEnumeration
+
 #MAX_VALUE_BYTE = 255
 #MAX_VALUE_UCHAR = 127
 #MAX_VALUE_USHORT = 65535
@@ -80,9 +86,7 @@ EndEnumeration
 #FILEMARKER_LANDING_NOTHING = $52
 #FILEMARKER_ANIM_END_INFO = 6
 
-#VALUE_ANIM_END_NORMAL = 0
-#VALUE_ANIM_END_HELPLESS = 1
-#VALUE_ANIM_END_CUSTOM = 2
+
 
 ;Champions
 #FILEMARKER_MOVEINFO = 2
@@ -595,11 +599,11 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
                     Select value$
                         Case ""
                             printLog("    No value specified, assuming helpless")
-                            WriteAsciiCharacter(datafile, #VALUE_ANIM_END_HELPLESS)
-                            
+                            WriteAsciiCharacter(datafile, #ANIM_END_HELPLESS)
+                           
                         Case "helpless"
                             printLog("    Mode : helpless")
-                            WriteAsciiCharacter(datafile, #VALUE_ANIM_END_HELPLESS)
+                            WriteAsciiCharacter(datafile, #ANIM_END_HELPLESS)
                         Case "custom"
                             error(errorLocationInfo("Custom end behavior is not supported yet"))
                         Default
@@ -1121,14 +1125,13 @@ size.l = Loc(0)
 CloseFile(0)
 
 If logging
-    Input()
     PrintN("===============================")
     PrintN("FINISHED. File size : " + size)
 EndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 605
-; FirstLine = 589
+; CursorPosition = 1129
+; FirstLine = 1078
 ; Folding = ------
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe
