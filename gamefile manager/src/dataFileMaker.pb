@@ -78,6 +78,11 @@ EndEnumeration
 #FILEMARKER_LANDING_NORMAL = $50
 #FILEMARKER_LANDING_ANIMATION = $51
 #FILEMARKER_LANDING_NOTHING = $52
+#FILEMARKER_ANIM_END_INFO = 6
+
+#VALUE_ANIM_END_NORMAL = 0
+#VALUE_ANIM_END_HELPLESS = 1
+#VALUE_ANIM_END_CUSTOM = 2
 
 ;Champions
 #FILEMARKER_MOVEINFO = 2
@@ -422,7 +427,7 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
                         value$ = GMB_StringField(line, i, " ")
                     Wend
                 Case "c"
-                    checkIsEntityM("Hutbox")
+                    checkIsEntityM("Hurtbox")
 
                     ;- - Hurtbox line -------------------------------------------------------------
 
@@ -580,12 +585,33 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
                         Default
                             error(errorLocationInfo("Invalid hitbox type : " + value))
                     EndSelect
+                Case "e"
+                    checkIsEntityM("End behavior")
+                    
+                    printLog("  Writing ending behavior info")
+                    WriteAsciiCharacter(datafile, #FILEMARKER_ANIM_END_INFO)
+                    
+                    value$ = GMB_StringField(line, 2, " ")
+                    Select value$
+                        Case ""
+                            printLog("    No value specified, assuming helpless")
+                            WriteAsciiCharacter(datafile, #VALUE_ANIM_END_HELPLESS)
+                            
+                        Case "helpless"
+                            printLog("    Mode : helpless")
+                            WriteAsciiCharacter(datafile, #VALUE_ANIM_END_HELPLESS)
+                        Case "custom"
+                            error(errorLocationInfo("Custom end behavior is not supported yet"))
+                        Default
+                            error(errorLocationInfo("Invalid end behavior mode"))
+                    EndSelect
+                    
                     
                 Case "l"
                     ;- - Landing info line -------------------------------------------------------------
                     
                     checkIsEntityM("Landing")
-                    Debug "Loc : " + Loc(datafile)
+                
                     
                     printLog("  Writing landing info")
                     WriteAsciiCharacter(datafile, #FILEMARKER_LANDINGINFO)
@@ -1101,8 +1127,8 @@ If logging
 EndIf
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 644
-; FirstLine = 609
+; CursorPosition = 605
+; FirstLine = 589
 ; Folding = ------
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe
