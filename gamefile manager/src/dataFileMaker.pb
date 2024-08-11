@@ -1127,11 +1127,16 @@ CloseFile(0)
 If logging
     PrintN("===============================")
     PrintN("FINISHED. File size : " + size)
+    
+    If #PB_Compiler_Debugger 
+        Input()
+    EndIf   
 EndIf
+
 ; IDE Options = PureBasic 6.00 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 1129
-; FirstLine = 1078
+; CursorPosition = 1132
+; FirstLine = 1081
 ; Folding = ------
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe
