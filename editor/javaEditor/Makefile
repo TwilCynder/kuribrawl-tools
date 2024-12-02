@@ -9,9 +9,7 @@ SOURCES=$(shell find src -name "*.java")
 dependant: $(SOURCES)
 ifeq (, $(shell which ant 2> /dev/null))
 	-@mkdir classes 2> /dev/null
-	javac -d ./classes -cp "./src;./lib/*" ./src/main/Main.java
-	echo Main-Class: main.Main>manifest.mf
-	echo Class-Path: ./lib/*>>manifest.mf
+	./build/compile.sh
 	jar cvfm kuribrawl-editor.jar manifest.mf -C classes .
 else
 	ant dist-zip
@@ -24,16 +22,15 @@ ifeq (, $(shell which unzip 2> /dev/null))
 	$(error Release mode build requires either Ant or unzip)
 endif
 
-	-@mkdir -p classes 2> /dev/null
-	javac -d ./classes -cp "./src;./lib/*" ./src/main/Main.java
-	echo Main-Class: main.Main>manifest.mf
-	echo Class-Path: ./lib/*>>manifest.mf
+	./build/compile.sh
 	
 	-@mkdir tmp
 	(cd tmp; unzip -uo ../lib/\*.jar)
 	-@rm -r tmp/META-INF
-	jar cvfm kuribrawl-editor.jar manifest.mf -C classes . -C tmp .
+	jar cvfm $(EXEC) manifest.mf -C classes . -C tmp .
 	-@rm -r tmp
+
+	chmod a+x $(EXEC)
 else
 	ant build
 endif 

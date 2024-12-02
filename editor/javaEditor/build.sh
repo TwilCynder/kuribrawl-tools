@@ -38,9 +38,6 @@ then
     fi
 
 else
-    mkdir -p classes
-    javac -d ./classes -cp "./src;./lib/*" ./src/main/Main.java
-    echo Main-Class: main.Main>manifest.mf
-    echo Class-Path: ./lib/*>>manifest.mf
+    ./build/compile.sh
     jar cvfm kuribrawl-editor.jar manifest.mf -C classes .
 fi
