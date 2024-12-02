@@ -1,2 +1,0 @@
-Main-Class: main.Main
-Class-Path: ./lib/jgoodies-common-1.8.1.jar ./lib/jgoodies-forms-1.8.0.jar
