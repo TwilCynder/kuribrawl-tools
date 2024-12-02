@@ -205,8 +205,9 @@ EndProcedure
 
 Procedure readFileList()
     Shared files()
-
+    
     file.l = ReadFile(#PB_Any, "project_db.txt")
+    
     If Not file
         error("Could Not find project DB.")
         End
@@ -1054,6 +1055,11 @@ Procedure addFile(datafile.l, *inputFile.File)
     WriteByte(datafile, #FILEMARKER_INTERFILE)
 EndProcedure
 
+Procedure help()
+  OpenConsole()
+  PrintN(~"Usage : DFM.exe [-v] [-l] [-o <outputFile>] [-h] [<inputDir>]\n\t-l : Logs info to the terminal\n\t-v : Logs more info to the terminal\n\t-o <outputFile>: Filename of the results .twl file\n\t-h : Prints this help text")
+EndProcedure
+
 buildpath.s = ""
 source.s = ""
 
@@ -1072,6 +1078,9 @@ While 1
             logging = #True
         Case "-o"
             buildpath = ProgramParameter()
+        Case "-h"
+            help()
+            End
         Default
             Debug parameter
             source = parameter
@@ -1084,8 +1093,6 @@ EndIf
 
 If buildpath = ""
     buildpath = "data.twl"
-Else
-    buildpath = GetCurrentDirectory() + "\" + buildpath
 EndIf
 
 
@@ -1102,7 +1109,7 @@ If logging
 EndIf
 
 If Not CreateFile(0, buildpath)
-    Debug buildpath
+    PrintN(buildpath)
     error("Could not create the Data File.")
     End
 EndIf
@@ -1133,10 +1140,10 @@ If logging
     EndIf   
 EndIf
 
-; IDE Options = PureBasic 6.00 LTS (Windows - x64)
+; IDE Options = PureBasic 6.12 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 1132
-; FirstLine = 1081
+; CursorPosition = 206
+; FirstLine = 184
 ; Folding = ------
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe
