@@ -1,5 +1,4 @@
 EXEC = DFM.exe
-OUT = $(EXEC)
 
 SRC= $(shell find src -name '*.pb' -o -name '*.pbi')
 
@@ -24,7 +23,7 @@ release: all
 	cp $(EXEC) "../../../release/tools/dfm/$(EXEC)"
 
 $(EXEC): $(SRC)
-	pbcompiler src/dataFileMaker.pb -e $(OUT) //ICON "../../GraphicDesignIsMyPassion/iconDev.ico" //CONSOLE
+	pbcompiler src/dataFileMaker.pb -o $(EXEC) //ICON "../../GraphicDesignIsMyPassion/iconDev.ico" //CONSOLE
 	@printf "\033[0;32mCompilation successful !\n\033[0m"
 
 .PHONY: all local locstart copy start release
