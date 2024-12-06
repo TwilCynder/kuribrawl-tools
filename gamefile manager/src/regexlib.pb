@@ -2,7 +2,7 @@
 ;Updated 11.01.2023
 
 
-Procedure checkString(regex.l, string.s)
+Procedure checkString(regex.i, string.s)
     ExamineRegularExpression(regex, string)
     If NextRegularExpressionMatch(regex)
         size.l = RegularExpressionMatchLength(regex)
@@ -11,8 +11,8 @@ Procedure checkString(regex.l, string.s)
     ProcedureReturn #False
 EndProcedure
 
-; IDE Options = PureBasic 6.00 LTS (Windows - x64)
-; CursorPosition = 11
+; IDE Options = PureBasic 6.12 LTS (Windows - x64)
+; CursorPosition = 4
 ; Folding = -
 ; EnableXP
 ; DPIAware
