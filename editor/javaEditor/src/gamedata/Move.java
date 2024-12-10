@@ -1,5 +1,5 @@
 package gamedata;
 
 public class Move {
-    public int landine_lag;
+    //public int landine_lag;
 }
