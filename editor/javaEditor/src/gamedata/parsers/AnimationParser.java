@@ -347,6 +347,11 @@ public class AnimationParser extends Parser {
                     }
                     
                     break;
+                    case "l": {
+                        EntityAnimation eanim = (EntityAnimation)anim;
+                        eanim.gab.;
+                    }
+                    break;
                     default:
                     System.err.println("WARNING : unknown marker at beginning of line " + line_index + " in descriptor " + descriptor_filename);
                 }

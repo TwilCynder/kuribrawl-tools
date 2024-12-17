@@ -35,9 +35,14 @@ public class GameplayAnimationBehavior {
     }
 
     public class LandingBehaviorWindow {
-        public int frame;
+        public int frame = -1;
         public LandingBehavior behavior;
     }
 
-    List<LandingBehavior> landing_behavior_windows;
+    private List<LandingBehaviorWindow> landing_behavior_windows;
+
+    public LandingBehaviorWindow addLandingWindow(){
+        LandingBehaviorWindow window = new LandingBehaviorWindow();
+        landing_behavior_windows.add(null)
+    }
 }
