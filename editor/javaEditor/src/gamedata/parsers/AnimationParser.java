@@ -200,7 +200,7 @@ public class AnimationParser extends Parser {
         }
 
         Animation anim = rp.addAnimation(gd, tag,
-            parseInt(line, "Descriptor's first line is not a number", descriptor_filename, 1),
+            parseInt(line, "Descriptor's first line", descriptor_filename, 1),
             source_filename, descriptor_filename);
 
         parseAnimationDescriptor(anim, descriptor_filename, reader);
@@ -216,7 +216,7 @@ public class AnimationParser extends Parser {
 
     private static void checkFrameIndex(AnimationParsingState state, String field0, String descriptor_filename, int line_index) throws FrameOutOfBoundsException, RessourceException{
         if (field0.length() > 1){ //we have a "c<frame number>" at the beginning
-            state.setFrame(parseInt(field0.substring(1), "Frame index is not a valid integer", descriptor_filename, line_index));
+            state.setFrame(parseInt(field0.substring(1), "Frame index", descriptor_filename, line_index));
         }
     }
 
@@ -252,7 +252,7 @@ public class AnimationParser extends Parser {
                 switch(line.substring(0, 1)){
                     case "s":
                     line = line.substring(1);
-                    anim.setSpeed(parseDouble(line, "Speed info is not a valid number", descriptor_filename, line_index));
+                    anim.setSpeed(parseDouble(line, "Speed info", descriptor_filename, line_index));
                     break;
     
                     case "f":
@@ -261,14 +261,14 @@ public class AnimationParser extends Parser {
                         throw new RessourceException("Frame info line doesn't even contain a frame index", descriptor_filename, line_index);
                     }
     
-                    valInt = parseInt(fields[0], "Frame index is not a valid integer", descriptor_filename, line_index);
+                    valInt = parseInt(fields[0], "Frame index", descriptor_filename, line_index);
     
                     state.setFrame(valInt);
     
                     for (int i = 1; i < fields.length; i ++){
                         switch(fields[i].substring(0, 1)){
                             case "d":
-                            valInt = parseInt(fields[i].substring(1), "Frame duration is not a valid integer", descriptor_filename, line_index);
+                            valInt = parseInt(fields[i].substring(1), "Frame duration", descriptor_filename, line_index);
                             if (valInt < 1) throw new RessourceException("Duration should be strictly positive", descriptor_filename, line_index);
                             state.getFrame().setDuration(valInt);
                             break;
@@ -277,7 +277,7 @@ public class AnimationParser extends Parser {
                             i++;
                             if (i >= fields.length) throw new RessourceException("Frame origin info should of form o<x> <y> but line stops after the first field", descriptor_filename, line_index);
                             {
-                                int valInt2 =  parseInt(fields[i], "Frame origin 2nd field is not a valid integer", descriptor_filename, line_index);
+                                int valInt2 =  parseInt(fields[i], "Frame origin 2nd field", descriptor_filename, line_index);
                                 state.getFrame().setOrigin(new Point(valInt, valInt2));
                             }
                             break;
@@ -340,7 +340,7 @@ public class AnimationParser extends Parser {
                         fields = splitLine(line);
         
                         if (fields[0].length() > 1){ //we have a "h<frame number>" at the beginning
-                            valInt = parseInt(fields[0].substring(1), "Frame index is not a valid integer", descriptor_filename, line_index);
+                            valInt = parseInt(fields[0].substring(1), "Frame index", descriptor_filename, line_index);
         
                             state.setFrame(valInt);
                         }
@@ -359,7 +359,12 @@ public class AnimationParser extends Parser {
                         EntityAnimation eanim = safeCastEntityAnimation(anim, wem("Landing Behavior"));
                         
                         fields = splitLine(line);
-                        GameplayAnimationBehavior.LandingBehavior.parseDescriptorFields(fields);
+                        try {
+                            GameplayAnimationBehavior.LandingBehavior.parseDescriptorFields(fields);
+                        } catch (RessourceException ex){
+                            throw new RessourceException(ex.getMessage(), descriptor_filename, line_index, ex.getCause());
+                        }
+                        
                         
                     }
                     break;
