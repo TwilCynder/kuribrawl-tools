@@ -11,6 +11,7 @@ import gamedata.EntityAnimation;
 import gamedata.EntityFrame;
 import gamedata.Frame;
 import gamedata.GameData;
+import gamedata.GameplayAnimationBehavior;
 import gamedata.Hitbox;
 import gamedata.Hurtbox;
 import gamedata.RessourcePath;
@@ -23,20 +24,20 @@ public class AnimationParser extends Parser {
         if (!(anim instanceof EntityAnimation)) throw new IllegalStateException(msgIfFail);
     }
 
-    private static EntityAnimationParsingState safeCastEntityAnimation(AnimationParsingState cframe, String msgIfFail) throws NullPointerException {
-        if (cframe == null) throw new NullPointerException("Attempt to cast a null object (AnimationParsingState to EntityAnimationParsingState)");
-        if (!(cframe instanceof EntityAnimationParsingState)) throw new IllegalStateException(
+    private static EntityAnimationParsingState safeCastEntityAnimation(AnimationParsingState state, String msgIfFail) throws NullPointerException {
+        if (state == null) throw new NullPointerException("Attempt to cast a null object (AnimationParsingState to EntityAnimationParsingState)");
+        if (!(state instanceof EntityAnimationParsingState)) throw new IllegalStateException(
             msgIfFail != null ? msgIfFail : "Attemp to cast Animation to EntityAnimation while not in EntityAnimation Mode"
         );
-        return (EntityAnimationParsingState)cframe;
+        return (EntityAnimationParsingState)state;
     }
 
-    private static EntityAnimation safeCastEntityAnimation(Animation cframe, String msgIfFail) throws NullPointerException, IllegalStateException {
-        if (cframe == null) throw new NullPointerException("Attempt to cast a null object (Animation to EnttyAnimtion)");
-        checkEntityAnimation(cframe, 
+    private static EntityAnimation safeCastEntityAnimation(Animation anim, String msgIfFail) throws NullPointerException, IllegalStateException {
+        if (anim == null) throw new NullPointerException("Attempt to cast a null object (Animation to EntityAnimation)");
+        checkEntityAnimation(anim, 
             msgIfFail != null ? msgIfFail : "Attemp to cast Animation to EntityAnimation while not in EntityAnimation Mode"
         );
-        return (EntityAnimation)cframe;
+        return (EntityAnimation)anim;
     }
 
     private static String wem = "EntityAnimation-specific element found in non-Entity Animation descriptor : ";
@@ -208,6 +209,16 @@ public class AnimationParser extends Parser {
     private static AnimationParsingState createParsingState(Animation anim){
         return anim.getParsingState();
     }
+    
+    private static String[] splitLine(String line){
+        return StringHelper.split(line, " ");
+    }
+
+    private static void checkFrameIndex(AnimationParsingState state, String field0, String descriptor_filename, int line_index) throws FrameOutOfBoundsException, RessourceException{
+        if (field0.length() > 1){ //we have a "c<frame number>" at the beginning
+            state.setFrame(parseInt(field0.substring(1), "Frame index is not a valid integer", descriptor_filename, line_index));
+        }
+    }
 
     /**
      * Reads an animation descriptor starting from after the frame number. At this point
@@ -221,6 +232,7 @@ public class AnimationParser extends Parser {
      */
     private static void parseAnimationDescriptor(Animation anim, String descriptor_filename, DescriptorReader reader) throws RessourceException, WhatTheHellException, IOException{
         if (anim == null) throw new NullPointerException("Attemp to parse descriptor for null animation");
+
 
         String line;
         String[] fields;
@@ -297,7 +309,7 @@ public class AnimationParser extends Parser {
 
                         EntityAnimationParsingState estate = safeCastEntityAnimation(state, wem("Hurtbox"));
                     
-                        fields = StringHelper.split(line, " ");
+                        fields = splitLine(line);
                         if (fields.length > 1 && fields[1].equals("all")){
                             EntityAnimation eanim = estate.getAnimation();
                             eanim.fullFramehurtboxes();
@@ -307,11 +319,7 @@ public class AnimationParser extends Parser {
                                 throw new RessourceException("Hurtbox info line does not contain any information", descriptor_filename, line_index);
                             }
         
-                            if (fields[0].length() > 1){ //we have a "c<frame number>" at the beginning
-                                valInt = parseInt(fields[0].substring(1), "Frame index is not a valid integer", descriptor_filename, line_index);
-                                
-                                state.setFrame(valInt);
-                            }
+                            checkFrameIndex(state, fields[0], descriptor_filename, line_index);
 
                             if (!estate.isValid()){
                                 throw new RessourceException("Hurtbox info with no frame index found before any frame info", descriptor_filename, line_index);
@@ -327,11 +335,11 @@ public class AnimationParser extends Parser {
                     break;
                     case "h":
                     {
-                        EntityAnimationParsingState estate = safeCastEntityAnimation(state, "Hitbox");
+                        EntityAnimationParsingState estate = safeCastEntityAnimation(state, wem("Hitbox"));
     
-                        fields = StringHelper.split(line, " ");
+                        fields = splitLine(line);
         
-                        if (fields[0].length() > 1){ //we have a "c<frame number>" at the beginning
+                        if (fields[0].length() > 1){ //we have a "h<frame number>" at the beginning
                             valInt = parseInt(fields[0].substring(1), "Frame index is not a valid integer", descriptor_filename, line_index);
         
                             state.setFrame(valInt);
@@ -348,8 +356,11 @@ public class AnimationParser extends Parser {
                     
                     break;
                     case "l": {
-                        EntityAnimation eanim = (EntityAnimation)anim;
-                        eanim.gab.;
+                        EntityAnimation eanim = safeCastEntityAnimation(anim, wem("Landing Behavior"));
+                        
+                        fields = splitLine(line);
+                        GameplayAnimationBehavior.LandingBehavior.parseDescriptorFields(fields);
+                        
                     }
                     break;
                     default:

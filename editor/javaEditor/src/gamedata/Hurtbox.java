@@ -68,7 +68,7 @@ public class Hurtbox extends CollisionBox {
             try {
                 h.type = HurtboxType.valueOfSafe(Integer.parseInt(fields[currentField]));
             } catch (NumberFormatException | NoSuchElementException e){
-                throw new RessourceException("Hurtbox type is not a valid hurtbox type code");
+                throw new RessourceException("Hurtbox type is not a valid hurtbox type code" + (!e.getMessage().isEmpty() ? " : " + e.getMessage() : ""));
             }
         }
 

@@ -27,7 +27,7 @@ public enum HurtboxType {
     public static HurtboxType valueOfSafe(int i) throws NoSuchElementException{
         HurtboxType res = valueOf(i);
         if (res == null){
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("Provided code was " + i + " ; the maximum value is " + (codes.size() - 1));
         }
         return res;
     }

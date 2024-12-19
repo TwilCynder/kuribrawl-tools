@@ -26,7 +26,7 @@ public abstract class Hitbox extends CollisionBox {
         res += x + " " + y + " " + w + " " + h + " " + Integer.toString(getTypeCode()) + " " + stringifyTypeSpecificInfo();
         return res;
     }
-
+ 
     public static Hitbox parseDescriptorFields(String[] fields) throws RessourceException{
         Hitbox h = null;
 

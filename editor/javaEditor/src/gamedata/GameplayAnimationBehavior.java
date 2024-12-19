@@ -1,30 +1,89 @@
 package gamedata;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.TreeMap;
 
 import gamedata.exceptions.RessourceException;
-import gamedata.parsers.AnimationParser;
 
 public class GameplayAnimationBehavior {
     public enum LandingBehaviorType {
-        NORMAL, 
-        ANIMATION,
-        NOTHING;
-
+        NORMAL(NormalLandingBehavior.class, "l"), 
+        ANIMATION(AnimationLandingBehavior.class, "a"),
+        NOTHING(LandingBehavior.class, "n");
         
+        private String code;
+		private Class<? extends LandingBehavior> behaviorClass; 
 
-        
-    }
-
-    public class LandingBehavior {
-        public LandingBehaviorType getType(){
-            return LandingBehaviorType.NOTHING;
+        LandingBehaviorType(Class<? extends LandingBehavior> behaviorClass, String code){
+            this.behaviorClass = behaviorClass;
+            this.code = code;
         }
 
+        public static Map<String, LandingBehaviorType> codes;
+        public static Map<Class<? extends LandingBehavior>, LandingBehaviorType> classes;
 
+        static {
+            codes = new TreeMap<>(){{
+                for (LandingBehaviorType t : LandingBehaviorType.values()){
+                    put(t.code, t);
+                }
+            }};
+            classes = new TreeMap<>(new Comparator<Class<? extends LandingBehavior>>() {
+                @Override
+                public int compare(Class<? extends LandingBehavior> left, Class<? extends LandingBehavior> right){
+                    return left.getName().compareTo(right.getName());
+                }
+            }){{
+                for (LandingBehaviorType t : LandingBehaviorType.values()){
+                    put(t.behaviorClass, t);
+                }
+            }};
+        }
+    }
+
+    public static class LandingBehavior {
+        public LandingBehaviorType getType(){
+            return KBUtil.EnumUtil.valueOf(LandingBehaviorType.classes, this.getClass());
+        }
+
+        /**
+         * Creates a LandingBehavior from an array of descriptor fields, which must start at the behavor type (3rd field in the line) 
+         * @param fields
+         * @return
+         */
+        public static LandingBehavior parseDescriptorFields(String[] fields) throws RessourceException{
+            if (fields.length < 1){
+                throw new RessourceException("Landing behavior window line does not contain enough information (must be at least a type code)");
+            }
+
+            LandingBehaviorType type;
+            try {
+                type = KBUtil.EnumUtil.valueOfSafe(LandingBehaviorType.codes, fields[2]);
+            } catch (NoSuchElementException err){
+                throw new RessourceException("Unknown landing behavior type", err);
+            }
+
+            switch (type){
+                case NORMAL: {
+                    System.out.println("--------------- Normal window");
+                }
+                break;
+                case ANIMATION: {
+                    System.out.println("--------------- Animation window window");
+                }
+                break;
+                case NOTHING: {
+                    System.out.println("--------------- Normal window");
+                }
+                break;
+            }
+
+            return new LandingBehavior();
+        }
     }
 
     public abstract class DurableLandingBehavior extends LandingBehavior {
