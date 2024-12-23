@@ -8,9 +8,10 @@ import java.util.NoSuchElementException;
 import java.util.TreeMap;
 
 import gamedata.exceptions.RessourceException;
+import gamedata.parsers.Parser;
 
 public class GameplayAnimationBehavior {
-    public enum LandingBehaviorType {
+    public static enum LandingBehaviorType {
         NORMAL(NormalLandingBehavior.class, "l"), 
         ANIMATION(AnimationLandingBehavior.class, "a"),
         NOTHING(LandingBehavior.class, "n");
@@ -46,52 +47,26 @@ public class GameplayAnimationBehavior {
     }
 
     public static class LandingBehavior {
-        public LandingBehaviorType getType(){
+        public final LandingBehaviorType getType(){
             return KBUtil.EnumUtil.valueOf(LandingBehaviorType.classes, this.getClass());
         }
 
-        /**
-         * Creates a LandingBehavior from an array of descriptor fields, which must start at the behavor type (3rd field in the line) 
-         * @param fields
-         * @return
-         */
+        public LandingBehavior(){}
+
         public static LandingBehavior parseDescriptorFields(String[] fields) throws RessourceException{
-            if (fields.length < 1){
-                throw new RessourceException("Landing behavior window line does not contain enough information (must be at least a type code)");
-            }
-
-            LandingBehaviorType type;
-            try {
-                type = KBUtil.EnumUtil.valueOfSafe(LandingBehaviorType.codes, fields[2]);
-            } catch (NoSuchElementException err){
-                throw new RessourceException("Unknown landing behavior type", err);
-            }
-
-            switch (type){
-                case NORMAL: {
-                    System.out.println("--------------- Normal window");
-                }
-                break;
-                case ANIMATION: {
-                    System.out.println("--------------- Animation window window");
-                }
-                break;
-                case NOTHING: {
-                    System.out.println("--------------- Normal window");
-                }
-                break;
-            }
-
-            return new LandingBehavior();
+            LandingBehavior res = new LandingBehavior();
+            return res;
         }
     }
 
-    public abstract class DurableLandingBehavior extends LandingBehavior {
-        private int duration;
+    public static abstract class DurableLandingBehavior extends LandingBehavior {
+        protected int duration;
 
         DurableLandingBehavior(int duration){
             this.duration = duration;
         }
+
+        protected DurableLandingBehavior(){}
 
         public int getDuration() {
             return duration;
@@ -102,68 +77,68 @@ public class GameplayAnimationBehavior {
         }
     }
 
-    public class NormalLandingBehavior extends DurableLandingBehavior {
+    public static class NormalLandingBehavior extends DurableLandingBehavior {
         NormalLandingBehavior (int duration){
             super (duration);
         }
 
-        @Override
-        public LandingBehaviorType getType(){
-            return LandingBehaviorType.NORMAL;
-        }
+        protected NormalLandingBehavior(){}
     }
 
-    public class AnimationLandingBehavior extends DurableLandingBehavior {
-        String anim_name;
+    public static class AnimationLandingBehavior extends DurableLandingBehavior {
+        protected EntityAnimationReference anim;
 
         AnimationLandingBehavior (int duration, String name){
             super (duration);
-            this.anim_name = name;
+            this.anim = new EntityAnimationReference(name);
         }
 
-        public String getAnimName(){
-            return anim_name;
+        public void resolveAnimation(Champion champion){
+            anim.resolve(champion);
+            //TODO : what happens if the name didn't point to an animation ?
         }
 
-        @Override
-        public LandingBehaviorType getType(){
-            return LandingBehaviorType.ANIMATION;
+        public EntityAnimation getEntityAnimation(){
+            if (!anim.isResolved()){
+                throw new IllegalStateException("Attemps to access outer animation reference before it has been resolved");
+            }
+            return anim.get();
         }
+
     }
 
-    public class LandingBehaviorWindow implements Comparable<LandingBehaviorWindow>{
+    public static class LandingBehaviorWindow implements Comparable<LandingBehaviorWindow>{
         private int frame = -1;
-        private DurableLandingBehavior behavior;
+        private LandingBehavior behavior;
 
         public LandingBehaviorWindow(int frame){
             this.frame = frame;
+        }
+
+        public LandingBehaviorWindow(int frame, LandingBehavior b){
+            this(frame);
+            this.behavior = b;
         }
 
         public int getFrame() {
             return frame;
         }
 
-        public void setBehavior(int duration){
-            if (behavior instanceof NormalLandingBehavior){
-                behavior.duration = duration;
-            } else {
-                behavior = new NormalLandingBehavior(duration);
-            }
-        }
-
-        public void setBehavior(String anim, int duration){
-            if (behavior instanceof AnimationLandingBehavior){
-                behavior.duration = duration;
-                ((AnimationLandingBehavior)behavior).anim_name = anim;
-            } else {
-                behavior = new AnimationLandingBehavior(duration, anim);
-            }
+        public LandingBehavior getLandingBehavior(){
+            return behavior;
         }
 
         @Override
         public int compareTo(LandingBehaviorWindow arg0) {
             return frame - arg0.frame;
         }
+
+
+
+
+
+
+
     }
 
     private List<LandingBehaviorWindow> landing_behavior_windows;
