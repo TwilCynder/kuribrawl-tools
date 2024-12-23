@@ -10,6 +10,10 @@ public class EntityAnimationReference extends GameDataReference<EntityAnimation>
         this.name = name;
     }
 
+    public EntityAnimationReference(EntityAnimation anim){
+        super(anim);
+    }
+
     public void resolve(Champion champion){
         EntityAnimation anim = champion.getAnimation(name);
         resolve(anim);

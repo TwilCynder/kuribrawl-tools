@@ -4,11 +4,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.TreeMap;
 
 import gamedata.exceptions.RessourceException;
-import gamedata.parsers.Parser;
 
 public class GameplayAnimationBehavior {
     public static enum LandingBehaviorType {
@@ -53,10 +51,7 @@ public class GameplayAnimationBehavior {
 
         public LandingBehavior(){}
 
-        public static LandingBehavior parseDescriptorFields(String[] fields) throws RessourceException{
-            LandingBehavior res = new LandingBehavior();
-            return res;
-        }
+        public void finalize(Champion champion){}
     }
 
     public static abstract class DurableLandingBehavior extends LandingBehavior {
@@ -93,7 +88,13 @@ public class GameplayAnimationBehavior {
             this.anim = new EntityAnimationReference(name);
         }
 
-        public void resolveAnimation(Champion champion){
+        AnimationLandingBehavior (int duration, EntityAnimation anim){
+            super(duration);
+            this.anim = new EntityAnimationReference(anim);
+        }
+
+        @Override
+        public void finalize(Champion champion){
             anim.resolve(champion);
             //TODO : what happens if the name didn't point to an animation ?
         }
@@ -128,16 +129,14 @@ public class GameplayAnimationBehavior {
             return behavior;
         }
 
+        public void finalize(Champion champion){
+            behavior.finalize(champion);
+        }
+
         @Override
         public int compareTo(LandingBehaviorWindow arg0) {
             return frame - arg0.frame;
         }
-
-
-
-
-
-
 
     }
 
