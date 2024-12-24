@@ -95,6 +95,9 @@ public class DoubleMap <K, V> implements Map<K, V> {
         if (value == null){
             throw new IllegalArgumentException("Cannot insert null value into DoubleMap (key was " + key.toString() + ")");
         }
+        remove(key);
+        removeRight(value);
+
         right.put(value, key);
         left .put(key, value);
         return value;
@@ -112,6 +115,15 @@ public class DoubleMap <K, V> implements Map<K, V> {
         if (val == null) return null;
         left.remove(key);
         right.remove(val);
+
+        return val;
+    }
+
+    public K removeRight(Object key){
+        K val = right.get(key);
+        if (val == null) return null;
+        left.remove(val);
+        right.remove(key);
 
         return val;
     }
