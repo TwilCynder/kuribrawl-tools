@@ -10,27 +10,19 @@ import gamedata.exceptions.RessourceException;
 
 public class GameplayAnimationBehavior {
     public static enum LandingBehaviorType {
-        NORMAL(NormalLandingBehavior.class, "l"), 
-        ANIMATION(AnimationLandingBehavior.class, "a"),
-        NOTHING(LandingBehavior.class, "n");
+        NORMAL(NormalLandingBehavior.class), 
+        ANIMATION(AnimationLandingBehavior.class),
+        NOTHING(LandingBehavior.class);
         
-        private String code;
 		private Class<? extends LandingBehavior> behaviorClass; 
 
-        LandingBehaviorType(Class<? extends LandingBehavior> behaviorClass, String code){
+        LandingBehaviorType(Class<? extends LandingBehavior> behaviorClass){
             this.behaviorClass = behaviorClass;
-            this.code = code;
         }
 
-        public static Map<String, LandingBehaviorType> codes;
         public static Map<Class<? extends LandingBehavior>, LandingBehaviorType> classes;
 
         static {
-            codes = new TreeMap<>(){{
-                for (LandingBehaviorType t : LandingBehaviorType.values()){
-                    put(t.code, t);
-                }
-            }};
             classes = new TreeMap<>(new Comparator<Class<? extends LandingBehavior>>() {
                 @Override
                 public int compare(Class<? extends LandingBehavior> left, Class<? extends LandingBehavior> right){
@@ -127,6 +119,14 @@ public class GameplayAnimationBehavior {
 
         public LandingBehavior getLandingBehavior(){
             return behavior;
+        }
+
+        public void setFrame(int frame){
+            this.frame = frame;
+        }
+
+        public void setBehavior(LandingBehavior b){
+            this.behavior = b;
         }
 
         public void finalize(Champion champion){

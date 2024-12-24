@@ -32,12 +32,12 @@ public class DoubleMap <K, V> implements Map<K, V> {
     //public Map<V, K> right(){ return this.right;}
 
 
-    DoubleMap(){
+    public DoubleMap(){
         this.left = new TreeMap<K, V>();
         this.right = new TreeMap<V, K>();
     }
 
-    DoubleMap(Map<K, V> left){
+    public DoubleMap(Map<K, V> left){
         this.left = left;
         this.right = makeReverseMap(left);
     }
