@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import gamedata.exceptions.RessourceException;
-
 public class GameplayAnimationBehavior {
     public static enum LandingBehaviorType {
         NORMAL(NormalLandingBehavior.class), 
@@ -44,9 +42,18 @@ public class GameplayAnimationBehavior {
         public LandingBehavior(){}
 
         public void finalize(Champion champion){}
+
+        public String behaviorString(){
+            return "No action";
+        }
+
+        @Override
+        public final String toString() {
+            return "Landing Behavior :" + behaviorString();
+        }
     }
 
-    public static abstract class DurableLandingBehavior extends LandingBehavior {
+    protected static abstract class DurableLandingBehavior extends LandingBehavior {
         protected int duration;
 
         DurableLandingBehavior(int duration){
@@ -65,22 +72,25 @@ public class GameplayAnimationBehavior {
     }
 
     public static class NormalLandingBehavior extends DurableLandingBehavior {
-        NormalLandingBehavior (int duration){
+        public NormalLandingBehavior (int duration){
             super (duration);
         }
 
-        protected NormalLandingBehavior(){}
+        @Override
+        public String behaviorString(){
+            return "Normal (" + duration + " frames)";
+        }
     }
 
     public static class AnimationLandingBehavior extends DurableLandingBehavior {
         protected EntityAnimationReference anim;
 
-        AnimationLandingBehavior (int duration, String name){
+        public AnimationLandingBehavior (int duration, String name){
             super (duration);
             this.anim = new EntityAnimationReference(name);
         }
 
-        AnimationLandingBehavior (int duration, EntityAnimation anim){
+        public AnimationLandingBehavior (int duration, EntityAnimation anim){
             super(duration);
             this.anim = new EntityAnimationReference(anim);
         }
@@ -96,6 +106,11 @@ public class GameplayAnimationBehavior {
                 throw new IllegalStateException("Attemps to access outer animation reference before it has been resolved");
             }
             return anim.get();
+        }
+
+        @Override
+        public String behaviorString(){
+            return "Animation : " + anim + " (" + duration + " frames)";
         }
 
     }
@@ -138,6 +153,10 @@ public class GameplayAnimationBehavior {
             return frame - arg0.frame;
         }
 
+        @Override
+        public String toString() {
+            return "Landing Behavior Window on frame " + frame + " ; Behavior : " + behavior;
+        }
     }
 
     private List<LandingBehaviorWindow> landing_behavior_windows;
@@ -148,4 +167,9 @@ public class GameplayAnimationBehavior {
         Collections.sort(landing_behavior_windows);
         return window;
     }
+
+    public Iterable<LandingBehaviorWindow> getLandingBehaviorsWindows(){
+        return landing_behavior_windows;
+    }
+    
 }

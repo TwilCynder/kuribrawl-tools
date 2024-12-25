@@ -1,6 +1,7 @@
 package gamedata;
 
 import gamedata.EntityFrame.FrameMovementAxis;
+import gamedata.GameplayAnimationBehavior.LandingBehaviorWindow;
 import gamedata.exceptions.FrameOutOfBoundsException;
 import gamedata.exceptions.GameDataException;
 import gamedata.exceptions.WhatTheHellException;
@@ -254,4 +255,14 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
         return new AnimationParser.EntityAnimationParsingState(this);
     }
 
+    public void finalize(Champion champion, GameData gd){    
+        for (LandingBehaviorWindow window : gab.getLandingBehaviorsWindows()){
+            window.finalize(champion);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "EntityAnimation " + name;
+    }
 }
