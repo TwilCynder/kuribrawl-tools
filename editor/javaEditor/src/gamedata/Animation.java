@@ -152,15 +152,19 @@ public class Animation {
     }
 
     public interface Defaultness {
-        public default boolean needDescriptor(){
-            return this == AnimationDefaultness.NONDEFAULT;
-        }
+        public boolean needDescriptor();
     }
 
     public enum AnimationDefaultness implements Defaultness {
         NONDEFAULT,
         DEFAULT;
 
+        @Override
+        public boolean needDescriptor() {
+            return this == NONDEFAULT;
+        }
+
+        
     }
 
     protected boolean isSpeedDefault(){
@@ -172,7 +176,7 @@ public class Animation {
      * @param frame the frame to test
      * @return boolean
      */
-    protected boolean isFrameDefault(Frame frame){
+    protected static boolean isFrameDefault(Frame frame){
         return frame.hasDefaultOrigin() && frame.hasDefaultDuration();
     }
 

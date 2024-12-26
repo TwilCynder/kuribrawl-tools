@@ -92,8 +92,13 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
         return frame.hurtboxes;
     }
 
-    public enum EntityAnimationDefaultness implements Defaultness {
+    public static enum EntityAnimationDefaultness implements Defaultness {
         DEFAULT_CBOX;
+
+        @Override
+        public boolean needDescriptor() {
+            return true;
+        }
     } 
 
     private Defaultness getFrameDefaultness(Frame frame, EntityFrame entityFrame){
