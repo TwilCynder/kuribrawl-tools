@@ -266,6 +266,14 @@ public class RessourcePath {
         }
     }
 
+    private void finalizeGameData(GameData gd){
+        for (var champ : gd.getChampions()){
+            for (var eanim : champ.getAnimations()){
+                eanim.finalize(champ, gd);
+            }
+        }
+    }
+
     private static final String listFilename = "project_db.txt";
     private static final Path listPath = Paths.get(listFilename);
 
@@ -306,7 +314,9 @@ public class RessourcePath {
                     
                 }
             }
-            
+
+            finalizeGameData(gd);
+
             return gd;
         } catch (NoSuchFileException e){
             throw new RessourceException("The specified directory is not a valid ressource path : does not contain a project_db.txt file.", e);

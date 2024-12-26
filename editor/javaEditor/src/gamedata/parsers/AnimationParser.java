@@ -420,12 +420,10 @@ public class AnimationParser extends Parser {
                         
                         fields = splitLine(line);
                         try {
-                            parseLandingBehaviorWindow(fields);
+                            eanim.gab.addLandingWindow(parseLandingBehaviorWindow(fields));
                         } catch (RessourceException ex){
                             throw new RessourceException(ex.getMessage(), descriptor_filename, line_index, ex.getCause());
                         }
-                        
-                        
                     }
                     break;
                     default:

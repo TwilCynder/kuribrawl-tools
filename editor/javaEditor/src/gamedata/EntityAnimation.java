@@ -18,7 +18,7 @@ import KBUtil.Vec2;
 
 public class EntityAnimation extends Animation implements Iterable<Pair<Frame, EntityFrame>>{
     private EntityFrame[] entity_frames;
-    public GameplayAnimationBehavior gab;
+    public GameplayAnimationBehavior gab = new GameplayAnimationBehavior();
 
 
     public EntityAnimation(String name, Image source, int nbFrames, String source_filename, String descriptor_filename) throws InvalidPathException{

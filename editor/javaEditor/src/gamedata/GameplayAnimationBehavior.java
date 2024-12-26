@@ -2,9 +2,12 @@ package gamedata;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
+import KBUtil.ConstCollection;
 
 public class GameplayAnimationBehavior {
     public static enum LandingBehaviorType {
@@ -49,7 +52,7 @@ public class GameplayAnimationBehavior {
 
         @Override
         public final String toString() {
-            return "Landing Behavior :" + behaviorString();
+            return "Landing Behavior : " + behaviorString();
         }
     }
 
@@ -155,21 +158,20 @@ public class GameplayAnimationBehavior {
 
         @Override
         public String toString() {
-            return "Landing Behavior Window on frame " + frame + " ; Behavior : " + behavior;
+            return "Landing Behavior Window on frame " + frame + " ; Behavior : " + behavior.behaviorString();
         }
     }
 
-    private List<LandingBehaviorWindow> landing_behavior_windows;
+    private List<LandingBehaviorWindow> landing_behavior_windows = new LinkedList<>();
 
-    public LandingBehaviorWindow addLandingWindow(int frame){
-        LandingBehaviorWindow window = new LandingBehaviorWindow(frame);
+    public LandingBehaviorWindow addLandingWindow(LandingBehaviorWindow window){
         landing_behavior_windows.add(window);
         Collections.sort(landing_behavior_windows);
         return window;
     }
 
-    public Iterable<LandingBehaviorWindow> getLandingBehaviorsWindows(){
-        return landing_behavior_windows;
+    public ConstCollection<LandingBehaviorWindow> getLandingBehaviorsWindows(){
+        return new ConstCollection<>(landing_behavior_windows);
     }
     
 }
