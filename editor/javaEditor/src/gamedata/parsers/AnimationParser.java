@@ -3,7 +3,9 @@ package gamedata.parsers;
 import java.awt.Point;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Map;
 
+import KBUtil.DoubleMap;
 import KBUtil.StringHelper;
 import KBUtil.Vec2;
 import gamedata.Animation;
@@ -12,6 +14,11 @@ import gamedata.EntityFrame;
 import gamedata.Frame;
 import gamedata.GameData;
 import gamedata.GameplayAnimationBehavior;
+import gamedata.GameplayAnimationBehavior.AnimationLandingBehavior;
+import gamedata.GameplayAnimationBehavior.LandingBehavior;
+import gamedata.GameplayAnimationBehavior.LandingBehaviorType;
+import gamedata.GameplayAnimationBehavior.LandingBehaviorWindow;
+import gamedata.GameplayAnimationBehavior.NormalLandingBehavior;
 import gamedata.Hitbox;
 import gamedata.Hurtbox;
 import gamedata.RessourcePath;
@@ -184,6 +191,59 @@ public class AnimationParser extends Parser {
         } catch (NumberFormatException e) {
             throw new RessourceException("Movement value could not be parsed", e);
         }
+    }
+
+    private static DoubleMap<String, LandingBehaviorType> landingBehaviorTypeCodes = new DoubleMap<>(Map.ofEntries(
+        Map.entry("l", LandingBehaviorType.NORMAL),
+        Map.entry("a", LandingBehaviorType.ANIMATION),
+        Map.entry("n", LandingBehaviorType.NOTHING)
+    ));
+
+    /**
+     * Creates a LandingBehavior from an array of descriptor fields, which must start at the behavor type (3rd field in the line) 
+     * @param fields
+     * @return
+     */
+    public static LandingBehaviorWindow parseLandingBehaviorWindow(String[] fields) throws RessourceException{
+        if (fields.length < 3){
+            throw new RessourceException("Landing behavior window line does not contain enough information (must be at least a type code)");
+        }
+
+        LandingBehaviorType type = landingBehaviorTypeCodes.get(fields[2]);
+        if (type == null){
+            throw new RessourceException("Unknown landing behavior type");
+        }
+
+        LandingBehavior behavior = null;
+        switch (type){  
+            case NORMAL: {
+                int duration = -1;
+                if (fields.length > 3){
+                    duration = parseInt(fields[3], "Landing duration");
+                }
+                behavior = new NormalLandingBehavior(duration);
+            }
+            break;
+            case ANIMATION: {
+                expectFields(fields, 4, "Landing behavior window line contains too few ");
+
+                int duration = -1;
+                if (fields.length > 4){
+                    duration = parseInt(fields[4], "Landing duration");
+                }
+                
+                behavior = new AnimationLandingBehavior(duration, fields[3]);
+            }
+            break;
+            case NOTHING: {
+                behavior = new LandingBehavior();
+            }
+            break;
+        }
+
+        LandingBehaviorWindow result = new LandingBehaviorWindow(Parser.parseInt(fields[1], "Landing window frame index"), behavior);
+
+        return result;
     }
 
     public static void parseAnimationDescriptor(GameData gd, String tag, RessourcePath rp, String source_filename, String descriptor_filename, BufferedReader buff_reader) throws RessourceException, IOException {
@@ -360,7 +420,7 @@ public class AnimationParser extends Parser {
                         
                         fields = splitLine(line);
                         try {
-                            GameplayAnimationBehavior.LandingBehavior.parseDescriptorFields(fields);
+                            parseLandingBehaviorWindow(fields);
                         } catch (RessourceException ex){
                             throw new RessourceException(ex.getMessage(), descriptor_filename, line_index, ex.getCause());
                         }

@@ -34,4 +34,8 @@ public class Parser {
             throw new RessourceException(numberDescription + " is not a valid number", e);
         }
     }
+
+    public static void expectFields(String[] fields, int expected, String message) throws RessourceException{
+        if (fields.length < expected) throw new RessourceException(message);
+    }
 }
