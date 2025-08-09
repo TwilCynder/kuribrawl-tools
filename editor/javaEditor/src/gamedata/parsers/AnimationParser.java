@@ -3,7 +3,9 @@ package gamedata.parsers;
 import java.awt.Point;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Map;
 
+import KBUtil.DoubleMap;
 import KBUtil.StringHelper;
 import KBUtil.Vec2;
 import gamedata.Animation;
@@ -11,6 +13,12 @@ import gamedata.EntityAnimation;
 import gamedata.EntityFrame;
 import gamedata.Frame;
 import gamedata.GameData;
+import gamedata.GameplayAnimationBehavior;
+import gamedata.GameplayAnimationBehavior.AnimationLandingBehavior;
+import gamedata.GameplayAnimationBehavior.LandingBehavior;
+import gamedata.GameplayAnimationBehavior.LandingBehaviorType;
+import gamedata.GameplayAnimationBehavior.LandingBehaviorWindow;
+import gamedata.GameplayAnimationBehavior.NormalLandingBehavior;
 import gamedata.Hitbox;
 import gamedata.Hurtbox;
 import gamedata.RessourcePath;
@@ -23,20 +31,20 @@ public class AnimationParser extends Parser {
         if (!(anim instanceof EntityAnimation)) throw new IllegalStateException(msgIfFail);
     }
 
-    private static EntityAnimationParsingState safeCastEntityAnimation(AnimationParsingState cframe, String msgIfFail) throws NullPointerException {
-        if (cframe == null) throw new NullPointerException("Attempt to cast a null object (AnimationParsingState to EntityAnimationParsingState)");
-        if (!(cframe instanceof EntityAnimationParsingState)) throw new IllegalStateException(
+    private static EntityAnimationParsingState safeCastEntityAnimation(AnimationParsingState state, String msgIfFail) throws NullPointerException {
+        if (state == null) throw new NullPointerException("Attempt to cast a null object (AnimationParsingState to EntityAnimationParsingState)");
+        if (!(state instanceof EntityAnimationParsingState)) throw new IllegalStateException(
             msgIfFail != null ? msgIfFail : "Attemp to cast Animation to EntityAnimation while not in EntityAnimation Mode"
         );
-        return (EntityAnimationParsingState)cframe;
+        return (EntityAnimationParsingState)state;
     }
 
-    private static EntityAnimation safeCastEntityAnimation(Animation cframe, String msgIfFail) throws NullPointerException, IllegalStateException {
-        if (cframe == null) throw new NullPointerException("Attempt to cast a null object (Animation to EnttyAnimtion)");
-        checkEntityAnimation(cframe, 
+    private static EntityAnimation safeCastEntityAnimation(Animation anim, String msgIfFail) throws NullPointerException, IllegalStateException {
+        if (anim == null) throw new NullPointerException("Attempt to cast a null object (Animation to EntityAnimation)");
+        checkEntityAnimation(anim, 
             msgIfFail != null ? msgIfFail : "Attemp to cast Animation to EntityAnimation while not in EntityAnimation Mode"
         );
-        return (EntityAnimation)cframe;
+        return (EntityAnimation)anim;
     }
 
     private static String wem = "EntityAnimation-specific element found in non-Entity Animation descriptor : ";
@@ -185,6 +193,59 @@ public class AnimationParser extends Parser {
         }
     }
 
+    private static DoubleMap<String, LandingBehaviorType> landingBehaviorTypeCodes = new DoubleMap<>(Map.ofEntries(
+        Map.entry("l", LandingBehaviorType.NORMAL),
+        Map.entry("a", LandingBehaviorType.ANIMATION),
+        Map.entry("n", LandingBehaviorType.NOTHING)
+    ));
+
+    /**
+     * Creates a LandingBehavior from an array of descriptor fields, which must start at the behavor type (3rd field in the line) 
+     * @param fields
+     * @return
+     */
+    public static LandingBehaviorWindow parseLandingBehaviorWindow(String[] fields) throws RessourceException{
+        if (fields.length < 3){
+            throw new RessourceException("Landing behavior window line does not contain enough information (must be at least a type code)");
+        }
+
+        LandingBehaviorType type = landingBehaviorTypeCodes.get(fields[2]);
+        if (type == null){
+            throw new RessourceException("Unknown landing behavior type");
+        }
+
+        LandingBehavior behavior = null;
+        switch (type){  
+            case NORMAL: {
+                int duration = -1;
+                if (fields.length > 3){
+                    duration = parseInt(fields[3], "Landing duration");
+                }
+                behavior = new NormalLandingBehavior(duration);
+            }
+            break;
+            case ANIMATION: {
+                expectFields(fields, 4, "Landing behavior window line contains too few ");
+
+                int duration = -1;
+                if (fields.length > 4){
+                    duration = parseInt(fields[4], "Landing duration");
+                }
+                
+                behavior = new AnimationLandingBehavior(duration, fields[3]);
+            }
+            break;
+            case NOTHING: {
+                behavior = new LandingBehavior();
+            }
+            break;
+        }
+
+        LandingBehaviorWindow result = new LandingBehaviorWindow(Parser.parseInt(fields[1], "Landing window frame index"), behavior);
+
+        return result;
+    }
+
     public static void parseAnimationDescriptor(GameData gd, String tag, RessourcePath rp, String source_filename, String descriptor_filename, BufferedReader buff_reader) throws RessourceException, IOException {
         try (DescriptorReader reader = new DescriptorReader(buff_reader)) {
             parseAnimationdescriptor(gd, tag, rp, source_filename, descriptor_filename, reader);
@@ -199,7 +260,7 @@ public class AnimationParser extends Parser {
         }
 
         Animation anim = rp.addAnimation(gd, tag,
-            parseInt(line, "Descriptor's first line is not a number", descriptor_filename, 1),
+            parseInt(line, "Descriptor's first line", descriptor_filename, 1),
             source_filename, descriptor_filename);
 
         parseAnimationDescriptor(anim, descriptor_filename, reader);
@@ -207,6 +268,16 @@ public class AnimationParser extends Parser {
 
     private static AnimationParsingState createParsingState(Animation anim){
         return anim.getParsingState();
+    }
+    
+    private static String[] splitLine(String line){
+        return StringHelper.split(line, " ");
+    }
+
+    private static void checkFrameIndex(AnimationParsingState state, String field0, String descriptor_filename, int line_index) throws FrameOutOfBoundsException, RessourceException{
+        if (field0.length() > 1){ //we have a "c<frame number>" at the beginning
+            state.setFrame(parseInt(field0.substring(1), "Frame index", descriptor_filename, line_index));
+        }
     }
 
     /**
@@ -221,6 +292,7 @@ public class AnimationParser extends Parser {
      */
     private static void parseAnimationDescriptor(Animation anim, String descriptor_filename, DescriptorReader reader) throws RessourceException, WhatTheHellException, IOException{
         if (anim == null) throw new NullPointerException("Attemp to parse descriptor for null animation");
+
 
         String line;
         String[] fields;
@@ -240,7 +312,7 @@ public class AnimationParser extends Parser {
                 switch(line.substring(0, 1)){
                     case "s":
                     line = line.substring(1);
-                    anim.setSpeed(parseDouble(line, "Speed info is not a valid number", descriptor_filename, line_index));
+                    anim.setSpeed(parseDouble(line, "Speed info", descriptor_filename, line_index));
                     break;
     
                     case "f":
@@ -249,14 +321,14 @@ public class AnimationParser extends Parser {
                         throw new RessourceException("Frame info line doesn't even contain a frame index", descriptor_filename, line_index);
                     }
     
-                    valInt = parseInt(fields[0], "Frame index is not a valid integer", descriptor_filename, line_index);
+                    valInt = parseInt(fields[0], "Frame index", descriptor_filename, line_index);
     
                     state.setFrame(valInt);
     
                     for (int i = 1; i < fields.length; i ++){
                         switch(fields[i].substring(0, 1)){
                             case "d":
-                            valInt = parseInt(fields[i].substring(1), "Frame duration is not a valid integer", descriptor_filename, line_index);
+                            valInt = parseInt(fields[i].substring(1), "Frame duration", descriptor_filename, line_index);
                             if (valInt < 1) throw new RessourceException("Duration should be strictly positive", descriptor_filename, line_index);
                             state.getFrame().setDuration(valInt);
                             break;
@@ -265,7 +337,7 @@ public class AnimationParser extends Parser {
                             i++;
                             if (i >= fields.length) throw new RessourceException("Frame origin info should of form o<x> <y> but line stops after the first field", descriptor_filename, line_index);
                             {
-                                int valInt2 =  parseInt(fields[i], "Frame origin 2nd field is not a valid integer", descriptor_filename, line_index);
+                                int valInt2 =  parseInt(fields[i], "Frame origin 2nd field", descriptor_filename, line_index);
                                 state.getFrame().setOrigin(new Point(valInt, valInt2));
                             }
                             break;
@@ -297,7 +369,7 @@ public class AnimationParser extends Parser {
 
                         EntityAnimationParsingState estate = safeCastEntityAnimation(state, wem("Hurtbox"));
                     
-                        fields = StringHelper.split(line, " ");
+                        fields = splitLine(line);
                         if (fields.length > 1 && fields[1].equals("all")){
                             EntityAnimation eanim = estate.getAnimation();
                             eanim.fullFramehurtboxes();
@@ -307,11 +379,7 @@ public class AnimationParser extends Parser {
                                 throw new RessourceException("Hurtbox info line does not contain any information", descriptor_filename, line_index);
                             }
         
-                            if (fields[0].length() > 1){ //we have a "c<frame number>" at the beginning
-                                valInt = parseInt(fields[0].substring(1), "Frame index is not a valid integer", descriptor_filename, line_index);
-                                
-                                state.setFrame(valInt);
-                            }
+                            checkFrameIndex(state, fields[0], descriptor_filename, line_index);
 
                             if (!estate.isValid()){
                                 throw new RessourceException("Hurtbox info with no frame index found before any frame info", descriptor_filename, line_index);
@@ -327,12 +395,12 @@ public class AnimationParser extends Parser {
                     break;
                     case "h":
                     {
-                        EntityAnimationParsingState estate = safeCastEntityAnimation(state, "Hitbox");
+                        EntityAnimationParsingState estate = safeCastEntityAnimation(state, wem("Hitbox"));
     
-                        fields = StringHelper.split(line, " ");
+                        fields = splitLine(line);
         
-                        if (fields[0].length() > 1){ //we have a "c<frame number>" at the beginning
-                            valInt = parseInt(fields[0].substring(1), "Frame index is not a valid integer", descriptor_filename, line_index);
+                        if (fields[0].length() > 1){ //we have a "h<frame number>" at the beginning
+                            valInt = parseInt(fields[0].substring(1), "Frame index", descriptor_filename, line_index);
         
                             state.setFrame(valInt);
                         }
@@ -346,6 +414,17 @@ public class AnimationParser extends Parser {
         
                     }
                     
+                    break;
+                    case "l": {
+                        EntityAnimation eanim = safeCastEntityAnimation(anim, wem("Landing Behavior"));
+                        
+                        fields = splitLine(line);
+                        try {
+                            eanim.gab.addLandingWindow(parseLandingBehaviorWindow(fields));
+                        } catch (RessourceException ex){
+                            throw new RessourceException(ex.getMessage(), descriptor_filename, line_index, ex.getCause());
+                        }
+                    }
                     break;
                     default:
                     System.err.println("WARNING : unknown marker at beginning of line " + line_index + " in descriptor " + descriptor_filename);

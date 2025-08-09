@@ -113,8 +113,8 @@ Dim stageValues.b(#STAGE_VALUES_NB)
 
 XIncludeFile "dataFileMarkerData.pbi"
 
-Define identifierRegex = CreateRegularExpression(#PB_Any, "[a-zA-Z_0-9]")
-Define basicTagRegex = CreateRegularExpression(#PB_Any, "[a-zA-Z_0-9/]+")
+Define identifierRegex.i = CreateRegularExpression(#PB_Any, "[a-zA-Z_0-9]")
+Define basicTagRegex.i = CreateRegularExpression(#PB_Any, "[a-zA-Z_0-9/]+")
 
 NewList files.File()
 
@@ -181,17 +181,17 @@ Procedure WriteShortT(file, val$)
     WriteWord(file, ValDefaultShort(text$))
 EndProcedure
 
-Procedure writeSignature(datafile.l)
+Procedure writeSignature(datafile.i)
     WriteLong(datafile, $54545454)
 EndProcedure
 
-Procedure writeVersion(datafile.l, maj.a, min.a, rev.a)
+Procedure writeVersion(datafile.i, maj.a, min.a, rev.a)
     WriteAsciiCharacter(datafile, maj)
     WriteAsciiCharacter(datafile, min)
     WriteAsciiCharacter(datafile, rev)
 EndProcedure
 
-Procedure.s getDescriptorLine(file.l, *lineN.Long)
+Procedure.s getDescriptorLine(file.i, *lineN.Long)
     Define line.s
     Repeat
         If Eof(file)
@@ -206,7 +206,7 @@ EndProcedure
 Procedure readFileList()
     Shared files()
     
-    file.l = ReadFile(#PB_Any, "project_db.txt")
+    file.i = ReadFile(#PB_Any, "project_db.txt")
     
     If Not file
         error("Could Not find project DB.")
@@ -223,12 +223,12 @@ Procedure readFileList()
     CloseFile(file)
 EndProcedure
 
-loadedFile.LoadedFile
+loadedfile.LoadedFile
 loadedFile\buffer = #Null
 loadedFile\size = 0
 Procedure readFileToMemory(path.s)
     Shared loadedFile
-    file.l = ReadFile(#PB_Any, path)
+    file.i = ReadFile(#PB_Any, path)
     If Not file
         ProcedureReturn 0
     EndIf
@@ -241,16 +241,16 @@ Procedure readFileToMemory(path.s)
     ProcedureReturn loadedFile\size
 EndProcedure
 
-Procedure writeMemoryToFile(datafile.l)
+Procedure writeMemoryToFile(datafile.i)
     Shared loadedFile
     WriteData(datafile, loadedFile\buffer, loadedFile\size)
 EndProcedure
 
-Procedure writeFileType(datafile.l, type.b)
+Procedure writeFileType(datafile.i, type.b)
     WriteAsciiCharacter(datafile, type)
 EndProcedure
 
-Procedure writeAsciiString(datafile.l, tag.s)
+Procedure writeAsciiString(datafile.i, tag.s)
     WriteString(datafile, tag, #PB_Ascii)
     WriteAsciiCharacter(datafile, $A)
 EndProcedure
@@ -298,7 +298,7 @@ Macro checkIsEntityM(elementType)
 EndMacro
 
 
-Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
+Procedure writeAnimationDescriptor(datafile.i, info.s, isEntity.b)
     Define value.l, line.s, value$, valueD.d, frameNumber.l, lastModifiedFrame.b = -1, i.b
 
     lineN.l = 1
@@ -310,7 +310,7 @@ Procedure writeAnimationDescriptor(datafile.l, info.s, isEntity.b)
     If Right(info, 4) = ".dat"
         ;- The info string is supposedly a file name (opening it) ---------------------------------
         printLog("  Uses a descriptor file : " + info)
-        descriptorFile.l = ReadFile(#PB_Any, info)
+        descriptorfile.i = ReadFile(#PB_Any, info)
         If Not descriptorFile
             error("Could not open descriptor file " + info)
         EndIf
@@ -787,14 +787,14 @@ Macro writeGameplayValues(valuesType, debugNames, valuesNB)
     EndIf
 EndMacro
 
-Procedure writeChampionFile(datafile.l, sourceFileName.s)
+Procedure writeChampionFile(datafile.i, sourceFileName.s)
     Define value.l, line.s, value$, valueD.d, i.b
     Shared championValues()
 
     printLog("---")
     printLog("Writing Champion descriptor file at offset " + hexLoc)
 
-    sourceFile.l = OpenFile(#PB_Any, sourceFileName)
+    sourcefile.i = OpenFile(#PB_Any, sourceFileName)
     If Not sourceFile
         error("Could not open the source file (" + sourceFileName + ")")
     EndIf
@@ -843,14 +843,14 @@ Procedure writeChampionFile(datafile.l, sourceFileName.s)
 
 EndProcedure
 
-Procedure writeStageFile(datafile.l, sourceFileName.s)
+Procedure writeStageFile(datafile.i, sourceFileName.s)
     Shared stageValues()
     Define value.l, line.s, value$, valueD.d, i.b
 
     printLog("---")
     printLog("Writing Stage descriptor file at offset " + hexloc)
 
-    sourceFile.l = OpenFile(#PB_Any, sourceFileName)
+    sourcefile.i = OpenFile(#PB_Any, sourceFileName)
     If Not sourceFile
         error("Could not open the source file (" + sourceFileName + ")")
     EndIf
@@ -950,7 +950,7 @@ Procedure checkBasicTag(tag.s)
     ProcedureReturn checkString(basicTagRegex, tag)
 EndProcedure
 
-Procedure.s parseAnimationTag(datafile.l, tag.s)
+Procedure.s parseAnimationTag(datafile.i, tag.s)
     If GMB_CountFields(tag, "/") < 3
         Select Left(tag, 1)
             Case "$"
@@ -978,7 +978,7 @@ Procedure.s parseAnimationTag(datafile.l, tag.s)
     ProcedureReturn GMB_SepRight(tag, "/", 2)
 EndProcedure
 
-Procedure addFile(datafile.l, *inputFile.File)
+Procedure addFile(datafile.i, *inputFile.File)
     Define type.b
 
     printLog("===================")
@@ -1142,8 +1142,8 @@ EndIf
 
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 206
-; FirstLine = 184
+; CursorPosition = 116
+; FirstLine = 112
 ; Folding = ------
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe

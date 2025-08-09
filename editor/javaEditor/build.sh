@@ -19,10 +19,7 @@ then
         exit
     fi
     
-    mkdir -p classes 2> /dev/null
-	javac -d ./classes -cp "./src;./lib/*" ./src/main/Main.java
-	echo Main-Class: main.Main>manifest.mf
-	echo Class-Path: ./lib/*>>manifest.mf
+    ./build/compile.sh
 	
 	mkdir tmp
 	(cd tmp; unzip -uo ../lib/\*.jar)

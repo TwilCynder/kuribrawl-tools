@@ -1,6 +1,7 @@
 package gamedata;
 
 import gamedata.EntityFrame.FrameMovementAxis;
+import gamedata.GameplayAnimationBehavior.LandingBehaviorWindow;
 import gamedata.exceptions.FrameOutOfBoundsException;
 import gamedata.exceptions.GameDataException;
 import gamedata.exceptions.WhatTheHellException;
@@ -17,6 +18,8 @@ import KBUtil.Vec2;
 
 public class EntityAnimation extends Animation implements Iterable<Pair<Frame, EntityFrame>>{
     private EntityFrame[] entity_frames;
+    public GameplayAnimationBehavior gab = new GameplayAnimationBehavior();
+
 
     public EntityAnimation(String name, Image source, int nbFrames, String source_filename, String descriptor_filename) throws InvalidPathException{
         super (name, source, nbFrames, source_filename, descriptor_filename);
@@ -89,8 +92,13 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
         return frame.hurtboxes;
     }
 
-    public enum EntityAnimationDefaultness implements Defaultness {
+    public static enum EntityAnimationDefaultness implements Defaultness {
         DEFAULT_CBOX;
+
+        @Override
+        public boolean needDescriptor() {
+            return true;
+        }
     } 
 
     private Defaultness getFrameDefaultness(Frame frame, EntityFrame entityFrame){
@@ -252,4 +260,14 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
         return new AnimationParser.EntityAnimationParsingState(this);
     }
 
+    public void finalize(Champion champion, GameData gd){    
+        for (LandingBehaviorWindow window : gab.getLandingBehaviorsWindows()){
+            window.finalize(champion);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "EntityAnimation " + name;
+    }
 }

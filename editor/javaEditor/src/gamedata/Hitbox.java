@@ -2,6 +2,7 @@ package gamedata;
 
 import KBUtil.Rectangle;
 import gamedata.exceptions.RessourceException;
+import gamedata.parsers.Parser;
 
 public abstract class Hitbox extends CollisionBox {
     public Hitbox(){
@@ -26,7 +27,7 @@ public abstract class Hitbox extends CollisionBox {
         res += x + " " + y + " " + w + " " + h + " " + Integer.toString(getTypeCode()) + " " + stringifyTypeSpecificInfo();
         return res;
     }
-
+ 
     public static Hitbox parseDescriptorFields(String[] fields) throws RessourceException{
         Hitbox h = null;
 
@@ -36,20 +37,25 @@ public abstract class Hitbox extends CollisionBox {
 
         try {
             //coordinates
-            Rectangle rect = new Rectangle(Integer.parseInt(fields[1]), Integer.parseInt(fields[2]), Integer.parseInt(fields[3]), Integer.parseInt(fields[4]));
+            Rectangle rect = new Rectangle(
+                Parser.parseInt(fields[1], "Hitbox X coordinate"), 
+                Parser.parseInt(fields[2], "Hitbox Y coordinate"), 
+                Parser.parseInt(fields[3], "Hitbox width"),
+                Parser.parseInt(fields[4], "Hitbox height")
+            );
 
-            switch (Integer.parseInt(fields[5])){
+            switch (Parser.parseInt(fields[5], "Hitbox type")){
                 case Hitbox.DAMAGE_HITBOX_CODE:
                 {
                     DamageHitbox hitbox = new DamageHitbox(rect);
                     if (fields.length < 10) throw new RessourceException("Damage Hitbox info line should contain at least 9 fields (x y w h type dmg angle bkb skb [hit[prio]]");
                     hitbox.damage = java.lang.Double.parseDouble(fields[6]);
-                    hitbox.angle = Integer.parseInt(fields[7]);
-                    hitbox.base_knockback= java.lang.Double.parseDouble(fields[8]);
-                    hitbox.scaling_knockback = java.lang.Double.parseDouble(fields[9]);
+                    hitbox.angle = Parser.parseInt(fields[7], "Hitbox angle");
+                    hitbox.base_knockback= Parser.parseDouble(fields[8], "Hitbox base knockback");
+                    hitbox.scaling_knockback = Parser.parseDouble(fields[9], "Hitbox scaling knockback");
                     if (fields.length > 10){
-                        hitbox.hitID = Integer.parseInt(fields[10]);
-                        if (fields.length > 11) hitbox.priority = Integer.parseInt(fields[11]);
+                        hitbox.hitID = Parser.parseInt(fields[10], "Hitbox Hit-id");
+                        if (fields.length > 11) hitbox.priority = Parser.parseInt(fields[11], "Hitbox priority");
                     }
                     h = hitbox;
                 }

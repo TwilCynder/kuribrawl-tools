@@ -44,6 +44,9 @@ clear:
 	-@rm -r tmp
 	-@rm *.jar
 
+run: standalone
+	./kuribrawl-editor.jar
+
 clean: clear all
 
 .PHONY: all clear clean dependant release
