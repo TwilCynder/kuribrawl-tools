@@ -328,6 +328,11 @@ public class RessourcePath {
         writer.write(str, 0, str.length());
     }
 
+    private static void writePath(BufferedWriter writer, String path) throws IOException{
+        String correctedPath = path.replace('\\', '/');
+        writeString(writer, correctedPath);
+    }
+
     /**
      * Class used to define code to be ran if information required to save data is missing.   
      * Each method is called for a specific missing info. If a call to these methods returns false, an exception is raised.
@@ -382,21 +387,21 @@ public class RessourcePath {
             for (Stage s : gd.getStages()){
                 System.out.println("Writing champion " + s.getDisplayName() + " " + s.getDescriptorFilename());
                 
-                writeString(listWriter, s.getDescriptorFilename()); listWriter.newLine();
+                writePath(listWriter, s.getDescriptorFilename()); listWriter.newLine();
                 writeString(listWriter, "S:" + s.getName()); listWriter.newLine();
 
                 for (Animation anim : s){
-                    writeString(listWriter, anim.getSourceFilename()); listWriter.newLine();
+                    writePath(listWriter, anim.getSourceFilename());; listWriter.newLine();
                     writeString(listWriter, "A:" + "Stage/" + s.getName() + "/" + anim.getName() + " ");
 
                     if (anim.areFramesDefault()){
                         writeString(listWriter, "" + anim.getNbFrames() + " " + anim.getSpeed());
                     } else {
                         toWrite = getAnimationDescriptorFilename(anim, s, mil);
-                        writeString(listWriter, toWrite);
+                        writePath(listWriter, toWrite);
 
                         try (BufferedWriter descriptorWriter = fileWriter(anim.getDescriptorPath())){
-                            writeString(descriptorWriter, anim.generateDescriptor());
+                            writePath(descriptorWriter, anim.generateDescriptor());
                         }
                     }
                     listWriter.newLine();
@@ -408,23 +413,22 @@ public class RessourcePath {
 
                 toWrite = getChampionDescriptorFilename(c, mil);
 
-                writeString(listWriter, c.getDescriptorFilename()); listWriter.newLine();
+                writePath(listWriter, c.getDescriptorFilename()); listWriter.newLine();
                 writeString(listWriter, "C:" + c.getName()); listWriter.newLine();
 
                 for (EntityAnimation anim : c){
                     System.out.println("Writing animation " + anim.getName());
 
-                    writeString(listWriter, anim.getSourceFilename()); listWriter.newLine();
+                    writePath(listWriter, anim.getSourceFilename()); listWriter.newLine();
                     writeString(listWriter, "A:" + c.getName() + "/" + anim.getName() + " ");
 
                     Defaultness defaultness = anim.getFramesDefaultness();
                     if (defaultness.needDescriptor()){
-
                         toWrite = getAnimationDescriptorFilename(anim, c, mil);
-                        writeString(listWriter, toWrite);
+                        writePath(listWriter, toWrite);
 
                         try (BufferedWriter descriptorWriter = fileWriter(anim.getDescriptorPath())){
-                            writeString(descriptorWriter, anim.generateDescriptor());
+                            writePath(descriptorWriter, anim.generateDescriptor());
                         }
                     } else {
                         writeString(listWriter, "" + anim.getNbFrames() + " " + anim.getSpeed());
