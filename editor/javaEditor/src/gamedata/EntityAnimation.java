@@ -97,7 +97,7 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
 
         @Override
         public boolean needDescriptor() {
-            return true;
+            return false; //for now all instances are DEFAULT_CBOX, which doesn't require a descriptor
         }
     } 
 

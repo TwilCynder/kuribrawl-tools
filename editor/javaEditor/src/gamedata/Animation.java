@@ -235,9 +235,9 @@ public class Animation {
     }
 
     protected boolean areFramesDefault(){
-        boolean res = false;
+        boolean res = true;
         for (Frame f : frames){
-            res |= isFrameDefault(f);
+            res &= isFrameDefault(f);
         }
         return res;
     }
