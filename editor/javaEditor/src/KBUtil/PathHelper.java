@@ -61,4 +61,13 @@ public abstract class PathHelper {
         createDirsForFile(target);
         Files.move(source, target, options);
     }
+
+    /**
+     * NO WINDOWS I DONT WANT YOUR FUCKASS \ IN FILEPATHS BE NORMAL
+     * @param path
+     * @return
+     */
+    public static String normalizePath(String path) {
+        return path.replace('\\', '/');
+    }
 }

@@ -54,6 +54,10 @@ public class GameplayAnimationBehavior {
         public final String toString() {
             return "Landing Behavior : " + behaviorString();
         }
+
+        public String generateDescriptor() {
+            return "n";
+        }
     }
 
     protected static abstract class DurableLandingBehavior extends LandingBehavior {
@@ -72,6 +76,7 @@ public class GameplayAnimationBehavior {
         public void setDuration(int d) {
             this.duration = d;
         }
+        
     }
 
     public static class NormalLandingBehavior extends DurableLandingBehavior {
@@ -82,6 +87,11 @@ public class GameplayAnimationBehavior {
         @Override
         public String behaviorString(){
             return "Normal (" + duration + " frames)";
+        }
+
+        @Override
+        public String generateDescriptor() {
+            return "l " + duration;
         }
     }
 
@@ -116,6 +126,10 @@ public class GameplayAnimationBehavior {
             return "Animation : " + anim + " (" + duration + " frames)";
         }
 
+        @Override
+        public String generateDescriptor() {
+            return "a " + anim.get().name + " " + duration;
+        }
     }
 
     public static class LandingBehaviorWindow implements Comparable<LandingBehaviorWindow>{

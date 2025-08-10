@@ -22,6 +22,8 @@ import java.util.zip.ZipOutputStream;
 import java.awt.Image;
 
 import javax.imageio.ImageIO;
+
+import KBUtil.PathHelper;
 import KBUtil.StringHelper;
 import gamedata.Animation.Defaultness;
 import gamedata.EntityAnimation.EntityAnimationDefaultness;
@@ -329,8 +331,7 @@ public class RessourcePath {
     }
 
     private static void writePath(BufferedWriter writer, String path) throws IOException{
-        String correctedPath = path.replace('\\', '/');
-        writeString(writer, correctedPath);
+        writeString(writer, PathHelper.normalizePath(path));
     }
 
     /**
@@ -401,7 +402,7 @@ public class RessourcePath {
                         writePath(listWriter, toWrite);
 
                         try (BufferedWriter descriptorWriter = fileWriter(anim.getDescriptorPath())){
-                            writePath(descriptorWriter, anim.generateDescriptor());
+                            writeString(descriptorWriter, anim.generateDescriptor());
                         }
                     }
                     listWriter.newLine();
@@ -428,7 +429,7 @@ public class RessourcePath {
                         writePath(listWriter, toWrite);
 
                         try (BufferedWriter descriptorWriter = fileWriter(anim.getDescriptorPath())){
-                            writePath(descriptorWriter, anim.generateDescriptor());
+                            writeString(descriptorWriter, anim.generateDescriptor());
                         }
                     } else {
                         writeString(listWriter, "" + anim.getNbFrames() + " " + anim.getSpeed());

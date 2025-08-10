@@ -197,6 +197,15 @@ public class EntityAnimation extends Animation implements Iterable<Pair<Frame, E
     }
 
     @Override
+    public String generateDescriptor() throws GameDataException, WhatTheHellException{
+        String res = super.generateDescriptor();
+        for (LandingBehaviorWindow window : gab.getLandingBehaviorsWindows()){
+            res += "\nl " + window.getFrame() + " " + window.getLandingBehavior().generateDescriptor();
+        }
+        return res;
+    }
+
+    @Override
     protected String generateFrameDescriptor(int index) throws FrameOutOfBoundsException, GameDataException {
         return generateFrameDescriptor(index, getFrame(index), getEntityFrame(index));
     }

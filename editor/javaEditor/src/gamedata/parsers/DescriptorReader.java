@@ -26,8 +26,6 @@ public class DescriptorReader implements AutoCloseable {
             line = line.split("#")[0]; //garanti non nul
             if (line.length() > 0) return line; //si on a une descriptor line non vide on return, sinon on passe à la suivante
         }
-        Integer i = 0;
-        i = i + 1;
         return null; //if we reached this point, we didn't find anything before eof, so returning null
     }
 
