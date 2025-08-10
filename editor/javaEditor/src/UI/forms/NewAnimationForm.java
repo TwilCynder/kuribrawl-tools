@@ -228,10 +228,13 @@ public class NewAnimationForm extends EditorForm {
         if (currentRessourcePath == null) throw new IllegalStateException("Cannot create a new animation with no current ressource path");
 
         try {
-            currentRessourcePath.addAnimation(champion, animName, nbFrames, sourceImageFilename, descriptorFilename);
+            EntityAnimation res = currentRessourcePath.addAnimation(champion, animName, nbFrames, sourceImageFilename, descriptorFilename);
             editor.notifyDataModified();
             editor.updateAnimations();
             currentData.printAnimations();
+
+            editor.setDisplayedObject(res);
+
         } catch (RessourceException ex){    
             JOptionPane.showMessageDialog(editor, "Error while creating the animation : \n" + ex.getLocalizedMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
