@@ -309,6 +309,7 @@ public class AnimationParser extends Parser {
             while (reader.ready()){
                 line_index += reader.getLinesRead();
                 line = reader.readLine();
+                if (line == null) break;
                 switch(line.substring(0, 1)){
                     case "s":
                     line = line.substring(1);
