@@ -52,10 +52,10 @@ Enumeration
     #HITBOXTYPE_SPECIAL
 EndEnumeration
 
-Enumeration 
+Enumeration
     #ANIM_END_NORMAL
-    #ANIM_END_HELPLESS 
-    #ANIM_END_CUSTOM 
+    #ANIM_END_HELPLESS
+    #ANIM_END_CUSTOM
 EndEnumeration
 
 #MAX_VALUE_BYTE = 255
@@ -205,9 +205,9 @@ EndProcedure
 
 Procedure readFileList()
     Shared files()
-    
+
     file.i = ReadFile(#PB_Any, "project_db.txt")
-    
+
     If Not file
         error("Could Not find project DB.")
         End
@@ -592,16 +592,16 @@ Procedure writeAnimationDescriptor(datafile.i, info.s, isEntity.b)
                     EndSelect
                 Case "e"
                     checkIsEntityM("End behavior")
-                    
+
                     printLog("  Writing ending behavior info")
                     WriteAsciiCharacter(datafile, #FILEMARKER_ANIM_END_INFO)
-                    
+
                     value$ = GMB_StringField(line, 2, " ")
                     Select value$
                         Case ""
                             printLog("    No value specified, assuming helpless")
                             WriteAsciiCharacter(datafile, #ANIM_END_HELPLESS)
-                           
+
                         Case "helpless"
                             printLog("    Mode : helpless")
                             WriteAsciiCharacter(datafile, #ANIM_END_HELPLESS)
@@ -610,17 +610,17 @@ Procedure writeAnimationDescriptor(datafile.i, info.s, isEntity.b)
                         Default
                             error(errorLocationInfo("Invalid end behavior mode"))
                     EndSelect
-                    
-                    
+
+
                 Case "l"
                     ;- - Landing info line -------------------------------------------------------------
-                    
+
                     checkIsEntityM("Landing")
-                
-                    
+
+
                     printLog("  Writing landing info")
                     WriteAsciiCharacter(datafile, #FILEMARKER_LANDINGINFO)
-                    
+
                     value$ = GMB_StringField(line, 2, " ")
                     If value$ = ""
                         error(errorLocationInfo(" : No frame index specified at the start of landing behavior descriptor"))
@@ -630,10 +630,10 @@ Procedure writeAnimationDescriptor(datafile.i, info.s, isEntity.b)
                     If value < 0 Or value > frameNumber
                         error(errorLocationInfo(" : frame index must be between 0 and the frame number (" + frameNumber + ")"))
                     EndIf
-                    
+
                     printLog("    Starting frame : " + value)
                     writeUShort(datafile, value)
-                    
+
                     value$ = GMB_StringField(line, 3, " ")
                     Debug value$
                     Select value$
@@ -644,41 +644,41 @@ Procedure writeAnimationDescriptor(datafile.i, info.s, isEntity.b)
                             printLog("    Type : Normal")
                             WriteAsciiCharacter(datafile, #FILEMARKER_LANDING_NORMAL)
                             value$ = GMB_StringField(line, 4, " ")
-                            If value$ 
+                            If value$
                                 value = Val(value$)
                                 printLog("    Duration : " + value)
                                 writeShort(datafile, value)
                             Else
                                 printLog("    Duration : animation default (-1)")
                                 writeShort(datafile, -1)
-                            EndIf 
+                            EndIf
                         Case "a"
                             printLog("    Type : Animation")
                             WriteAsciiCharacter(datafile, #FILEMARKER_LANDING_ANIMATION)
                             value$ = GMB_StringField(line, 5, " ")
-                            If value$ 
+                            If value$
                                 value = Val(value$)
                                 printLog("    Duration : " + value)
                                 writeShort(datafile, value)
                             Else
                                 printLog("    Duration : animation default (-1)")
                                 writeShort(datafile, -1)
-                            EndIf 
-                            
+                            EndIf
+
                             value$ = GMB_StringField(line, 4, " ")
-                            
+
                             If value$ = ""
                                 error(errorLocationInfo(" : No animation name"))
                             ElseIf Not isValidIdentifier(value$)
                                 error(errorLocationInfo(" : " + value$ + " is not a valid animation name"))
-                            EndIf 
-                            
+                            EndIf
+
                             printLog("    Animation name : " + value$)
                             writeAsciiString(datafile, value$)
-                            
+
                         Case ""
                             error(errorLocationInfo(" : No landing behavior type specified in landing behavior descriptor"))
-                        Default 
+                        Default
                             error(errorLocationInfo(" : Invalid behavior type indicator, should be n, l or a was " + value$))
                     EndSelect
                 Case "#"
@@ -812,28 +812,28 @@ Procedure writeChampionFile(datafile.i, sourceFileName.s)
 
     While Not line = ""
         Select Left(line, 1)
-;             Case "m"
-;                 value$ = GMB_StringField(line, 2, " ")
-;                 If value$ = ""
-;                     error("Move names cannot be empty")
-;                 EndIf
-;                 WriteAsciiCharacter(datafile, #FILEMARKER_MOVEINFO)
-;                 writeAsciiString(datafile, value$)
-;                 printLog("- Writing move info : " + value$)
-; 
-;                 ;- - - Reading all values
-;                 For i = 3 To GMB_CountFields(line, " ")
-;                     value$ = GMB_StringField(line, i, " ")
-;                     Select value$
-;                         Case "l" ; landing lag
-;                             i + 1
-;                             value$ = GMB_StringField(line, i, " ")
-;                             WriteAsciiCharacter(datafile, #FILEMARKER_LANDINGLAG)
-;                             WriteAsciiCharacter(datafile, Val(value$))
-;                             printLog("  - Landing lag : " + value$)
-;                     EndSelect
-; 
-;                 Next
+                ;             Case "m"
+                ;                 value$ = GMB_StringField(line, 2, " ")
+                ;                 If value$ = ""
+                ;                     error("Move names cannot be empty")
+                ;                 EndIf
+                ;                 WriteAsciiCharacter(datafile, #FILEMARKER_MOVEINFO)
+                ;                 writeAsciiString(datafile, value$)
+                ;                 printLog("- Writing move info : " + value$)
+                ;
+                ;                 ;- - - Reading all values
+                ;                 For i = 3 To GMB_CountFields(line, " ")
+                ;                     value$ = GMB_StringField(line, i, " ")
+                ;                     Select value$
+                ;                         Case "l" ; landing lag
+                ;                             i + 1
+                ;                             value$ = GMB_StringField(line, i, " ")
+                ;                             WriteAsciiCharacter(datafile, #FILEMARKER_LANDINGLAG)
+                ;                             WriteAsciiCharacter(datafile, Val(value$))
+                ;                             printLog("  - Landing lag : " + value$)
+                ;                     EndSelect
+                ;
+                ;                 Next
         EndSelect
         line = getDescriptorLine(sourceFile, @lineN)
     Wend
@@ -1056,8 +1056,8 @@ Procedure addFile(datafile.i, *inputFile.File)
 EndProcedure
 
 Procedure help()
-  OpenConsole()
-  PrintN(~"Usage : DFM.exe [-v] [-l] [-o <outputFile>] [-h] [<inputDir>]\n\t-l : Logs info to the terminal\n\t-v : Logs more info to the terminal\n\t-o <outputFile>: Filename of the results .twl file\n\t-h : Prints this help text")
+    OpenConsole()
+    PrintN(~"Usage : DFM.exe [-v] [-l] [-o <outputFile>] [-h] [<inputDir>]\n\t-l : Logs info to the terminal\n\t-v : Logs more info to the terminal\n\t-o <outputFile>: Filename of the results .twl file\n\t-h : Prints this help text")
 EndProcedure
 
 buildpath.s = ""
@@ -1134,10 +1134,10 @@ CloseFile(0)
 If logging
     PrintN("===============================")
     PrintN("FINISHED. File size : " + size)
-    
-    If #PB_Compiler_Debugger 
+
+    If #PB_Compiler_Debugger
         Input()
-    EndIf   
+    EndIf
 EndIf
 
 ; IDE Options = PureBasic 6.12 LTS (Windows - x64)

@@ -3,15 +3,15 @@
 EndMacro
 
 Macro valByte(valueS)
-    Val(valueS)    
+    Val(valueS)
 EndMacro
 
 Macro valShort(valueS)
-    Val(valueS)    
+    Val(valueS)
 EndMacro
 
 Macro valUShort(valueS)
-    Val(valueS)    
+    Val(valueS)
 EndMacro
 
 Macro valDouble(valueS)
@@ -23,14 +23,14 @@ Macro writeValue(file, valueS, type)
         writeMaxValue(file, type)
     Else
         write#type(file, val#type(valueS))
-    EndIf   
-    
+    EndIf
+
 EndMacro
 
 Macro GSAP(obj, struct, field)
     @obj + OffsetOf(struct\field)
 EndMacro
 
-; IDE Options = PureBasic 6.00 LTS (Windows - x64)
+; IDE Options = PureBasic 6.12 LTS (Windows - x64)
 ; Folding = --
 ; EnableXP
