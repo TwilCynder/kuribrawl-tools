@@ -261,7 +261,7 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 
 	private Action loadGameDataAction = new AbstractAction("Load Game Data") {
 		public void actionPerformed(ActionEvent e){
-			openResourcePathDialogue();
+			openResourcePathDialogue(currentRessourcePath.getPath().toString());
 		}
 	};
 
@@ -1285,8 +1285,9 @@ public class Window extends JFrame implements EntityAnimationEditorWindow {
 		setMenuBar_(gamedata_bar);
 	} 
 
-	public void openResourcePathDialogue(){
-		PathChooser chooser = new PathChooser(PathChooser.Mode.DIRECTORY, ".");
+	public void openResourcePathDialogue(String defaultPath){
+
+		PathChooser chooser = new PathChooser(PathChooser.Mode.DIRECTORY, defaultPath != null ? defaultPath : ".");
 		Path selected = chooser.openPath(this);
 
 		if (selected != null){
