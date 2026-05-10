@@ -482,7 +482,7 @@ Procedure writeAnimationDescriptor(datafile.i, info.s, isEntity.b)
                         warning(errorLocationInfo("One of the values is not a number - using 0"))
                     EndIf
                     WriteWord(datafile, Val(value$))
-                    printLog("    " + *debugValues\hurtboxValues[2] + " : " + value$)
+                    printLog("    " + *debugValues\hurtboxValues[0] + " : " + value$)
 
                     ;- - - Reading coordinates
                     For i = 3 To 5
@@ -1087,16 +1087,15 @@ While 1
     EndSelect
 Wend
 
+#DEFAULT_FILENAME = "data.twl"
+
 If Right(source, 1) <> "/" And Len(source) > 0
     source + "/"
 EndIf
 
 If buildpath = ""
-    buildpath = "data.twl"
+    buildpath = source + #DEFAULT_FILENAME
 EndIf
-
-
-SetCurrentDirectory(source)
 
 If logging
     *debugValues = initDebugValues()
@@ -1108,20 +1107,26 @@ If logging
     OpenConsole()
 EndIf
 
+If FileSize(buildpath) = -2
+    buildpath = buildpath + "/" + #DEFAULT_FILENAME
+EndIf
+
 If Not CreateFile(0, buildpath)
     PrintN(buildpath)
     error("Could not create the Data File.")
     End
 EndIf
 
+PrintN("Building Kuribrawl Data File at " + buildpath + " from ressources at " + source + ".")
 If logging
-    PrintN("Building Kuribrawl Data File at" + buildpath + " from ressources at " + source + ".")
     PrintN("Data File Format version : " + #DFV_MAJ + "." + #DFV_MIN + "." + #DFV_REV)
     PrintN("Ressource Files Format version : " + #RFV_MAJ + "." + #RFV_MIN + "." + #RFV_REV)
 EndIf
 
 writeSignature(0)
 writeVersion(0, #DFV_MAJ, #DFV_MIN, #DFV_REV)
+
+SetCurrentDirectory(source)
 readFileList()
 
 ForEach files()
@@ -1133,17 +1138,16 @@ CloseFile(0)
 
 If logging
     PrintN("===============================")
-    PrintN("FINISHED. File size : " + size)
-
-    If #PB_Compiler_Debugger
-        Input()
-    EndIf
+EndIf
+PrintN("FINISHED. File size : " + size)
+If logging And #PB_Compiler_Debugger
+    Input()
 EndIf
 
-; IDE Options = PureBasic 6.12 LTS (Windows - x64)
+; IDE Options = PureBasic 6.40 (Windows - x64)
 ; ExecutableFormat = Console
-; CursorPosition = 116
-; FirstLine = 112
+; CursorPosition = 1128
+; FirstLine = 1092
 ; Folding = ------
 ; EnableXP
 ; Executable = ..\..\..\res\DFM.exe
